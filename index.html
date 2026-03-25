@@ -43,9 +43,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
   display: flex; align-items: center; justify-content: space-between;
   font-size: 12.5px; color: #4a6a8a; min-height: 42px;
 }
-.sondage-banner-info {
-  display: flex; align-items: center; gap: 0; flex-wrap: wrap;
-}
+.sondage-banner-info { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
 .sondage-banner-info .sep { color: #b0c0d0; margin: 0 8px; font-size: 10px; }
 .sondage-banner-info .bv { font-weight: 600; color: #1a3a5c; }
 .sondage-banner-empty { color: #9ab0c8; font-style: italic; }
@@ -76,16 +74,9 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
   cursor: pointer; border: none; background: none;
   color: #8a9aaa; border-bottom: 2px solid transparent;
   margin-bottom: -2px; transition: all 0.15s;
-  position: relative;
 }
 .tab-btn:hover { color: #4a6a8a; }
 .tab-btn.active { color: #1a3a5c; border-bottom-color: #1a3a5c; }
-.tab-btn.disabled { color: #c0c8d0; cursor: default; opacity: 0.5; }
-.tab-btn .tab-indicator {
-  display: none; width: 6px; height: 6px; border-radius: 50%;
-  background: #2d6a9f; position: absolute; top: 6px; right: 6px;
-}
-.tab-btn .tab-indicator.visible { display: block; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
@@ -143,7 +134,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .status-msg.success { display: block; background: #e8f5e8; color: #2a6a2a; border: 1px solid #b0d8b0; }
 .status-msg.info { display: block; background: #e8f0fe; color: #1a3a5c; border: 1px solid #b0c8e4; }
 
-/* ====== WARNINGS (verify) ====== */
+/* ====== VERIFY BADGE ====== */
 .verify-badge {
   display: inline-block; padding: 1px 6px; border-radius: 4px;
   font-size: 9px; font-weight: 700; text-transform: uppercase;
@@ -171,15 +162,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .info-bar { background: #e8f0fe; border-left: 3px solid #2d6a9f; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #1a3a5c; margin-bottom: 16px; line-height: 1.5; }
 .warn-bar { background: #fef9e8; border-left: 3px solid #c4960a; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #6a5010; line-height: 1.5; margin-top: 14px; }
 
-/* ====== FINAL TABLE ====== */
-.final-meta {
-  background: #f0f4f8; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
-  font-size: 12.5px; color: #3a5a7a;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px;
-  border: 1px solid #e0e8f0;
-}
-.final-meta strong { color: #1a3a5c; }
-
+/* ====== ADAPTIVE TABLE ====== */
 table.final-table {
   width: 100%; border-collapse: separate; border-spacing: 0;
   font-size: 12px; border-radius: 10px; overflow: hidden;
@@ -187,11 +170,13 @@ table.final-table {
 }
 table.final-table thead th {
   background: #1a3a5c; color: white;
-  padding: 10px 12px; text-align: left;
+  padding: 10px 10px; text-align: left;
   font-weight: 700; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.5px;
   border-bottom: 2px solid #0d2a45;
+  white-space: nowrap;
 }
+table.final-table thead th.th-center { text-align: center; }
 table.final-table tbody td {
   padding: 0; vertical-align: top; border-bottom: 1px solid #e4eaf0;
 }
@@ -201,21 +186,29 @@ table.final-table tbody tr:last-child td { border-bottom: none; }
 .layer-row td { background: white; }
 .layer-row:nth-child(even) td { background: #fafcff; }
 
-.td-litho { width: 6px; padding: 0 !important; position: relative; }
-.litho-strip { position: absolute; top: 0; left: 0; bottom: 0; width: 6px; }
+/* Figure column */
+.td-figure { width: 40px; padding: 0 !important; position: relative; }
+.td-figure svg { display: block; width: 40px; }
+
+/* Depth column */
 .td-depth {
-  padding: 10px 10px !important;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 12px;
+  padding: 10px 8px !important;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 11.5px;
   font-weight: 600; color: #1a3a5c; white-space: nowrap; text-align: center;
+  min-width: 90px;
 }
-.td-ep { padding: 10px 8px !important; min-width: 80px; }
-.ep-wrap { display: flex; flex-direction: column; gap: 3px; }
-.ep-val { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 11.5px; color: #3a5a7a; }
-.ep-bar-bg { width: 100%; height: 5px; background: #e8eef4; border-radius: 3px; overflow: hidden; }
-.ep-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #2d6a9f, #4a9acf); transition: width 0.3s; }
+.td-depth .depth-ep { font-size: 10px; font-weight: 400; color: #8a9aaa; margin-top: 2px; }
+
+/* Description column */
 .td-desc { padding: 10px 12px !important; }
 .desc-normee { font-weight: 600; color: #1a2332; font-size: 12.5px; line-height: 1.45; }
-.desc-brute { font-size: 10.5px; color: #8a9aaa; margin-top: 3px; font-style: italic; line-height: 1.4; }
+.desc-brute { font-size: 11px; color: #9aa8b8; margin-top: 3px; font-style: italic; line-height: 1.4; }
+
+/* Conditional columns */
+.td-detail { padding: 8px 10px !important; font-size: 11.5px; color: #3a5a7a; }
+.td-altitude { padding: 8px 8px !important; font-size: 11px; color: #4a6a8a; text-align: center; white-space: nowrap; }
+
+/* USCS badge */
 .td-uscs { padding: 10px 8px !important; text-align: center; }
 .uscs-badge {
   display: inline-block; padding: 3px 8px; border-radius: 5px;
@@ -227,6 +220,7 @@ table.final-table tbody tr:last-child td { border-bottom: none; }
 .uscs-badge.organic { background: #f0ece0; color: #5a4a20; border-color: #d4c8a0; }
 .uscs-badge.end { background: #f8f0f0; color: #7a3a3a; border-color: #e0c0c0; }
 
+/* Nappe bar */
 .nappe-bar {
   position: relative; height: 20px; margin: 6px -10px;
   display: flex; align-items: center;
@@ -259,6 +253,57 @@ table.final-table tbody tr:last-child td { border-bottom: none; }
 
 .export-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 
+/* ====== EDITABLE CELLS ====== */
+.cell-editable { cursor: pointer; position: relative; min-height: 20px; }
+.cell-editable:hover { background: #f0f6ff !important; }
+.cell-edited-manual { border-left: 3px solid #e8a030 !important; }
+.cell-edited-ai { border-left: 3px solid #4a90d0 !important; }
+.cell-edit-input {
+  width: 100%; border: 1.5px solid #2d6a9f; border-radius: 4px;
+  padding: 4px 6px; font-size: 12px; font-family: inherit;
+  background: #fff; outline: none;
+}
+.corrections-count {
+  font-size: 11px; color: #6a8aaa; padding: 6px 0;
+}
+
+/* ====== CORRECTION ASSISTEE ====== */
+.correction-box {
+  margin-top: 14px; padding: 14px 16px;
+  background: #f6f9fc; border: 1px solid #e0e8f0; border-radius: 10px;
+}
+.correction-box h4 { font-size: 12px; font-weight: 600; color: #4a6a8a; margin-bottom: 8px; }
+.correction-row { display: flex; gap: 8px; align-items: flex-start; }
+.correction-input {
+  flex: 1; min-height: 48px; max-height: 120px; padding: 8px 12px;
+  border: 1.5px solid #c0d0e0; border-radius: 8px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px; line-height: 1.5; resize: vertical;
+  background: #fff; color: #1a2332; outline: none;
+}
+.correction-input:focus { border-color: #2d6a9f; }
+.correction-input::placeholder { color: #a0b4c8; }
+.btn-correction {
+  padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid #2d6a9f; background: #e8f0fe; color: #1a3a5c;
+  white-space: nowrap; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-correction:hover { background: #d0e0f4; }
+.btn-correction:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-correction .spinner {
+  display: none; width: 12px; height: 12px;
+  border: 2px solid rgba(26,58,92,0.2); border-top-color: #1a3a5c;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+.btn-correction.loading .spinner { display: block; }
+.btn-correction.loading .corr-label { display: none; }
+.correction-status {
+  margin-top: 6px; font-size: 11px; color: #2a6a2a;
+  opacity: 0; transition: opacity 0.3s;
+}
+.correction-status.visible { opacity: 1; }
+
 /* ====== LOG DE FORAGE VIEW ====== */
 .log-svg-wrap { overflow-x: auto; }
 .log-meta {
@@ -267,7 +312,7 @@ table.final-table tbody tr:last-child td { border-bottom: none; }
 }
 .log-meta strong { color: #1a3a5c; }
 
-/* ====== CONVERTER BUTTONS ====== */
+/* ====== CONVERTER ====== */
 .ref-btn {
   padding: 5px 12px; border-radius: 6px; font-size: 10.5px; font-weight: 600;
   cursor: pointer; border: 1.5px solid #d0dce8; background: #f5f8fc; color: #6a8aaa;
@@ -294,13 +339,11 @@ table.lab-table tbody tr:nth-child(even) { background: #f5f8fc; }
 .converter-toggle:hover { background: #f5f8fc; }
 .converter-toggle .chevron { font-size: 10px; transition: transform 0.2s; color: #9ab0c8; }
 .converter-toggle.open .chevron { transform: rotate(90deg); }
-
 .converter-body {
   max-width: 1600px; margin: 0 auto;
   display: none; padding: 16px 32px 24px;
 }
 .converter-body.open { display: block; }
-
 .conv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .conv-input { width: 100%; padding: 10px 12px; border: 1.5px solid #c0d0e0; border-radius: 8px; font-size: 13px; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: #f6f9fc; }
 .conv-input:focus { outline: none; border-color: #2d6a9f; background: #fff; }
@@ -369,7 +412,6 @@ footer {
 
   <!-- LEFT COLUMN — INPUT -->
   <div class="card">
-    <!-- TERRAIN INPUT -->
     <div id="inputTerrain">
       <textarea class="carnet-input" id="notesInput" spellcheck="false" placeholder="F-01 12.03.2026 Bulle
 alt 771
@@ -408,6 +450,23 @@ ech. preleve a 3.5m"></textarea>
       </div>
       <div id="tableauExports" style="display:none;">
         <div class="warn-bar">Ce tableau a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. Une v&eacute;rification pr&eacute;alable demeure requise avant int&eacute;gration au rapport.</div>
+
+        <!-- Corrections count -->
+        <div class="corrections-count" id="correctionsCount"></div>
+
+        <!-- Correction assistee -->
+        <div class="correction-box" id="correctionBox">
+          <h4>Corriger avec l'assistant</h4>
+          <div class="correction-row">
+            <textarea class="correction-input" id="correctionInput" placeholder="Ex: la couche 3 est un gravier argileux, nappe a 3.8m" spellcheck="false"></textarea>
+            <button class="btn-correction" id="btnCorrection" onclick="applyCorrection()">
+              <span class="corr-label">Appliquer</span>
+              <span class="spinner"></span>
+            </button>
+          </div>
+          <div class="correction-status" id="correctionStatus"></div>
+        </div>
+
         <div class="export-row">
           <button class="btn-secondary" onclick="exportDOCX()">Exporter .docx</button>
           <button class="btn-secondary" onclick="exportXLSX()">Exporter .xlsx</button>
@@ -487,7 +546,7 @@ ech. preleve a 3.5m"></textarea>
   <p data-i18n="svp">Projet soutenu par le Student Venture Program de la HES-SO et de l'Universit&eacute; de Fribourg</p>
 </div>
 <footer>
-  <p>SYNOS &mdash; v5.0 &mdash; Mars 2026</p>
+  <p>SYNOS &mdash; v6.0 &mdash; Mars 2026</p>
 </footer>
 
 <script>
@@ -553,6 +612,7 @@ const lithoConfig = {
 };
 
 function matchLithoConfig(litho) {
+  if (!litho) return { color: '#ccc', pattern: 'none', uscs: '—' };
   if (lithoConfig[litho]) return lithoConfig[litho];
   for (const [key, cfg] of Object.entries(lithoConfig)) {
     if (litho.toLowerCase().includes(key.toLowerCase())) return cfg;
@@ -649,11 +709,33 @@ function drawPattern(x, y, w, h, pattern, color) {
   return s;
 }
 
+/* Inline SVG figure for table cell (small 40x40 block) */
+function buildInlineFigureSVG(litho, height) {
+  const cfg = matchLithoConfig(litho);
+  const h = height || 40;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="${h}" style="display:block;">`;
+  svg += `<rect width="40" height="${h}" fill="${cfg.color}" opacity="0.3"/>`;
+  svg += drawPattern(0, 0, 40, h, cfg.pattern, cfg.color);
+  svg += `</svg>`;
+  return svg;
+}
+
 /* ================================================================
    STATE
    ================================================================ */
-let lastStructuredData = null;   // JSON from Claude API
+let lastStructuredData = null;
 let lastLogSVG = '';
+let editedCells = {};  // key: "layerIdx-field", value: "manual" | "ai"
+
+function countEdits() {
+  return Object.keys(editedCells).length;
+}
+
+function updateCorrectionsCount() {
+  const n = countEdits();
+  const el = document.getElementById('correctionsCount');
+  el.textContent = n > 0 ? `${n} correction${n > 1 ? 's' : ''} apportee${n > 1 ? 's' : ''}` : '';
+}
 
 /* ================================================================
    STRUCTURER — CALL API
@@ -685,22 +767,15 @@ async function structurer() {
 
     const result = await response.json();
     lastStructuredData = result;
+    editedCells = {};
 
-    /* Render tableau */
     renderTableau(result);
-
-    /* Render log SVG */
     renderLog(result);
-
-    /* Update banner */
     updateBanner(result);
-
-    /* Auto-switch to tableau tab */
     switchOutputTab('tableau');
 
-    /* Show success */
     statusEl.className = 'status-msg success';
-    statusEl.textContent = `Structuration terminée — ${result.layers ? result.layers.length : 0} couche(s) identifiée(s).`;
+    statusEl.textContent = `Structuration terminee — ${result.layers ? result.layers.length : 0} couche(s) identifiee(s).`;
 
   } catch (err) {
     statusEl.className = 'status-msg error';
@@ -740,20 +815,39 @@ function updateBanner(data) {
 }
 
 /* ================================================================
-   RENDER TABLEAU from structured JSON
+   COLUMN LABELS
+   ================================================================ */
+const COL_LABELS = {
+  profondeur: 'Profondeur',
+  figure: 'Figure',
+  description: 'Description',
+  couleur: 'Couleur',
+  consistance: 'Consistance',
+  humidite: 'Humidite',
+  granulometrie: 'Granulo.',
+  inclusions: 'Inclusions',
+  altitude: 'Altitude',
+  uscs: 'USCS'
+};
+
+/* ================================================================
+   RENDER TABLEAU — ADAPTIVE COLUMNS
    ================================================================ */
 function renderTableau(data) {
   const container = document.getElementById('tableauContent');
   const exportsEl = document.getElementById('tableauExports');
 
   if (!data.layers || data.layers.length === 0) {
-    container.innerHTML = '<div class="preview-empty">Aucune couche identifiée dans les notes.</div>';
+    container.innerHTML = '<div class="preview-empty">Aucune couche identifiee dans les notes.</div>';
     exportsEl.style.display = 'none';
     return;
   }
 
   const m = data.meta || {};
-  const wl = m.nappe_m || null;
+  const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
+  const columns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
+  const layers = data.layers;
+  const maxDepth = Math.max(...layers.filter(l => l.to != null).map(l => l.to));
   let html = '';
 
   /* Meta grid */
@@ -763,111 +857,271 @@ function renderTableau(data) {
     <div><span class="meta-label">Lieu : </span><span class="meta-value ${m.lieu?'':'empty'}">${escapeHtml(m.lieu||'—')}</span></div>
     <div><span class="meta-label">Alt. : </span><span class="meta-value ${m.altitude?'':'empty'}">${m.altitude?escapeHtml(m.altitude)+' m':'—'}</span></div>
     <div class="meta-full"><span class="meta-label">Coord. : </span><span class="meta-value ${m.coord_e?'':'empty'}">${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</span></div>
-    <div class="meta-full"><span class="meta-label">Nappe : </span><span class="meta-value ${wl?'':'empty'}">${wl?wl+' m':'—'}</span></div>
+    <div class="meta-full"><span class="meta-label">Nappe : </span><span class="meta-value ${wl!=null?'':'empty'}">${wl!=null?wl+' m':'—'}</span></div>
   </div>`;
 
-  /* Determine nappe position */
-  const layers = data.layers;
-  const maxDepth = Math.max(...layers.filter(l => l.to !== null && l.to !== undefined).map(l => l.to));
+  /* Nappe position */
   let nappeLayerIdx = -1, nappePosition = 'below';
-  if (typeof wl === 'number') {
+  if (wl !== null) {
     for (let i = 0; i < layers.length; i++) {
       const l = layers[i];
-      if (l.to === null || l.to === undefined) continue;
+      if (l.to == null) continue;
       if (wl >= l.from && wl <= l.to) {
         nappeLayerIdx = i;
-        const midpoint = l.from + (l.to - l.from) / 2;
-        nappePosition = wl > midpoint ? 'below' : 'above';
+        nappePosition = wl > (l.from + (l.to - l.from) / 2) ? 'below' : 'above';
         break;
       }
     }
   }
 
-  /* Table */
-  html += `<div class="output-wrap"><table class="final-table"><thead><tr>
-    <th style="width:6px;padding:0;"></th>
-    <th>Prof. de</th><th>Prof. à</th><th>Ép.</th>
-    <th>Description</th><th>USCS</th>
-  </tr></thead><tbody>`;
+  /* Build header */
+  html += '<div class="output-wrap"><table class="final-table"><thead><tr>';
+  for (const col of columns) {
+    if (col === 'figure') {
+      html += '<th class="th-center" style="width:40px;">Figure</th>';
+    } else if (col === 'profondeur') {
+      html += '<th class="th-center">Profondeur</th>';
+    } else if (col === 'uscs') {
+      html += '<th class="th-center">USCS</th>';
+    } else if (col === 'altitude') {
+      html += '<th class="th-center">Alt. (m.s.m.)</th>';
+    } else {
+      html += `<th>${COL_LABELS[col] || col}</th>`;
+    }
+  }
+  html += '</tr></thead><tbody>';
 
+  /* Build rows */
   for (let i = 0; i < layers.length; i++) {
     const l = layers[i];
-    const ep = (l.to !== null && l.to !== undefined) ? (l.to - l.from) : null;
-    const epStr = ep !== null ? ep.toFixed(1) : '—';
-    const epPct = ep !== null && maxDepth > 0 ? Math.round((ep / maxDepth) * 100) : 0;
-    const color = getLithoColor(l.description || l.raw || '');
+    const ep = (l.to != null) ? (l.to - l.from) : null;
+    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
+    const cfg = matchLithoConfig(litho);
     const uscs = l.uscs || '—';
     const uscsClass = getUSCSClass(uscs);
     const isVerify = l.status === 'verify';
-
-    /* Nappe bar */
     const showNappe = (i === nappeLayerIdx) ? wl : null;
-    const nappeBar = showNappe !== null ? `<div class="nappe-bar"><div class="nappe-bar-line"></div><div class="nappe-bar-label">Nappe : ${showNappe} m</div></div>` : '';
+    const nappeAlt = (showNappe !== null && m.altitude) ? (m.altitude - showNappe).toFixed(1) : null;
+    const nappeLabel = showNappe !== null ? `Nappe : ${showNappe} m${nappeAlt ? ' (' + nappeAlt + ' m.s.m.)' : ''}` : '';
+    const nappeBar = showNappe !== null ? `<div class="nappe-bar"><div class="nappe-bar-line"></div><div class="nappe-bar-label">${nappeLabel}</div></div>` : '';
 
-    let descContent = '';
-    const descNormee = escapeHtml(l.description || '');
-    const descBrute = escapeHtml(l.raw || '');
-    const verifyBadge = isVerify ? '<span class="verify-badge">à vérifier</span>' : '';
+    html += `<tr class="layer-row" data-idx="${i}">`;
 
-    if (showNappe !== null && nappePosition === 'below') {
-      descContent = `<div class="desc-normee">${descNormee}${verifyBadge}</div><div class="desc-brute">${descBrute}</div>${nappeBar}`;
-    } else if (showNappe !== null && nappePosition === 'above') {
-      descContent = `${nappeBar}<div class="desc-normee">${descNormee}${verifyBadge}</div><div class="desc-brute">${descBrute}</div>`;
-    } else {
-      descContent = `<div class="desc-normee">${descNormee}${verifyBadge}</div><div class="desc-brute">${descBrute}</div>`;
+    for (const col of columns) {
+      const editKey = `${i}-${col}`;
+      const editClass = editedCells[editKey] === 'manual' ? ' cell-edited-manual' : editedCells[editKey] === 'ai' ? ' cell-edited-ai' : '';
+
+      if (col === 'figure') {
+        const rowH = ep ? Math.max(36, Math.min(60, ep * 12)) : 40;
+        html += `<td class="td-figure">${buildInlineFigureSVG(litho, rowH)}</td>`;
+      } else if (col === 'profondeur') {
+        html += `<td class="td-depth">${l.from.toFixed(1)} – ${l.to != null ? l.to.toFixed(1) : '—'} m<div class="depth-ep">${ep != null ? 'ep. ' + ep.toFixed(1) + ' m' : ''}</div></td>`;
+      } else if (col === 'description') {
+        const verifyBadge = isVerify ? '<span class="verify-badge">a verifier</span>' : '';
+        let descContent = '';
+        if (showNappe !== null && nappePosition === 'above') {
+          descContent = `${nappeBar}<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>`;
+        } else if (showNappe !== null && nappePosition === 'below') {
+          descContent = `<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>${nappeBar}`;
+        } else {
+          descContent = `<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>`;
+        }
+        html += `<td class="td-desc">${descContent}</td>`;
+      } else if (col === 'uscs') {
+        html += `<td class="td-uscs${editClass}"><span class="uscs-badge ${uscsClass} cell-editable" data-idx="${i}" data-field="uscs">${escapeHtml(uscs)}</span></td>`;
+      } else if (col === 'altitude') {
+        const altTop = m.altitude ? (m.altitude - l.from).toFixed(1) : '—';
+        const altBot = (m.altitude && l.to != null) ? (m.altitude - l.to).toFixed(1) : '—';
+        html += `<td class="td-altitude">${altTop}<br>${altBot}</td>`;
+      } else {
+        // Conditional columns: couleur, consistance, humidite, granulometrie, inclusions
+        const val = l[col] || '—';
+        html += `<td class="td-detail cell-editable${editClass}" data-idx="${i}" data-field="${col}">${escapeHtml(val)}</td>`;
+      }
     }
-
-    html += `<tr class="layer-row">
-      <td class="td-litho"><div class="litho-strip" style="background:${color};"></div></td>
-      <td class="td-depth">${l.from.toFixed(1)}</td>
-      <td class="td-depth">${l.to !== null && l.to !== undefined ? l.to.toFixed(1) : '—'}</td>
-      <td class="td-ep"><div class="ep-wrap">
-        <span class="ep-val">${epStr} m</span>
-        ${ep !== null ? `<div class="ep-bar-bg"><div class="ep-bar" style="width:${epPct}%;"></div></div>` : ''}
-      </div></td>
-      <td class="td-desc">${descContent}</td>
-      <td class="td-uscs"><span class="uscs-badge ${uscsClass}">${escapeHtml(uscs)}</span></td>
-    </tr>`;
+    html += '</tr>';
   }
-  html += `</tbody></table></div>`;
+  html += '</tbody></table></div>';
 
   /* Summary strip */
-  html += `<div class="final-summary">`;
+  html += '<div class="final-summary">';
   for (const l of layers) {
-    if (l.to === null || l.to === undefined) continue;
+    if (l.to == null) continue;
+    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
     const c = getLithoColor(l.description || l.raw || '');
-    const lithoName = l.lithologie || (l.description ? l.description.split(',')[0] : '');
-    html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${escapeHtml(lithoName)}</span></div>`;
+    html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${escapeHtml(litho)}</span></div>`;
   }
-  if (typeof wl === 'number') {
+  if (wl !== null) {
     html += `<div class="summary-item" style="margin-left:auto; color:#1a4a7a; font-weight:600;">Nappe : ${wl} m</div>`;
   }
-  html += `</div>`;
+  html += '</div>';
 
   /* Observations */
   if (data.observations && data.observations.length > 0) {
-    html += `<div class="obs-section"><strong>Observations :</strong>`;
+    html += '<div class="obs-section"><strong>Observations :</strong>';
     for (const o of data.observations) html += `<br>— ${escapeHtml(o)}`;
-    html += `</div>`;
+    html += '</div>';
   }
 
   /* Warnings */
   if (data.warnings && data.warnings.length > 0) {
-    html += `<div class="warn-bar" style="margin-top:14px; border-left-color:#d4900a;"><strong>Avertissements :</strong>`;
+    html += '<div class="warn-bar" style="margin-top:14px; border-left-color:#d4900a;"><strong>Avertissements :</strong>';
     for (const w of data.warnings) html += `<br>— ${escapeHtml(w)}`;
-    html += `</div>`;
+    html += '</div>';
   }
 
   container.innerHTML = html;
   exportsEl.style.display = 'block';
+  updateCorrectionsCount();
+  attachEditListeners();
 }
 
 /* ================================================================
-   RENDER LOG from structured JSON
+   INLINE EDITING
+   ================================================================ */
+function attachEditListeners() {
+  document.querySelectorAll('.cell-editable').forEach(el => {
+    el.addEventListener('click', startCellEdit);
+  });
+}
+
+function startCellEdit(e) {
+  const el = e.currentTarget;
+  if (el.querySelector('.cell-edit-input')) return;
+  const idx = parseInt(el.dataset.idx);
+  const field = el.dataset.field;
+  if (isNaN(idx) || !field) return;
+
+  const layer = lastStructuredData.layers[idx];
+  if (!layer) return;
+
+  const currentValue = (field === 'description') ? (layer.description || '') :
+                       (field === 'uscs') ? (layer.uscs || '') :
+                       (layer[field] || '');
+
+  const isUscs = field === 'uscs';
+  const input = document.createElement(isUscs ? 'input' : 'textarea');
+  input.className = 'cell-edit-input';
+  input.value = currentValue;
+  if (!isUscs) { input.rows = 2; input.style.minHeight = '36px'; }
+
+  const originalHTML = el.innerHTML;
+  el.innerHTML = '';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+
+  function commitEdit() {
+    const newValue = input.value.trim();
+    if (newValue !== currentValue && newValue !== '') {
+      layer[field] = newValue;
+      editedCells[`${idx}-${field}`] = 'manual';
+
+      // If lithologie changed via description, update figure
+      if (field === 'description') {
+        // Extract first part as lithologie
+        const firstPart = newValue.split(',')[0].trim();
+        if (firstPart && firstPart !== layer.lithologie) {
+          layer.lithologie = firstPart;
+        }
+      }
+    }
+    // Re-render the whole tableau to get consistent state
+    renderTableau(lastStructuredData);
+    renderLog(lastStructuredData);
+    updateCorrectionsCount();
+  }
+
+  input.addEventListener('blur', commitEdit);
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); commitEdit(); }
+    if (ev.key === 'Escape') { el.innerHTML = originalHTML; attachEditListeners(); }
+  });
+}
+
+/* ================================================================
+   CORRECTION ASSISTEE
+   ================================================================ */
+async function applyCorrection() {
+  if (!lastStructuredData) return;
+  const input = document.getElementById('correctionInput');
+  const instruction = input.value.trim();
+  if (!instruction) return;
+
+  const btn = document.getElementById('btnCorrection');
+  const statusEl = document.getElementById('correctionStatus');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  statusEl.className = 'correction-status';
+  statusEl.textContent = '';
+
+  try {
+    const response = await fetch('/.netlify/functions/structurer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        correction: {
+          current: lastStructuredData,
+          instruction: instruction
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Erreur (${response.status}) : ${errText}`);
+    }
+
+    const result = await response.json();
+
+    // Mark AI-edited cells by comparing old vs new
+    if (result.layers && lastStructuredData.layers) {
+      const fields = ['description', 'lithologie', 'couleur', 'consistance', 'humidite', 'granulometrie', 'inclusions', 'uscs'];
+      for (let i = 0; i < result.layers.length; i++) {
+        const oldL = lastStructuredData.layers[i];
+        const newL = result.layers[i];
+        if (!oldL || !newL) continue;
+        for (const f of fields) {
+          if (String(newL[f] || '') !== String(oldL[f] || '')) {
+            editedCells[`${i}-${f}`] = 'ai';
+          }
+        }
+      }
+      // Check meta changes
+      if (result.meta && lastStructuredData.meta) {
+        if (String(result.meta.nappe_m) !== String(lastStructuredData.meta.nappe_m)) {
+          editedCells['meta-nappe'] = 'ai';
+        }
+      }
+    }
+
+    lastStructuredData = result;
+    renderTableau(result);
+    renderLog(result);
+    updateBanner(result);
+
+    input.value = '';
+    statusEl.textContent = 'Correction appliquee';
+    statusEl.className = 'correction-status visible';
+    setTimeout(() => { statusEl.className = 'correction-status'; }, 3000);
+
+  } catch (err) {
+    statusEl.textContent = err.message || 'Erreur de connexion.';
+    statusEl.className = 'correction-status visible';
+    statusEl.style.color = '#8a2a2a';
+    setTimeout(() => { statusEl.className = 'correction-status'; statusEl.style.color = ''; }, 5000);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+/* ================================================================
+   RENDER LOG from structured JSON — IMPROVED
    ================================================================ */
 function renderLog(data) {
-  if (!data.layers || data.layers.length === 0 || !data.layers.some(l => l.to !== null && l.to !== undefined)) {
-    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complète identifiée.</div>';
+  if (!data.layers || !data.layers.some(l => l.to != null)) {
+    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complete identifiee.</div>';
     document.getElementById('logMeta').style.display = 'none';
     document.getElementById('logWarnBar').style.display = 'none';
     document.getElementById('logExportBar').style.display = 'none';
@@ -876,74 +1130,139 @@ function renderLog(data) {
   }
 
   const m = data.meta || {};
-  const layers = data.layers.filter(l => l.to !== null && l.to !== undefined).map(l => {
+  const hasAlt = typeof m.altitude === 'number';
+  const layers = data.layers.filter(l => l.to != null).map(l => {
     const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
     const cfg = matchLithoConfig(litho);
-    return { from: l.from, to: l.to, litho, cfg, description: l.description || '' };
+    return { from: l.from, to: l.to, litho, cfg, description: l.description || '', uscs: l.uscs || '—', couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
   });
 
   const maxDepth = Math.max(...layers.map(l => l.to));
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
 
-  const marginTop = 60, marginBottom = 30, marginLeft = 65;
-  const scaleColW = 30, logColW = 90, patternColW = 90, descColW = 260;
-  const totalW = marginLeft + scaleColW + logColW + patternColW + descColW + 20;
+  const marginTop = 65, marginBottom = 50, marginLeft = 70;
+  const scaleColW = 35;
+  const logColW = 110;
+  const patternColW = 110;
+  const descColW = 280;
+  const altColW = hasAlt ? 55 : 0;
+  const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
   const pxPerMeter = 40;
   const logH = maxDepth * pxPerMeter;
-  const totalH = marginTop + logH + marginBottom;
+
+  // Legend at bottom
+  const usedLithos = [...new Set(layers.map(l => l.litho))];
+  const legendRows = Math.ceil(usedLithos.length / 4);
+  const legendH = legendRows * 28 + 20;
+  const totalH = marginTop + logH + marginBottom + legendH;
+
   const logX = marginLeft + scaleColW;
   const patX = logX + logColW;
-  const descX = patX + patternColW + 10;
+  const descX = patX + patternColW + 15;
+  const altX = descX + descColW + 5;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;">`;
   svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
+
+  // Title
   svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id || '—')}</text>`;
   svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
 
+  // Column headers
   const headY = marginTop - 10;
   svg += `<text x="${marginLeft + scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
   svg += `<text x="${logX + logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
+  svg += `<text x="${patX + patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
   svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
+  if (hasAlt) {
+    svg += `<text x="${altX + altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
+  }
 
+  // Depth scale (left) + Altitude scale (right if hasAlt)
   const meterStep = maxDepth <= 10 ? 1 : maxDepth <= 30 ? 2 : 5;
   for (let d = 0; d <= maxDepth; d += meterStep) {
     const y = marginTop + d * pxPerMeter;
     svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
     svg += `<text x="${marginLeft + scaleColW - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
+    if (hasAlt) {
+      svg += `<text x="${altX + altColW/2}" y="${y + 4}" text-anchor="middle" font-size="9" fill="#4a7a6a">${(m.altitude - d).toFixed(1)}</text>`;
+    }
   }
 
+  // Outer border
   svg += `<rect x="${logX}" y="${marginTop}" width="${logColW + patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
+  // Separator between color and pattern
+  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop + logH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
 
+  // Draw layers
   layers.forEach((layer, i) => {
     const y = marginTop + layer.from * pxPerMeter;
     const h = (layer.to - layer.from) * pxPerMeter;
     const cfg = layer.cfg;
 
+    // Color fill
     svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${cfg.color}" opacity="0.35"/>`;
+    // Pattern fill
     svg += drawPattern(patX, y, patternColW, h, cfg.pattern, cfg.color);
 
+    // Layer boundary
     if (i > 0) {
       svg += `<line x1="${logX}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
     }
 
-    const textY = y + h / 2 + 4;
-    const uscs = cfg.uscs ? ` (${cfg.uscs})` : '';
-    svg += `<text x="${descX}" y="${textY - 6}" font-size="11" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}${uscs}</text>`;
-    svg += `<text x="${descX}" y="${textY + 8}" font-size="9" fill="#6a8aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ép. ${(layer.to - layer.from).toFixed(1)} m</text>`;
+    // Description — improved: litho bold, details below, USCS badge
+    const textY = y + h / 2;
+    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
+
+    if (h >= 40) {
+      svg += `<text x="${descX}" y="${textY - 4}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      if (details) {
+        svg += `<text x="${descX}" y="${textY + 10}" font-size="9.5" fill="#5a6a7a">${escapeHtml(details)}</text>`;
+      }
+      svg += `<text x="${descX}" y="${textY + (details ? 22 : 10)}" font-size="8.5" fill="#8a9aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to - layer.from).toFixed(1)} m</text>`;
+      // USCS badge
+      const badgeX = descX + descColW - 35;
+      svg += `<rect x="${badgeX}" y="${textY - 12}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+      svg += `<text x="${badgeX + 16}" y="${textY}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+    } else {
+      svg += `<text x="${descX}" y="${textY + 4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+    }
   });
 
+  // Water level — improved with triangle
   if (nappeDepth !== null && nappeDepth <= maxDepth) {
     const wy = marginTop + nappeDepth * pxPerMeter;
-    svg += `<line x1="${logX - 15}" y1="${wy}" x2="${patX + patternColW + 5}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    svg += `<text x="${logX - 18}" y="${wy + 4}" text-anchor="end" font-size="9" font-weight="700" fill="#1a6aaf">&#9660; ${nappeDepth.toFixed(1)} m</text>`;
+    svg += `<line x1="${logX - 12}" y1="${wy}" x2="${patX + patternColW + 5}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    svg += `<polygon points="${logX - 14},${wy - 6} ${logX - 8},${wy - 6} ${logX - 11},${wy}" fill="#1a6aaf"/>`;
+    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
+    if (hasAlt) nappeText += ` (${(m.altitude - nappeDepth).toFixed(1)} m.s.m.)`;
+    svg += `<text x="${logX - 16}" y="${wy - 8}" text-anchor="end" font-size="8.5" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
   }
 
-  svg += `</svg>`;
+  // Legend
+  const legendY = marginTop + logH + marginBottom - 5;
+  svg += `<line x1="20" y1="${legendY}" x2="${totalW - 20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
+  svg += `<text x="20" y="${legendY + 16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des lithologies</text>`;
 
-  /* Meta */
+  const legendStartY = legendY + 28;
+  const colW = Math.floor((totalW - 40) / 4);
+  usedLithos.forEach((litho, idx) => {
+    const cfg = matchLithoConfig(litho);
+    const col = idx % 4;
+    const row = Math.floor(idx / 4);
+    const lx = 20 + col * colW;
+    const ly = legendStartY + row * 28;
+    svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="${cfg.color}" opacity="0.35" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
+    svg += drawPattern(lx, ly, 20, 16, cfg.pattern, cfg.color);
+    svg += `<text x="${lx + 25}" y="${ly + 12}" font-size="9" fill="#3a5a7a">${escapeHtml(litho)}</text>`;
+  });
+
+  svg += '</svg>';
+
+  // Meta
   const metaEl = document.getElementById('logMeta');
   metaEl.style.display = 'grid';
-  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Profondeur totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontrée'}</div>`;
+  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Profondeur totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontree'}</div>`;
 
   document.getElementById('logOutput').innerHTML = `<div class="log-svg-wrap">${svg}</div>`;
   lastLogSVG = svg;
@@ -958,8 +1277,9 @@ function buildExportHTML(format) {
   if (!lastStructuredData) return '';
   const data = lastStructuredData;
   const m = data.meta || {};
-  const wl = m.nappe_m || null;
+  const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
   const layers = data.layers || [];
+  const columns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
   const obs = data.observations || [];
   const isExcel = format === 'xlsx';
 
@@ -972,45 +1292,55 @@ function buildExportHTML(format) {
 
   let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:${isExcel?'excel':'word'}" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:10pt;color:#1a2332;margin:${isExcel?'0':'24px 32px'}}table{border-collapse:collapse;width:100%}th,td{border:1px solid #c0d0e0;padding:6px 10px}.meta-box{background:#f6f9fc;border:1px solid #e0e8f0;border-radius:8px;padding:14px 18px;margin-bottom:16px}.meta-box td{border:none;padding:3px 10px;font-size:10pt}.meta-label{font-weight:bold;color:#1a3a5c}.hdr{background:#1a3a5c;color:white;font-weight:bold;font-size:9pt;text-transform:uppercase;letter-spacing:0.5px;text-align:center;padding:8px 10px}.obs-section{margin-top:14px;font-size:9pt}.footer{margin-top:16px;font-size:7.5pt;color:#9aa0a8}</style></head><body>`;
 
-  h += `<table class="meta-box"><tr><td class="meta-label">Sondage :</td><td>${m.id||'—'}</td><td class="meta-label">Date :</td><td>${m.date||'—'}</td></tr><tr><td class="meta-label">Lieu :</td><td>${m.lieu||'—'}</td><td class="meta-label">Alt. :</td><td>${m.altitude?m.altitude+' m.s.m.':'—'}</td></tr><tr><td class="meta-label">Coord. MN95 :</td><td>${m.coord_e?'E '+m.coord_e+' / N '+m.coord_n:'—'}</td><td class="meta-label">Nappe :</td><td>${wl?wl+' m':'—'}</td></tr></table>`;
+  h += `<table class="meta-box"><tr><td class="meta-label">Sondage :</td><td>${m.id||'—'}</td><td class="meta-label">Date :</td><td>${m.date||'—'}</td></tr><tr><td class="meta-label">Lieu :</td><td>${m.lieu||'—'}</td><td class="meta-label">Alt. :</td><td>${m.altitude?m.altitude+' m.s.m.':'—'}</td></tr><tr><td class="meta-label">Coord. MN95 :</td><td>${m.coord_e?'E '+m.coord_e+' / N '+m.coord_n:'—'}</td><td class="meta-label">Nappe :</td><td>${wl!=null?wl+' m':'—'}</td></tr></table>`;
 
-  if (isExcel) {
-    h += `<table><col width="30"><col width="65"><col width="65"><col width="75"><col width="340"><col width="260"><col width="70">`;
-  } else {
-    h += `<table>`;
+  // Build header
+  h += '<table><thead><tr>';
+  const exportCols = columns.filter(c => c !== 'figure');
+  for (const col of exportCols) {
+    if (col === 'profondeur') { h += '<th class="hdr">Prof. de</th><th class="hdr">Prof. a</th><th class="hdr">Ep.</th>'; }
+    else if (col === 'description') { h += '<th class="hdr" style="text-align:left;">Description normee (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th>'; }
+    else { h += `<th class="hdr">${COL_LABELS[col] || col}</th>`; }
   }
-
-  h += `<thead><tr><th class="hdr" style="width:6px;padding:0;background:#c0d0e0;"></th><th class="hdr">Prof. de</th><th class="hdr">Prof. à</th><th class="hdr">Ép.</th><th class="hdr" style="text-align:left;">Description normée (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th><th class="hdr">USCS</th></tr></thead><tbody>`;
+  h += '</tr></thead><tbody>';
 
   for (let i = 0; i < layers.length; i++) {
     const l = layers[i];
     const bg = i % 2 === 0 ? '#ffffff' : '#f4f7fa';
-    const color = getLithoColor(l.description || l.raw || '');
     const uscs = l.uscs || '—';
     const uc = uscsColors[getUSCSClass(uscs)] || uscsColors.soil;
-    const ep = (l.to !== null && l.to !== undefined) ? (l.to - l.from) : null;
-    const epStr = ep !== null ? ep.toFixed(1) + ' m' : '—';
+    const ep = (l.to != null) ? (l.to - l.from) : null;
 
-    h += `<tr style="background:${bg};">
-      <td style="background:${color};width:6px;padding:0;"></td>
-      <td style="text-align:center;font-weight:600;">${l.from.toFixed(1)}</td>
-      <td style="text-align:center;font-weight:600;">${l.to !== null && l.to !== undefined ? l.to.toFixed(1) : '—'}</td>
-      <td style="text-align:center;">${epStr}</td>
-      <td style="font-size:9pt;">${l.description || ''}</td>
-      <td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.raw || ''}</td>
-      <td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${uscs}</td>
-    </tr>`;
+    h += `<tr style="background:${bg};">`;
+    for (const col of exportCols) {
+      if (col === 'profondeur') {
+        h += `<td style="text-align:center;font-weight:600;">${l.from.toFixed(1)}</td>`;
+        h += `<td style="text-align:center;font-weight:600;">${l.to != null ? l.to.toFixed(1) : '—'}</td>`;
+        h += `<td style="text-align:center;">${ep != null ? ep.toFixed(1) + ' m' : '—'}</td>`;
+      } else if (col === 'description') {
+        h += `<td style="font-size:9pt;">${l.description || ''}</td>`;
+        h += `<td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.raw || ''}</td>`;
+      } else if (col === 'uscs') {
+        h += `<td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${uscs}</td>`;
+      } else if (col === 'altitude') {
+        const altTop = m.altitude ? (m.altitude - l.from).toFixed(1) : '—';
+        h += `<td style="text-align:center;">${altTop}</td>`;
+      } else {
+        h += `<td>${l[col] || '—'}</td>`;
+      }
+    }
+    h += '</tr>';
   }
 
-  h += `</tbody></table>`;
+  h += '</tbody></table>';
 
   if (obs.length > 0) {
-    h += `<div class="obs-section"><b>Observations :</b><br>`;
+    h += '<div class="obs-section"><b>Observations :</b><br>';
     for (const o of obs) h += `— ${o}<br>`;
-    h += `</div>`;
+    h += '</div>';
   }
 
-  h += `<div class="footer">[Formaté avec SYNOS — Carnet de terrain intelligent]</div></body></html>`;
+  h += '<div class="footer">[Formate avec SYNOS — Carnet de terrain intelligent]</div></body></html>';
   return h;
 }
 
@@ -1043,7 +1373,6 @@ function exportXLSX() {
 function exportPNG() {
   const content = document.getElementById('tableauContent');
   if (!content || !content.innerHTML.trim() || !lastStructuredData) return;
-
   const btn = event.target;
   btn.textContent = 'Export...'; btn.disabled = true;
 
@@ -1128,30 +1457,32 @@ function exportLogSVG() {
    RESET
    ================================================================ */
 function resetAll() {
-  if (!confirm('Effacer toutes les données et commencer un nouveau sondage ?')) return;
+  if (!confirm('Effacer toutes les donnees et commencer un nouveau sondage ?')) return;
 
   document.getElementById('notesInput').value = '';
   document.getElementById('statusMsg').className = 'status-msg';
-  document.getElementById('tableauContent').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur « Structurer » pour générer le tableau normé.</div>';
+  document.getElementById('statusMsg').textContent = '';
+  document.getElementById('tableauContent').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le tableau norme.</div>';
   document.getElementById('tableauExports').style.display = 'none';
-
-  /* Log */
-  document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur « Structurer » pour générer le log de forage.</div>';
+  document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le log de forage.</div>';
   document.getElementById('logMeta').style.display = 'none';
   document.getElementById('logWarnBar').style.display = 'none';
   document.getElementById('logExportBar').style.display = 'none';
+  document.getElementById('correctionInput').value = '';
+  document.getElementById('correctionStatus').className = 'correction-status';
 
-  /* State */
   lastStructuredData = null;
   lastLogSVG = '';
-  
+  editedCells = {};
+
   switchOutputTab('tableau');
   updateBanner({ meta: {}, layers: [] });
+  updateCorrectionsCount();
   document.getElementById('notesInput').focus();
 }
 
 /* ================================================================
-   EXAMPLES
+   EXAMPLE
    ================================================================ */
 function chargerExempleTerrain() {
   document.getElementById('notesInput').value = `F-01 12.02.2026 Bulle
@@ -1159,19 +1490,17 @@ alt 771
 E 2'571'230 / N 1'164'850
 0-0.3 tv brune racines
 0.3-2.0 limon sabl brun jaune ferme quelques graviers epars
-2.0-4.5 grav sb grs beige dens éléments arrondis 2-6cm fluvioglac
-4.5-8.0 moraine de fond gris très dense galets striés blocs jusqu'à 30cm
+2.0-4.5 grav sb grs beige dens elements arrondis 2-6cm fluvioglac
+4.5-8.0 moraine de fond gris tres dense galets stries blocs jusqu'a 30cm
 8.0-11.5 moraine gris bleu argileuse comp traces de calcaire
-11.5-15.0 molasse gréseuse gris vert roche tendre forage ralenti
+11.5-15.0 molasse greseuse gris vert roche tendre forage ralenti
 nappe 4.2
-éch. intact prélevé à 5.0m et 10.0m`;
+ech. intact preleve a 5.0m et 10.0m`;
 }
 
 /* ================================================================
    TAB SWITCHING
    ================================================================ */
-/* switchInputTab removed — single terrain input, no tabs */
-
 function switchOutputTab(tab) {
   document.querySelectorAll('#outputTabs .tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('outputTableau').classList.remove('active');
@@ -1184,7 +1513,6 @@ function switchOutputTab(tab) {
     document.getElementById('outputTableau').classList.add('active');
   }
 }
-
 
 /* ================================================================
    CONVERTER MN03/MN95
@@ -1213,7 +1541,7 @@ function setConvDir(dir) {
   }
   document.getElementById('convE').value = '';
   document.getElementById('convN').value = '';
-  document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnées pour voir la conversion.</div>';
+  document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>';
 }
 
 function parseCoord(s) { return parseFloat(s.replace(/['\s]/g, '').replace(',', '.')); }
@@ -1231,12 +1559,12 @@ function formatApostrophe(n) {
 function convertCoord() {
   const eStr = document.getElementById('convE').value, nStr = document.getElementById('convN').value;
   if (!eStr || !nStr) {
-    document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnées pour voir la conversion.</div>';
+    document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>';
     return;
   }
   const e = parseCoord(eStr), n = parseCoord(nStr);
   if (isNaN(e) || isNaN(n)) {
-    document.getElementById('convResult').innerHTML = '<div style="color:#c44a3a;">Coordonnées invalides.</div>';
+    document.getElementById('convResult').innerHTML = '<div style="color:#c44a3a;">Coordonnees invalides.</div>';
     return;
   }
   let resE, resN, labelE, labelN;
@@ -1272,8 +1600,8 @@ function convertBatch() {
    i18n
    ================================================================ */
 const TRANSLATIONS = {
-  fr: { 'subtitle':'Carnet de terrain intelligent','normes-label':'Normes et bases légales intégrées :','banner-empty':'Aucun sondage actif — commencez la saisie ci-dessous','btn-new':'Nouveau sondage','btn-structurer':'Structurer','preview-empty-tableau':'Saisissez vos notes de terrain, puis cliquez sur « Structurer » pour générer le tableau normé.','disclaimer':'Ce contenu a été généré automatiquement à partir des données saisies. Une vérification préalable demeure requise avant intégration au rapport.','svp':'Projet soutenu par le Student Venture Program de la HES-SO et de l\'Université de Fribourg' },
-  de: { 'subtitle':'Intelligentes Feldbuch','normes-label':'Integrierte Normen und Rechtsgrundlagen:','banner-empty':'Kein aktiver Bohrung — beginnen Sie mit der Eingabe','btn-new':'Neue Bohrung','btn-structurer':'Strukturieren','preview-empty-tableau':'Geben Sie Ihre Feldnotizen ein und klicken Sie auf « Strukturieren ».','disclaimer':'Dieser Inhalt wurde automatisch generiert. Eine Überprüfung ist vor der Integration in den Bericht erforderlich.','svp':'Projekt unterstützt durch das Student Venture Program der HES-SO und der Universität Freiburg' },
+  fr: { 'subtitle':'Carnet de terrain intelligent','normes-label':'Normes et bases legales integrees :','banner-empty':'Aucun sondage actif — commencez la saisie ci-dessous','btn-new':'Nouveau sondage','btn-structurer':'Structurer','preview-empty-tableau':'Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le tableau norme.','disclaimer':'Ce contenu a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.','svp':'Projet soutenu par le Student Venture Program de la HES-SO et de l\'Universite de Fribourg' },
+  de: { 'subtitle':'Intelligentes Feldbuch','normes-label':'Integrierte Normen und Rechtsgrundlagen:','banner-empty':'Kein aktiver Bohrung — beginnen Sie mit der Eingabe','btn-new':'Neue Bohrung','btn-structurer':'Strukturieren','preview-empty-tableau':'Geben Sie Ihre Feldnotizen ein und klicken Sie auf \u00ab Strukturieren \u00bb.','disclaimer':'Dieser Inhalt wurde automatisch generiert. Eine Ueberpruefung ist vor der Integration in den Bericht erforderlich.','svp':'Projekt unterstuetzt durch das Student Venture Program der HES-SO und der Universitaet Freiburg' },
   en: { 'subtitle':'Smart field notebook','normes-label':'Integrated norms and legal bases:','banner-empty':'No active borehole — start typing below','btn-new':'New borehole','btn-structurer':'Structure','preview-empty-tableau':'Enter your field notes, then click "Structure" to generate the standard table.','disclaimer':'This content was generated automatically. Verification is required before integration into the report.','svp':'Project supported by the Student Venture Program of HES-SO and the University of Fribourg' }
 };
 
@@ -1285,10 +1613,7 @@ function setLang(lang) {
   });
 }
 
-/* ================================================================
-   INIT
-   ================================================================ */
-/* Init complete */
+/* Init */
 </script>
 </body>
 </html>
