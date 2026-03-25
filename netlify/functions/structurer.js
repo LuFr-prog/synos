@@ -1,65 +1,14 @@
-export default async (req, context) => {
-  // Only allow POST
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
+const Anthropic = require("@anthropic-ai/sdk").default;
 
-  // Get API key from environment variable
-  const apiKey = Netlify.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: "Clé API non configurée sur le serveur." }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
+const SYSTEM_PROMPT = `Tu es un géologue suisse expérimenté. Tu structures des notes de terrain brutes en un JSON normalisé selon SN 670 009.
 
-  // Get the raw notes from the request
-  let notes;
-  try {
-    const body = await req.json();
-    notes = body.notes;
-  } catch (e) {
-    return new Response(JSON.stringify({ error: "Requête invalide." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-
-  if (!notes || notes.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "Aucune note fournie." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-
-  // System prompt for geological structuring
-  const systemPrompt = `Tu es un moteur de structuration pour données de sondage géotechnique suisse. Tu reçois des notes de terrain brutes — souvent abrégées, mal orthographiées, en syntaxe télégraphique — et tu les restructures en JSON exploitable.
-
-RÈGLES ABSOLUES :
-1. Tu ne fais QUE restructurer. Tu n'interprètes jamais. Tu n'ajoutes aucune information absente du texte original.
-2. Si un élément est ambigu ou incertain, tu le marques "status": "verify" au lieu de "status": "ok".
-3. Tu conserves la description brute originale dans le champ "raw" de chaque couche.
-4. Tu normalises le vocabulaire selon la norme SN 670 009 : ordre = nature du matériau, couleur, granulométrie/texture, consistance, humidité, inclusions.
-5. Tu estimes le code USCS quand c'est possible. Si incertain, tu mets "?" et status "verify".
-
-ABRÉVIATIONS COURANTES À RECONNAÎTRE :
-- tv, TV = terre végétale
-- lim = limon, sabl = sableux, arg = argileux, grav = gravier/graveleux
-- gr, grs = gris, br = brun, jr = jaunâtre, bg = beige, bl = bleu/bleuté, vr = vert/verdâtre
-- dens = dense, comp = compact, mbl = meuble
-- hum = humide, sat = saturé
-- fluvioglac = fluvioglaciaire, qq = quelques
-- mol = molasse, grés = gréseuse, marn = marneuse
-- calc = calcaire, caillx = cailloux
-- éch = échantillon, prél = prélevé
-- NP, nappe = niveau piézométrique
-- perm = perméable, imperméable
-- aquif = aquifère
-- moy = moyen
-- gross = grossier
+RÈGLES GÉNÉRALES :
+- Reconnais les abréviations géotechniques suisses : tv (terre végétale), lim (limon), sabl (sableux), grav (gravier), grs (gris), br (brun), bg (beige), dens (dense), comp (compact), fluvioglac (fluvioglaciaire), mol (molasse), arg (argileux/argile), calc (calcaire), etc.
+- Convertis les profondeurs en centimètres vers des mètres si nécessaire
+- Traite "refus", "fin de forage", "arrêt" comme fin de sondage
+- Corrige les fautes évidentes et interprète les conventions personnelles
+- Marque en "verify" tout élément ambigu où tu n'es pas confiant
+- Ordre SN 670 009 pour la description : matériau principal, granulométrie, couleur, consistance/densité, humidité, inclusions, origine
 
 FORMAT DE SORTIE (JSON strict, rien d'autre) :
 {
@@ -72,91 +21,111 @@ FORMAT DE SORTIE (JSON strict, rien d'autre) :
     "coord_n": "string ou null",
     "nappe_m": number ou null
   },
+  "columns": ["profondeur", "figure", "description", ...colonnes conditionnelles détectées],
   "layers": [
     {
       "from": 0.0,
       "to": 0.3,
-      "raw": "description brute originale telle que tapée",
-      "description": "Description normée SN 670 009",
-      "lithologie": "Nom de la lithologie principale",
+      "raw": "description brute originale",
+      "description": "Description normée SN 670 009 complète",
+      "lithologie": "Nom de la lithologie principale seule",
+      "couleur": "string ou null",
+      "consistance": "string ou null",
+      "humidite": "string ou null",
+      "granulometrie": "string ou null",
+      "inclusions": "string ou null",
       "uscs": "Code USCS",
       "status": "ok ou verify"
     }
   ],
   "observations": ["string"],
-  "warnings": ["string si quelque chose est incohérent"]
+  "warnings": ["string"]
 }
 
-IMPORTANT :
-- Réponds UNIQUEMENT avec le JSON. Pas de texte avant, pas de texte après, pas de backticks markdown.
-- Si les notes ne contiennent aucune donnée de sondage exploitable, retourne : {"error": "Aucune donnée de sondage détectée dans les notes fournies."}
-- Les profondeurs doivent être des nombres (float), pas des strings.
-- Les couches doivent être triées par profondeur croissante.
-- Si une couche n'a pas de profondeur "à" claire, essaie de la déduire de la couche suivante. Si impossible, mets "to": null et "status": "verify".
-- Les profondeurs en centimètres (ex: "0-50cm") doivent être converties en mètres (0.0-0.5).
-- Traite "refus", "fin de forage", "arrêt" comme la fin du sondage, pas comme une couche.`;
+RÈGLES POUR LE CHAMP "columns" :
+- Toujours inclure : "profondeur", "figure", "description", "uscs"
+- Inclure "couleur" si au moins la moitié des couches mentionnent une couleur
+- Inclure "consistance" si au moins la moitié des couches mentionnent une consistance
+- Inclure "humidite" si au moins la moitié des couches mentionnent une humidité
+- Inclure "granulometrie" si au moins la moitié des couches précisent la granulométrie
+- Inclure "inclusions" si au moins la moitié des couches mentionnent des inclusions
+- Inclure "altitude" si meta.altitude n'est pas null
+
+RÈGLES POUR LES CHAMPS PAR COUCHE :
+- "lithologie" contient UNIQUEMENT le nom principal (ex: "Gravier sableux", "Moraine de fond")
+- "couleur" contient UNIQUEMENT la couleur (ex: "Gris beige", "Brun jaunâtre") ou null
+- "consistance" contient UNIQUEMENT l'état (ex: "Dense", "Ferme", "Compact") ou null
+- "humidite" contient UNIQUEMENT l'état (ex: "Sec", "Humide", "Saturé") ou null
+- "granulometrie" contient UNIQUEMENT la granulométrie (ex: "Fin", "Moyen", "Grossier") ou null
+- "inclusions" contient UNIQUEMENT les inclusions (ex: "Galets striés, blocs jusqu'à 30cm") ou null
+- "description" contient la description normée COMPLÈTE SN 670 009 avec tous les éléments
+- Ne PAS dupliquer les informations des champs séparés dans "description" — "description" est la version complète, les champs séparés sont des extractions
+- "raw" contient la description brute originale telle que saisie par le géologue
+
+Renvoie UNIQUEMENT le JSON, sans texte avant ni après.`;
+
+const CORRECTION_SYSTEM_PROMPT = `Tu reçois un JSON structuré existant d'un sondage géotechnique et une instruction de correction du géologue.
+
+Applique la correction demandée au JSON et renvoie le JSON complet mis à jour.
+Ne modifie QUE ce qui est demandé. Tout le reste reste identique.
+Si la correction impacte d'autres champs (ex: changer la lithologie impacte le code USCS, changer la profondeur impacte l'épaisseur), mets-les à jour aussi.
+Recalcule le champ "columns" si nécessaire (mêmes règles que la structuration initiale).
+
+Renvoie UNIQUEMENT le JSON corrigé, même format que l'original, sans texte avant ni après.`;
+
+exports.handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" }, body: "" };
+  }
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method not allowed" };
+  }
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2000,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: notes
-          }
-        ]
-      })
-    });
+    const body = JSON.parse(event.body);
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: "Erreur API: " + response.status }), {
-        status: response.status,
-        headers: { "Content-Type": "application/json" }
-      });
+    let systemPrompt, userMessage;
+
+    if (body.correction) {
+      // Mode correction
+      systemPrompt = CORRECTION_SYSTEM_PROMPT;
+      userMessage = `JSON actuel :\n${JSON.stringify(body.correction.current, null, 2)}\n\nCorrection demandée :\n${body.correction.instruction}`;
+    } else if (body.notes) {
+      // Mode structuration initiale
+      systemPrompt = SYSTEM_PROMPT;
+      userMessage = body.notes;
+    } else {
+      return { statusCode: 400, body: JSON.stringify({ error: "Missing 'notes' or 'correction' in request body" }) };
     }
 
-    const data = await response.json();
-    const text = data.content[0].text;
-
-    // Try to parse as JSON to validate
-    let jsonText = text;
-    try {
-      JSON.parse(text);
-    } catch (e) {
-      // Claude might have added backticks, try to clean
-      jsonText = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-      try {
-        JSON.parse(jsonText);
-      } catch (e2) {
-        return new Response(JSON.stringify({ error: "La structuration a échoué. Réessayer." }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-    }
-
-    return new Response(jsonText, {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
     });
 
+    const text = response.content[0].text.trim();
+
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonStr = jsonMatch[1].trim();
+
+    const result = JSON.parse(jsonStr);
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify(result),
+    };
   } catch (err) {
-    return new Response(JSON.stringify({ error: "La structuration n'a pas abouti. Vérifier la connexion et réessayer." }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    console.error("Structurer error:", err);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: err.message || "Internal server error" }),
+    };
   }
-}
-
-export const config = {
-  path: "/.netlify/functions/structurer"
 };
