@@ -1,5 +1,3 @@
-const Anthropic = require("@anthropic-ai/sdk").default;
-
 const SYSTEM_PROMPT = `Tu es un géologue suisse expérimenté. Tu structures des notes de terrain brutes en un JSON normalisé selon SN 670 009.
 
 RÈGLES GÉNÉRALES :
@@ -83,30 +81,41 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body);
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     let systemPrompt, userMessage;
 
     if (body.correction) {
-      // Mode correction
       systemPrompt = CORRECTION_SYSTEM_PROMPT;
       userMessage = `JSON actuel :\n${JSON.stringify(body.correction.current, null, 2)}\n\nCorrection demandée :\n${body.correction.instruction}`;
     } else if (body.notes) {
-      // Mode structuration initiale
       systemPrompt = SYSTEM_PROMPT;
       userMessage = body.notes;
     } else {
       return { statusCode: 400, body: JSON.stringify({ error: "Missing 'notes' or 'correction' in request body" }) };
     }
 
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
+    const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMessage }]
+      })
     });
 
-    const text = response.content[0].text.trim();
+    if (!apiResponse.ok) {
+      const errBody = await apiResponse.text();
+      throw new Error(`Anthropic API error ${apiResponse.status}: ${errBody}`);
+    }
+
+    const apiResult = await apiResponse.json();
+    const text = apiResult.content[0].text.trim();
 
     // Extract JSON from response (handle markdown code blocks)
     let jsonStr = text;
