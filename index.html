@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNOS — Carnet de terrain intelligent</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332; }
+
+/* ====== SITE HEADER (preserved) ====== */
+.site-header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #2d6a9f 100%);
+  color: white; padding: 22px 32px 18px;
+}
+.header-inner {
+  max-width: 1600px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: 1px; }
+.header-left p { font-size: 13px; opacity: 0.8; margin-top: 3px; }
+.lang-switcher { display: flex; gap: 4px; }
+.lang-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.7); border-radius: 6px; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.lang-btn:hover { background: rgba(255,255,255,0.25); color: white; }
+.lang-btn.active { background: rgba(255,255,255,0.3); color: white; border-color: rgba(255,255,255,0.5); }
+
+.normes {
+  max-width: 1600px; margin: 0 auto;
+  background: #e8f0fe; border-bottom: 1px solid #d0dce8;
+  padding: 10px 32px; font-size: 11.5px; color: #3a5a7a; line-height: 1.5;
+}
+.normes strong { color: #1a3a5c; }
+
+/* ====== ACTIVE BOREHOLE BANNER ====== */
+.sondage-banner {
+  max-width: 1600px; margin: 0 auto;
+  background: #e4ecf4; border-bottom: 1px solid #d0dce8;
+  padding: 10px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12.5px; color: #4a6a8a; min-height: 42px;
+}
+.sondage-banner-info {
+  display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+}
+.sondage-banner-info .sep { color: #b0c0d0; margin: 0 8px; font-size: 10px; }
+.sondage-banner-info .bv { font-weight: 600; color: #1a3a5c; }
+.sondage-banner-empty { color: #9ab0c8; font-style: italic; }
+.sondage-banner .reset-btn {
+  padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #d0a0a0; background: #fdf5f5; color: #8a3a3a;
+  transition: all 0.15s; white-space: nowrap;
+}
+.sondage-banner .reset-btn:hover { background: #f8e0e0; border-color: #c07070; }
+
+/* ====== WORKSPACE ====== */
+.workspace {
+  max-width: 1600px; margin: 0 auto; padding: 20px 20px 28px;
+  display: grid; grid-template-columns: 480px 1fr; gap: 24px;
+}
+.card {
+  background: white; border-radius: 16px; padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+/* ====== TAB SYSTEM ====== */
+.tab-bar {
+  display: flex; gap: 2px; margin-bottom: 16px;
+  border-bottom: 2px solid #e8eef4; padding-bottom: 0;
+}
+.tab-btn {
+  padding: 8px 18px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; background: none;
+  color: #8a9aaa; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.15s;
+  position: relative;
+}
+.tab-btn:hover { color: #4a6a8a; }
+.tab-btn.active { color: #1a3a5c; border-bottom-color: #1a3a5c; }
+.tab-btn.disabled { color: #c0c8d0; cursor: default; opacity: 0.5; }
+.tab-btn .tab-indicator {
+  display: none; width: 6px; height: 6px; border-radius: 50%;
+  background: #2d6a9f; position: absolute; top: 6px; right: 6px;
+}
+.tab-btn .tab-indicator.visible { display: block; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ====== EDITOR OVERLAY SYSTEM ====== */
+.editor-wrap {
+  position: relative;
+  border: 1.5px solid #c0d0e0; border-radius: 10px;
+  overflow: hidden; background: #f6f9fc;
+  transition: border-color 0.2s, background 0.2s;
+}
+.editor-wrap.focused { border-color: #2d6a9f; background: #fff; }
+
+.editor-backdrop {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  padding: 12px 14px; overflow: hidden;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.8;
+  white-space: pre; overflow-wrap: normal;
+  pointer-events: none; z-index: 0; overflow-y: auto;
+  color: #1a2332;
+}
+
+.editor-input {
+  position: relative; z-index: 1;
+  display: block; width: 100%; min-height: 350px;
+  padding: 12px 14px; border: none; outline: none;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.8;
+  white-space: pre; overflow-wrap: normal;
+  background: transparent; color: transparent;
+  caret-color: #1a2332; resize: vertical; overflow-y: auto;
+}
+.editor-input::placeholder { color: transparent; }
+
+/* Backdrop line styles */
+.bd-line { display: block; min-height: 1.75em; }
+.bd-meta { color: #2d6a9f; }
+.bd-layer { color: #1a2332; }
+.bd-nappe { color: #1a6a9f; font-weight: 600; }
+.bd-obs { color: #7a8a9a; }
+.bd-empty { color: transparent; }
+.bd-depth { color: #1a3a5c; font-weight: 700; }
+.bd-nature { color: #2a5a3a; font-weight: 600; }
+.bd-couleur { color: #6a4a1a; }
+.bd-consistance { color: #4a3a6a; }
+.bd-number { color: #5a7a9a; }
+
+/* Diagnostic underlines */
+.diag-ambiguous {
+  text-decoration-line: underline; text-decoration-style: wavy;
+  text-decoration-color: #d4900a; text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+.diag-unknown {
+  text-decoration-line: underline; text-decoration-style: wavy;
+  text-decoration-color: #c44a3a; text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Placeholder overlay when empty */
+.editor-placeholder {
+  position: absolute; top: 12px; left: 14px; right: 14px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 12px; line-height: 1.75;
+  color: #a0b4c8; pointer-events: none; z-index: 0;
+  white-space: pre-wrap;
+}
+
+/* ====== QUICK TAGS ====== */
+.quick-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid #eef2f6;
+}
+.quick-tags-label {
+  font-size: 10px; font-weight: 700; color: #9ab0c8;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  width: 100%; margin-bottom: 2px;
+}
+.qtag {
+  padding: 3px 9px; border-radius: 5px; font-size: 11px;
+  font-weight: 500; cursor: pointer; border: 1px solid #d8e2ec;
+  background: #f5f8fc; color: #3a5a7a; transition: all 0.15s;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+.qtag:hover { background: #e0edf8; border-color: #b0c8e4; color: #1a3a5c; }
+.qtag.cat-nature { border-left: 3px solid #2a8a4a; background: #f0f9f2; color: #1a5a2a; }
+.qtag.cat-nature:hover { background: #d8f0dc; }
+.qtag.cat-etat { border-left: 3px solid #7a4aaa; background: #f4f0f9; color: #5a2a7a; }
+.qtag.cat-etat:hover { background: #e8d8f4; }
+.qtag.cat-eau { border-left: 3px solid #2d6a9f; background: #eef4fa; color: #1a4a7a; }
+.qtag.cat-eau:hover { background: #d0e4f4; }
+.qtag.cat-struct { border-left: 3px solid #b8760a; background: #faf4e8; color: #7a4a0a; }
+.qtag.cat-struct:hover { background: #f0e4c8; }
+.qtag.cat-humid { border-left: 3px solid #4a8aaa; background: #eef6fa; color: #2a5a7a; }
+.qtag.cat-humid:hover { background: #d0eaf4; }
+
+/* ====== DIAGNOSTICS PANEL ====== */
+.diag-panel {
+  margin-top: 10px; border-radius: 8px; overflow: hidden;
+  border: 1px solid #e8eef4; font-size: 12px;
+}
+.diag-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: #f5f8fc; cursor: pointer;
+  user-select: none; transition: background 0.15s;
+}
+.diag-header:hover { background: #eef2f8; }
+.diag-status { display: flex; gap: 12px; align-items: center; }
+.diag-ok { color: #2a8a4a; font-weight: 600; }
+.diag-warn { color: #b8860a; font-weight: 600; }
+.diag-chevron { color: #9ab0c8; font-size: 10px; transition: transform 0.2s; }
+.diag-panel.expanded .diag-chevron { transform: rotate(90deg); }
+.diag-list { display: none; padding: 0; border-top: 1px solid #e8eef4; }
+.diag-panel.expanded .diag-list { display: block; }
+.diag-item {
+  padding: 8px 12px; border-bottom: 1px solid #f0f4f8;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.diag-item:last-child { border-bottom: none; }
+.diag-item-word {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 600;
+  font-size: 12px; color: #1a2332;
+}
+.diag-item-word .diag-context { font-weight: 400; color: #9ab0c8; }
+.diag-item-type { font-size: 11px; color: #7a8a9a; }
+.diag-item-type.amber { color: #b8860a; }
+.diag-item-type.red { color: #b84a3a; }
+.diag-actions { display: flex; gap: 6px; margin-top: 2px; }
+.diag-act {
+  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+  cursor: pointer; border: 1px solid #d8e2ec; background: white; color: #3a5a7a;
+}
+.diag-act:hover { background: #e8f0fe; }
+.diag-act.primary { background: #e0edf8; border-color: #b0c8e4; color: #1a4a7a; }
+
+/* ====== RECOGNITION BAR ====== */
+.recog-bar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin-top: 8px; padding: 6px 0;
+  font-size: 11px; color: #6a8aaa; min-height: 20px;
+}
+.recog-item { display: flex; align-items: center; gap: 3px; }
+.recog-dot { width: 6px; height: 6px; border-radius: 50%; }
+.recog-dot.green { background: #2a8a4a; }
+.recog-dot.blue { background: #2d6a9f; }
+.recog-dot.gray { background: #b0b8c0; }
+
+/* ====== TOOLTIP ====== */
+.editor-tooltip {
+  display: none; position: fixed; z-index: 1000;
+  background: white; border: 1px solid #d0dce8;
+  border-radius: 8px; padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  max-width: 260px; font-size: 12px;
+}
+.editor-tooltip.show { display: block; }
+.tt-word { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 700; color: #1a2332; font-size: 13px; }
+.tt-type { font-size: 11px; color: #7a8a9a; margin-top: 3px; }
+.tt-type.amber { color: #b8860a; }
+.tt-type.red { color: #b84a3a; }
+.tt-suggestion { margin-top: 6px; font-size: 11.5px; color: #3a5a7a; }
+.tt-suggestion strong { color: #1a3a5c; }
+.tt-actions { display: flex; gap: 6px; margin-top: 8px; }
+.tt-act {
+  padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: 1px solid #d8e2ec; background: #f5f8fc; color: #3a5a7a;
+}
+.tt-act:hover { background: #e0edf8; }
+.tt-act.primary { background: #e0edf8; border-color: #b0c8e4; color: #1a4a7a; }
+
+/* ====== BUTTONS ====== */
+.btn-row-input { display: flex; gap: 8px; margin-top: 14px; }
+.btn {
+  flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.2s; border: none;
+  background: linear-gradient(135deg, #1a3a5c, #2d6a9f); color: white;
+}
+.btn:hover { opacity: 0.9; }
+.btn-secondary {
+  padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #c0d0e0; background: white; color: #1a3a5c;
+}
+.btn-secondary:hover { background: #e8f0fe; }
+.btn-example {
+  padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #d0dce8; background: #f5f8fc; color: #6a8aaa;
+  transition: all 0.15s;
+}
+.btn-example:hover { background: #e8f0fe; color: #1a3a5c; }
+
+/* ====== RIGHT PANEL — LIVE PREVIEW ====== */
+.meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px;
+  font-size: 12px; padding: 12px 16px;
+  background: #f0f4f8; border-radius: 8px; margin-bottom: 14px;
+}
+.meta-grid .meta-label { font-weight: 700; color: #1a3a5c; }
+.meta-grid .meta-value { color: #3a5a7a; }
+.meta-grid .meta-value.empty { color: #b8c8d8; }
+.meta-full { grid-column: 1 / -1; }
+
+.output-wrap { overflow-x: auto; }
+table.live-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.live-table th { background: #1a3a5c; color: white; padding: 7px 10px; text-align: left; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+table.live-table td { padding: 7px 10px; border-bottom: 1px solid #e8eef4; vertical-align: top; }
+table.live-table tr:nth-child(even) { background: #f5f8fc; }
+
+.obs-section {
+  margin-top: 12px; padding: 10px 14px;
+  background: #f6f9fc; border-radius: 8px; border: 1px solid #e4eaf0;
+  font-size: 12px; color: #4a5a6a; line-height: 1.6;
+}
+.obs-section strong { color: #1a3a5c; }
+
+.preview-empty {
+  color: #9ab0c8; font-style: italic; font-size: 13px;
+  padding: 60px 16px; text-align: center; line-height: 1.8;
+}
+
+.info-bar { background: #e8f0fe; border-left: 3px solid #2d6a9f; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #1a3a5c; margin-bottom: 16px; line-height: 1.5; }
+.warn-bar { background: #fef9e8; border-left: 3px solid #c4960a; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #6a5010; line-height: 1.5; margin-top: 14px; }
+
+/* ====== FINAL TABLE — PRO STYLING ====== */
+.final-meta {
+  background: #f0f4f8; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+  font-size: 12.5px; color: #3a5a7a;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px;
+  border: 1px solid #e0e8f0;
+}
+.final-meta strong { color: #1a3a5c; }
+
+table.final-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: 12px; border-radius: 10px; overflow: hidden;
+  border: 1px solid #d0dce8;
+}
+table.final-table thead th {
+  background: #1a3a5c; color: white;
+  padding: 10px 12px; text-align: left;
+  font-weight: 700; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 2px solid #0d2a45;
+}
+table.final-table tbody td {
+  padding: 0; vertical-align: top; border-bottom: 1px solid #e4eaf0;
+}
+table.final-table tbody tr:last-child td { border-bottom: none; }
+
+.layer-row { position: relative; }
+.layer-row td { background: white; }
+.layer-row:nth-child(even) td { background: #fafcff; }
+
+.td-litho { width: 6px; padding: 0 !important; position: relative; }
+.litho-strip { position: absolute; top: 0; left: 0; bottom: 0; width: 6px; }
+.td-depth {
+  padding: 10px 10px !important;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 12px;
+  font-weight: 600; color: #1a3a5c; white-space: nowrap; text-align: center;
+}
+.td-ep { padding: 10px 8px !important; min-width: 80px; }
+.ep-wrap { display: flex; flex-direction: column; gap: 3px; }
+.ep-val { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 11.5px; color: #3a5a7a; }
+.ep-bar-bg { width: 100%; height: 5px; background: #e8eef4; border-radius: 3px; overflow: hidden; }
+.ep-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #2d6a9f, #4a9acf); transition: width 0.3s; }
+.td-desc { padding: 10px 12px !important; }
+.desc-normee { font-weight: 600; color: #1a2332; font-size: 12.5px; line-height: 1.45; }
+.desc-brute { font-size: 10.5px; color: #8a9aaa; margin-top: 3px; font-style: italic; line-height: 1.4; }
+.td-uscs { padding: 10px 8px !important; text-align: center; }
+.uscs-badge {
+  display: inline-block; padding: 3px 8px; border-radius: 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  background: #e8f0fe; color: #1a3a5c; border: 1px solid #c0d4ea;
+}
+.uscs-badge.soil { background: #e8f0fe; color: #1a3a5c; border-color: #c0d4ea; }
+.uscs-badge.rock { background: #f0f0f0; color: #5a5a5a; border-color: #d0d0d0; }
+.uscs-badge.organic { background: #f0ece0; color: #5a4a20; border-color: #d4c8a0; }
+.uscs-badge.end { background: #f8f0f0; color: #7a3a3a; border-color: #e0c0c0; }
+
+.nappe-bar {
+  position: relative; height: 20px; margin: 6px -10px;
+  display: flex; align-items: center;
+}
+.nappe-bar-line {
+  position: absolute; left: 0; right: 0; top: 50%;
+  border-top: 2px dashed #2d6a9f;
+}
+.nappe-bar-label {
+  position: relative; margin-left: auto;
+  background: #deedf8; color: #1a4a7a; font-size: 10px; font-weight: 700;
+  padding: 2px 10px; border-radius: 4px; white-space: nowrap; letter-spacing: 0.3px;
+  border: 1px solid #b0cce4; z-index: 1;
+}
+
+.final-summary {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  margin-top: 12px; padding: 10px 14px;
+  background: #f0f4f8; border-radius: 8px; font-size: 11.5px; color: #4a6a8a;
+}
+.summary-item { display: flex; align-items: center; gap: 5px; }
+.summary-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+.export-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+/* ====== LOG DE FORAGE VIEW ====== */
+.log-svg-wrap { overflow-x: auto; }
+.log-meta {
+  background: #f0f4f8; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+  font-size: 12px; color: #3a5a7a; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.log-meta strong { color: #1a3a5c; }
+
+/* ====== LAB INPUT ====== */
+.lab-input { width: 100%; min-height: 200px; padding: 12px 14px; border: 1.5px solid #c0d0e0; border-radius: 10px; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.8; background: #f6f9fc; resize: vertical; }
+.lab-input:focus { outline: none; border-color: #2d6a9f; background: #fff; }
+
+.referentiel-bar {
+  display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.ref-btn {
+  padding: 5px 12px; border-radius: 6px; font-size: 10.5px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #d0dce8; background: #f5f8fc; color: #6a8aaa;
+  transition: all 0.15s;
+}
+.ref-btn:hover { background: #e8f0fe; color: #1a3a5c; }
+.ref-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
+
+/* ====== LAB TABLE ====== */
+table.lab-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; border-radius: 10px; overflow: hidden; border: 1px solid #d0dce8; }
+table.lab-table thead th { background: #1a3a5c; color: white; padding: 8px 10px; text-align: left; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+table.lab-table tbody td { padding: 7px 10px; border-bottom: 1px solid #e8eef4; vertical-align: top; }
+table.lab-table tbody tr:nth-child(even) { background: #f5f8fc; }
+.lab-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.lab-badge.ok { background: #e8f5e8; color: #2a6a2a; border: 1px solid #b0d8b0; }
+.lab-badge.warn { background: #fef9e8; color: #6a5010; border: 1px solid #d8c880; }
+.lab-badge.exceed { background: #fde8e8; color: #8a2a2a; border: 1px solid #d8a0a0; }
+
+/* ====== CONVERTER (collapsible) ====== */
+.converter-toggle {
+  max-width: 1600px; margin: 0 auto;
+  border-top: 1px solid #e0e8f0; border-bottom: 1px solid #e0e8f0;
+  padding: 12px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+  font-size: 13px; font-weight: 600; color: #6a8aaa;
+  transition: background 0.15s;
+}
+.converter-toggle:hover { background: #f5f8fc; }
+.converter-toggle .chevron { font-size: 10px; transition: transform 0.2s; color: #9ab0c8; }
+.converter-toggle.open .chevron { transform: rotate(90deg); }
+
+.converter-body {
+  max-width: 1600px; margin: 0 auto;
+  display: none; padding: 16px 32px 24px;
+}
+.converter-body.open { display: block; }
+
+.conv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.conv-input { width: 100%; padding: 10px 12px; border: 1.5px solid #c0d0e0; border-radius: 8px; font-size: 13px; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: #f6f9fc; }
+.conv-input:focus { outline: none; border-color: #2d6a9f; background: #fff; }
+.conv-label { display: block; font-size: 11px; font-weight: 700; color: #4a5a6a; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.conv-result { background: #f0f4f8; border-radius: 10px; padding: 16px 18px; font-size: 13px; color: #1a3a5c; border: 1px solid #e0e8f0; }
+.conv-result strong { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+.conv-batch { width: 100%; min-height: 80px; padding: 10px 12px; border: 1.5px solid #c0d0e0; border-radius: 8px; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 12px; line-height: 1.6; background: #f6f9fc; resize: vertical; }
+.conv-batch:focus { outline: none; border-color: #2d6a9f; background: #fff; }
+.conv-note { font-size: 10.5px; color: #9ab0c8; margin-top: 8px; }
+
+/* ====== FOOTER (preserved) ====== */
+.disclaimer-block {
+  max-width: 1600px; margin: 20px auto 0;
+  padding: 12px 32px; font-size: 11px; color: #8a9aaa; line-height: 1.6;
+  background: #f8fafb; border-top: 1px solid #e8eef4;
+}
+.soutien {
+  max-width: 1600px; margin: 0 auto;
+  padding: 16px 32px; display: flex; align-items: center; gap: 16px;
+  font-size: 12px; color: #6a8aaa;
+}
+.soutien img { height: 44px; }
+footer {
+  text-align: center; padding: 16px; font-size: 11px; color: #9ab0c8;
+  border-top: 1px solid #e8eef4; margin-top: 8px;
+}
+
+@media (max-width: 960px) {
+  .workspace { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== SITE HEADER (preserved) ====== -->
+<div class="site-header">
+  <div class="header-inner">
+    <div class="header-left">
+      <h1>SYNOS</h1>
+      <p data-i18n="subtitle">Carnet de terrain intelligent</p>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" onclick="setLang('de')">DE</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Normes banner (preserved) -->
+<div class="normes">
+  <strong data-i18n="normes-label">Normes et bases legales integrees :</strong>
+  SN 670 009 &middot; SN 670 010 &middot; SN 670 048 &middot; USCS &middot; OSites Annexe 1/3 &middot; OSOl
+</div>
+
+<!-- ====== ACTIVE BOREHOLE BANNER ====== -->
+<div class="sondage-banner" id="sondageBanner">
+  <div class="sondage-banner-info" id="sondageBannerInfo">
+    <span class="sondage-banner-empty" data-i18n="banner-empty">Aucun sondage actif — commencez la saisie ci-dessous</span>
+  </div>
+  <button class="reset-btn" onclick="resetAll()" title="Nouveau sondage" data-i18n="btn-new">Nouveau sondage</button>
+</div>
+
+<!-- ====== WORKSPACE ====== -->
+<div class="workspace">
+
+  <!-- LEFT COLUMN — INPUT -->
+  <div class="card">
+    <div class="tab-bar" id="inputTabs">
+      <button class="tab-btn active" onclick="switchInputTab('terrain')">Terrain</button>
+      <button class="tab-btn" onclick="switchInputTab('labo')" id="laboTabBtn">Labo <span class="tab-indicator" id="laboIndicator"></span></button>
+    </div>
+
+    <!-- TAB: TERRAIN -->
+    <div class="tab-content active" id="inputTerrain">
+      <div class="editor-wrap" id="editorWrap" onclick="focusEditor()">
+        <div class="editor-backdrop" id="editorBackdrop"></div>
+        <div class="editor-placeholder" id="editorPlaceholder">F-01 12.03.2026 Bulle
+alt 771
+E 2'571'230 / N 1'164'850
+
+0-0.3 tv brune racines
+0.3-2.0 limon sabl brun jaune ferme
+2.0-4.5 gravier sabl gris beige dense
+nappe 4.2
+
+ech. preleve a 3.5m</div>
+        <textarea class="editor-input" id="notesInput" spellcheck="false"></textarea>
+      </div>
+
+      <!-- Quick tags -->
+      <div class="quick-tags">
+        <div class="quick-tags-label">Materiaux</div>
+        <span class="qtag cat-nature" onclick="insertTag('limon ')">limon</span>
+        <span class="qtag cat-nature" onclick="insertTag('sable ')">sable</span>
+        <span class="qtag cat-nature" onclick="insertTag('gravier ')">gravier</span>
+        <span class="qtag cat-nature" onclick="insertTag('argile ')">argile</span>
+        <span class="qtag cat-nature" onclick="insertTag('moraine ')">moraine</span>
+        <span class="qtag cat-nature" onclick="insertTag('molasse ')">molasse</span>
+        <span class="qtag cat-nature" onclick="insertTag('marne ')">marne</span>
+        <div class="quick-tags-label" style="margin-top:6px;">Etats</div>
+        <span class="qtag cat-etat" onclick="insertTag('dense ')">dense</span>
+        <span class="qtag cat-etat" onclick="insertTag('compact ')">compact</span>
+        <span class="qtag cat-etat" onclick="insertTag('meuble ')">meuble</span>
+        <span class="qtag cat-etat" onclick="insertTag('ferme ')">ferme</span>
+        <span class="qtag cat-etat" onclick="insertTag('plastique ')">plastique</span>
+        <div class="quick-tags-label" style="margin-top:6px;">Humidite</div>
+        <span class="qtag cat-humid" onclick="insertTag('humide ')">humide</span>
+        <span class="qtag cat-humid" onclick="insertTag('sature ')">sature</span>
+        <span class="qtag cat-humid" onclick="insertTag('sec ')">sec</span>
+        <div class="quick-tags-label" style="margin-top:6px;">Structure</div>
+        <span class="qtag cat-struct" onclick="insertTag('stratifie ')">stratifie</span>
+        <span class="qtag cat-struct" onclick="insertTag('fracture ')">fracture</span>
+        <span class="qtag cat-struct" onclick="insertTag('lamine ')">lamine</span>
+        <span class="qtag cat-struct" onclick="insertTag('massif ')">massif</span>
+        <div class="quick-tags-label" style="margin-top:6px;">Eau</div>
+        <span class="qtag cat-eau" onclick="insertTag('nappe ')">nappe</span>
+      </div>
+
+      <!-- Diagnostics -->
+      <div class="diag-panel" id="diagPanel" style="display:none;">
+        <div class="diag-header" onclick="toggleDiag()">
+          <div class="diag-status" id="diagStatus"></div>
+          <span class="diag-chevron">&#9654;</span>
+        </div>
+        <div class="diag-list" id="diagList"></div>
+      </div>
+
+      <!-- Recognition bar -->
+      <div class="recog-bar" id="recogBar"></div>
+
+      <!-- Buttons -->
+      <div class="btn-row-input" style="margin-top:10px;">
+        <button class="btn-example" onclick="chargerExempleTerrain()">Exemple</button>
+      </div>
+    </div>
+
+    <!-- TAB: LABO -->
+    <div class="tab-content" id="inputLabo">
+      <div class="info-bar">Resultats d'analyses rattaches au sondage actif. Coller les donnees du laboratoire.</div>
+
+      <div class="referentiel-bar">
+        <button class="ref-btn active" onclick="setReferentiel('ositesA3')" id="refOsitesA3">OSites Annexe 3</button>
+        <button class="ref-btn" onclick="setReferentiel('osol')" id="refOsol">OSOl</button>
+        <button class="ref-btn" onclick="setReferentiel('ositesA1')" id="refOsitesA1">OSites Annexe 1</button>
+      </div>
+
+      <textarea class="lab-input" id="labInput" placeholder="Plomb : 45 mg/kg
+Zinc 320 mg/kg
+Cadmium 2.5 mg/kg
+Hydrocarbures C10-C40 : 1200 mg/kg" spellcheck="false"></textarea>
+
+      <div class="recog-bar" id="labRecogBar"></div>
+
+      <div class="btn-row-input" style="margin-top:10px;">
+        <button class="btn-example" onclick="chargerExempleLabo()">Exemple</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN — RESTITUTION -->
+  <div class="card">
+    <div class="tab-bar" id="outputTabs">
+      <button class="tab-btn active" onclick="switchOutputTab('tableau')">Tableau</button>
+      <button class="tab-btn" onclick="switchOutputTab('log')">Log</button>
+      <button class="tab-btn disabled" onclick="switchOutputTab('analyses')" id="analysesTabBtn">Analyses</button>
+    </div>
+
+    <!-- TAB: TABLEAU -->
+    <div class="tab-content active" id="outputTableau">
+      <div id="liveView">
+        <div id="liveContent">
+          <div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le tableau norme.</div>
+        </div>
+      </div>
+      <div id="finalView" style="display:none;">
+        <div id="finalContent"></div>
+        <div class="warn-bar">Ce tableau a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.</div>
+        <div class="export-row">
+          <button class="btn-secondary" onclick="exportDOCX()">Exporter .docx</button>
+          <button class="btn-secondary" onclick="exportXLSX()">Exporter .xlsx</button>
+          <button class="btn-secondary" onclick="exportPNG()">Exporter .png</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LOG -->
+    <div class="tab-content" id="outputLog">
+      <div id="logMeta" class="log-meta" style="display:none;"></div>
+      <div id="logOutput">
+        <div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le log de forage.</div>
+      </div>
+      <canvas id="logCanvas" style="display:none;"></canvas>
+      <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.</div>
+      <div class="export-row" id="logExportBar" style="display:none;">
+        <button class="btn-secondary" onclick="exportLogPNG(1)">PNG</button>
+        <button class="btn-secondary" onclick="exportLogPNG(2)">PNG HD (x2)</button>
+        <button class="btn-secondary" onclick="exportLogSVG()">SVG</button>
+      </div>
+    </div>
+
+    <!-- TAB: ANALYSES -->
+    <div class="tab-content" id="outputAnalyses">
+      <div id="labOutput">
+        <div class="preview-empty">Aucun resultat de laboratoire rattache au sondage actif. Basculer sur l'onglet Labo pour saisir les donnees analytiques.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== CONVERTER (collapsible) ====== -->
+<div class="converter-toggle" id="convToggle" onclick="toggleConverter()">
+  <span>Convertisseur MN03 / MN95</span>
+  <span class="chevron">&#9654;</span>
+</div>
+<div class="converter-body" id="convBody">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div>
+      <h3 style="font-size:14px; font-weight:700; color:#1a3a5c; margin-bottom:12px;">Conversion simple</h3>
+      <div style="display:flex; gap:4px; margin-bottom:12px;">
+        <button class="ref-btn active" id="convDir03to95" onclick="setConvDir('03to95')">MN03 &#8594; MN95</button>
+        <button class="ref-btn" id="convDir95to03" onclick="setConvDir('95to03')">MN95 &#8594; MN03</button>
+      </div>
+      <div class="conv-row">
+        <div>
+          <label class="conv-label" id="convLabelE">Y (Est) — MN03</label>
+          <input type="text" class="conv-input" id="convE" placeholder="Ex: 571'230" oninput="convertCoord()">
+        </div>
+        <div>
+          <label class="conv-label" id="convLabelN">X (Nord) — MN03</label>
+          <input type="text" class="conv-input" id="convN" placeholder="Ex: 164'850" oninput="convertCoord()">
+        </div>
+      </div>
+      <div class="conv-result" id="convResult">
+        <div style="color:#9ab0c8; font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>
+      </div>
+      <div class="conv-note">Conversion approchee (ecart &lt; 2m). Pour une precision centimetrique : REFRAME (swisstopo).</div>
+    </div>
+    <div>
+      <h3 style="font-size:14px; font-weight:700; color:#1a3a5c; margin-bottom:12px;">Conversion par lot</h3>
+      <div class="info-bar" style="margin-bottom:12px;">Un point par ligne : <code>E N</code> ou <code>Y X</code> separes par espace, tabulation, virgule ou point-virgule.</div>
+      <textarea id="convBatch" class="conv-batch" placeholder="571230 164850
+568400 181200
+573100 170500"></textarea>
+      <div style="margin-top:8px;">
+        <button class="btn-secondary" onclick="convertBatch()">Convertir le lot</button>
+      </div>
+      <div id="convOutput" style="margin-top:12px;">
+        <div class="preview-empty" style="padding:20px;">Les coordonnees converties apparaitront ici.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== FOOTER (preserved) ====== -->
+<div class="disclaimer-block" data-i18n="disclaimer">
+  Ce contenu a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.
+</div>
+<div class="soutien">
+  <img src="svp_fribourg_rvb.png" alt="Student Venture Program">
+  <p data-i18n="svp">Projet soutenu par le Student Venture Program de la HES-SO et de l'Universite de Fribourg</p>
+</div>
+<footer>
+  <p>SYNOS — v4.0 — Mars 2026</p>
+</footer>
+
+<!-- Floating tooltip -->
+<div class="editor-tooltip" id="editorTooltip"></div>
+
+<script>
+/* ================================================================
+   LITHO COLORS
+   ================================================================ */
+const LITHO_COLORS = {
+  'terre végétale': '#5c3d1e', 'tv': '#5c3d1e', 'humus': '#3d2e10',
+  'remblai': '#7a6a50', 'limon sableux': '#c4a64a', 'limon argileux': '#a08840',
+  'limon': '#b89840', 'sable limoneux': '#d4b870', 'sable graveleux': '#c8b880',
+  'sable': '#d4c090', 'gravier sableux': '#c8bfa0', 'gravier limoneux': '#b0a880',
+  'gravier': '#b8b090', 'argile limoneuse': '#8a8a70', 'argile sableuse': '#8a8a70',
+  'argile': '#7a8070', 'moraine': '#9a9a90', 'tourbe': '#2a2010',
+  'éboulis': '#8a8a80', 'molasse': '#7a9a80', 'roche': '#6a8a70',
+  'calcaire': '#9aaa98', 'gneiss': '#6a7a6a', 'granite': '#8a8a8a',
+  'grès': '#8a9a7a', 'schiste': '#5a6a5a',
+};
+
+function getLithoColor(desc) {
+  const d = desc.toLowerCase();
+  for (const [key, color] of Object.entries(LITHO_COLORS)) {
+    if (d.includes(key)) return color;
+  }
+  return '#b0b8c0';
+}
+
+function getUSCSClass(uscs) {
+  if (uscs === '—') return 'end';
+  if (uscs === 'Roche') return 'rock';
+  if (/OH|Pt/.test(uscs)) return 'organic';
+  return 'soil';
+}
+
+/* ================================================================
+   KNOWN VOCABULARY
+   ================================================================ */
+const KNOWN_VOCAB = {
+  natures: new Set(['terre','végétale','végétal','tv','humus','remblai','limon','sable','gravier','argile','moraine','tourbe','éboulis','molasse','roche','calcaire','gneiss','granite','granit','schiste','grès','marne','flysch','conglomérat','tuf','alluvion','alluvions','colluvion','colluvions','dépôt','silt']),
+  adjNatures: new Set(['sableux','sableuse','limoneux','limoneuse','graveleux','graveleuse','argileux','argileuse','gréseux','gréseuse','marneux','marneuse','morainique','silteux','silteuse','caillouteux','caillouteuse']),
+  couleurs: new Set(['brun','brune','gris','grise','beige','noir','noire','noirâtre','ocre','jaunâtre','jaune','rougeâtre','rouge','verdâtre','vert','verte','bleuté','bleutée','foncé','foncée','clair','claire','brunâtre','grisâtre','olivâtre','rosé','rosée','blanchâtre','crème','chamois']),
+  consistances: new Set(['dense','compact','compacte','ferme','mou','molle','raide','meuble','lâche','tendre','dur','dure','plastique','friable','résistant','résistante']),
+  humidites: new Set(['sec','sèche','humide','saturé','saturée','mouillé','mouillée']),
+  inclusions: new Set(['blocs','bloc','cailloux','caillou','galets','galet','racines','racine','odeur','arrondi','arrondis','arrondie','arrondies','strié','striés','striée','striées','traces','débris','fragments','éléments','nodules','lentilles','poches','passées','passée','graviers','sables','limons','argiles']),
+  structures: new Set(['fracturé','fissuré','stratifié','laminé','massif','folié','schisteux','plissé','faillé','karstifié','bréchifié','mylonitisé','cimenté','induré','consolidé','poreux','vacuolaire']),
+  textures: new Set(['grenu','microgrenu','porphyrique','aphanitique','amorphe','cristallin','saccharoïde','oolithique','pisolithique','détritique','clastique']),
+  qualifiers: new Set(['très','peu','quelques','avec','sans','de','du','des','la','le','les','un','une','et','à','en','sur','sous','par','plus','moins','assez','légèrement','fortement','nettement','faiblement','épars','éparse','isolé','isolée','fréquent','rare','abondant','abondante','régulier','irrégulier','fin','fine','moyen','moyenne','grossier','grossière','nombreux','nombreuses','présence','absence','trace','reste','type','forme','aspect','apparence']),
+  connecteurs: new Set(['jusqu','jusque','entre','vers','depuis','après','avant','puis','parfois','souvent','rarement','localement','alternance','passage','transition','contact','limite','base','sommet','partie','supérieur','supérieure','inférieur','inférieure','intermédiaire']),
+  geological: new Set(['fluvioglaciaire','fluvioglacial','glaciaire','alluvial','alluviale','morainique','erratique','erratiques','interglaciaire','lacustre','deltaïque','éolien','éolienne','fond','latéral','latérale','würmien','rissien','hétérogène','homogène','roulé','anguleux','subanguleux','subarrondi','stratifié','laminé','massif','altéré','sain','fracturé','fissuré','perméable','imperméable']),
+  measurements: new Set(['cm','mm','m','km','ml','cl','kpa','mpa','bar','kn','env','environ','ca']),
+  actions: new Set(['forage','ralenti','refus','fin','arrêt','échantillon','éch','ech','prélevé','prélevée','intact','intacte','remanié','remaniée','carotté','carottée','essai','spt','dpl','pressiomètre','pénétromètre','observation','obs','sondage','carottage','piézomètre','inclinomètre','tubage','cimentation','injection','lavage','soufflage','pompage','tarière','marteau','pelle','tranchée','puits','fouille','reconnaissance'])
+};
+
+const customVocab = new Set();
+
+function normalizeForLookup(word) {
+  let w = word.toLowerCase().replace(/[,.:;()'"\[\]]/g, '');
+  if (w.length > 4 && w.endsWith('s')) w = w.slice(0, -1);
+  if (w.length > 5 && w.endsWith('x')) w = w.slice(0, -1);
+  return w;
+}
+
+function isKnownWord(word) {
+  const raw = word.toLowerCase().replace(/[,.:;()'"\[\]]/g, '');
+  if (raw.length < 2) return true;
+  if (/^\d/.test(raw)) return true;
+  for (const set of Object.values(KNOWN_VOCAB)) {
+    if (set.has(raw)) return true;
+  }
+  if (customVocab.has(raw)) return true;
+  const w = normalizeForLookup(word);
+  if (customVocab.has(w)) return true;
+  for (const set of Object.values(KNOWN_VOCAB)) {
+    if (set.has(w)) return true;
+  }
+  return false;
+}
+
+function getWordCategory(word) {
+  const raw = word.toLowerCase().replace(/[,.:;()'"\[\]]/g, '');
+  if (/^\d/.test(raw)) return 'number';
+  if (raw.length < 2) return 'skip';
+  for (const [cat, set] of Object.entries(KNOWN_VOCAB)) {
+    if (set.has(raw)) return cat;
+  }
+  if (customVocab.has(raw)) return 'custom';
+  const w = normalizeForLookup(word);
+  if (customVocab.has(w)) return 'custom';
+  for (const [cat, set] of Object.entries(KNOWN_VOCAB)) {
+    if (set.has(w)) return cat;
+  }
+  return null;
+}
+
+/* Pre-build allWords + normalized list once */
+const _allWords = [];
+const _allWordsNorm = [];
+(function() {
+  for (const set of Object.values(KNOWN_VOCAB)) {
+    for (const kw of set) { _allWords.push(kw); _allWordsNorm.push(kw.normalize('NFD').replace(/[\u0300-\u036f]/g, '')); }
+  }
+})();
+
+const _wordCache = new Map();
+
+function findSuggestion(word) {
+  const w = normalizeForLookup(word);
+  const wNorm = w.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  for (let i = 0; i < _allWords.length; i++) {
+    const kw = _allWords[i];
+    const kwNorm = _allWordsNorm[i];
+    if (wNorm === kwNorm && w !== kw) return kw;
+    if (w.length >= 3 && kw.length >= 4) {
+      let shared = 0;
+      for (let j = 0; j < Math.min(w.length, kw.length); j++) {
+        if (w[j] === kw[j]) shared++; else break;
+      }
+      if (shared >= 3 && Math.abs(w.length - kw.length) <= 3) return kw;
+    }
+    if (w.length >= 3 && kw.startsWith(w)) return kw;
+    if (kw.length >= 4 && w.startsWith(kw)) return kw;
+  }
+  return null;
+}
+
+/* ================================================================
+   LINE CLASSIFICATION
+   ================================================================ */
+function classifyLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return 'empty';
+  if (/(?:nappe|eau|NP|niveau\s*eau|water)/i.test(trimmed)) return 'nappe';
+  if (/^(?:de\s+)?\d+[.,]?\d*\s*(?:[-–—]|[àa])\s*\d+[.,]?\d*\s*m?\s+.+/i.test(trimmed)) return 'layer';
+  if (/^\d+[.,]?\d*\s*m?\s+(?:refus|fin|arrêt|roche|bloc)/i.test(trimmed)) return 'layer';
+  if (/alt\.?\s*:?\s*\d/i.test(trimmed)) return 'meta';
+  if (/(?:E\s*)?\d[\d']{5,}\s*[/,\s]\s*(?:N\s*)?\d[\d']{5,}/.test(trimmed)) return 'meta';
+  if (/(\d{1,2})[./](\d{1,2})[./](\d{4})/.test(trimmed) || /^[A-Za-z]{1,5}[-]?\d{1,4}\b/.test(trimmed)) return 'meta';
+  return 'obs';
+}
+
+function getLayerDesc(line) {
+  const m = line.trim().match(/^(?:de\s+)?\d+[.,]?\d*\s*(?:[-–—]|[àa])\s*\d+[.,]?\d*\s*m?\s+(.+)/i);
+  if (m) return { desc: m[1], startIdx: line.indexOf(m[1]) };
+  return null;
+}
+
+/* ================================================================
+   TOKEN ANALYSIS
+   ================================================================ */
+function analyzeDescription(desc) {
+  const tokens = [];
+  const regex = /(\S+)/g;
+  let match;
+  while ((match = regex.exec(desc)) !== null) {
+    const word = match[1];
+    const raw = word.replace(/[,.:;()'"\[\]]/g, '');
+    if (raw.length < 2 || /^\d/.test(raw)) {
+      tokens.push({ word, offset: match.index, type: 'skip' });
+      continue;
+    }
+    const rawLow = raw.toLowerCase();
+    if (_wordCache.has(rawLow)) {
+      const cached = _wordCache.get(rawLow);
+      tokens.push({ word, offset: match.index, type: cached.type, suggestion: cached.suggestion });
+      continue;
+    }
+    const cat = getWordCategory(raw);
+    if (cat) {
+      _wordCache.set(rawLow, { type: cat, suggestion: null });
+      tokens.push({ word, offset: match.index, type: cat });
+    } else {
+      const suggestion = findSuggestion(raw);
+      if (suggestion) {
+        _wordCache.set(rawLow, { type: 'ambiguous', suggestion });
+        tokens.push({ word, offset: match.index, type: 'ambiguous', suggestion });
+      } else {
+        _wordCache.set(rawLow, { type: 'unknown', suggestion: null });
+        tokens.push({ word, offset: match.index, type: 'unknown' });
+      }
+    }
+  }
+  return tokens;
+}
+
+/* ================================================================
+   BACKDROP RENDERING
+   ================================================================ */
+window._flaggedRanges = [];
+
+function buildBackdropHTML(text) {
+  const lines = text.split('\n');
+  const flagged = [];
+  let globalOffset = 0;
+  let html = '';
+
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
+    const type = classifyLine(line);
+
+    if (type === 'empty') {
+      html += '<span class="bd-line">\n</span>';
+      globalOffset += line.length + 1;
+      continue;
+    }
+
+    if (type === 'layer') {
+      const layerInfo = getLayerDesc(line);
+      if (layerInfo) {
+        const before = line.substring(0, layerInfo.startIdx);
+        const desc = layerInfo.desc;
+        const tokens = analyzeDescription(desc);
+        let descHTML = '';
+        let lastEnd = 0;
+
+        for (const t of tokens) {
+          if (t.offset > lastEnd) {
+            descHTML += escapeHtml(desc.substring(lastEnd, t.offset));
+          }
+          if (t.type === 'ambiguous') {
+            descHTML += `<span class="diag-ambiguous">${escapeHtml(t.word)}</span>`;
+            flagged.push({
+              word: t.word, type: 'ambiguous', suggestion: t.suggestion,
+              globalStart: globalOffset + layerInfo.startIdx + t.offset,
+              globalEnd: globalOffset + layerInfo.startIdx + t.offset + t.word.length,
+              line: li
+            });
+          } else if (t.type === 'unknown') {
+            descHTML += `<span class="diag-unknown">${escapeHtml(t.word)}</span>`;
+            flagged.push({
+              word: t.word, type: 'unknown', suggestion: null,
+              globalStart: globalOffset + layerInfo.startIdx + t.offset,
+              globalEnd: globalOffset + layerInfo.startIdx + t.offset + t.word.length,
+              line: li
+            });
+          } else if (t.type === 'natures' || t.type === 'adjNatures') {
+            descHTML += `<span class="bd-nature">${escapeHtml(t.word)}</span>`;
+          } else if (t.type === 'couleurs') {
+            descHTML += `<span class="bd-couleur">${escapeHtml(t.word)}</span>`;
+          } else if (t.type === 'consistances') {
+            descHTML += `<span class="bd-consistance">${escapeHtml(t.word)}</span>`;
+          } else if (t.type === 'number') {
+            descHTML += `<span class="bd-number">${escapeHtml(t.word)}</span>`;
+          } else {
+            descHTML += escapeHtml(t.word);
+          }
+          lastEnd = t.offset + t.word.length;
+        }
+        if (lastEnd < desc.length) descHTML += escapeHtml(desc.substring(lastEnd));
+
+        html += `<span class="bd-line bd-layer"><span class="bd-depth">${escapeHtml(before)}</span>${descHTML}\n</span>`;
+      } else {
+        html += `<span class="bd-line bd-layer">${escapeHtml(line)}\n</span>`;
+      }
+    } else if (type === 'meta') {
+      html += `<span class="bd-line bd-meta">${escapeHtml(line)}\n</span>`;
+    } else if (type === 'nappe') {
+      html += `<span class="bd-line bd-nappe">${escapeHtml(line)}\n</span>`;
+    } else {
+      html += `<span class="bd-line bd-obs">${escapeHtml(line)}\n</span>`;
+    }
+
+    globalOffset += line.length + 1;
+  }
+
+  window._flaggedRanges = flagged;
+  return html;
+}
+
+/* ================================================================
+   META CHIPS → BANNER
+   ================================================================ */
+function updateBanner(data) {
+  const m = data.meta, wl = data.waterLevel;
+  const banner = document.getElementById('sondageBannerInfo');
+  const parts = [];
+
+  if (m.id) parts.push(`<span class="bv">${escapeHtml(m.id)}</span>`);
+  if (m.date) parts.push(`<span>${escapeHtml(m.date)}</span>`);
+  if (m.lieu) parts.push(`<span>${escapeHtml(m.lieu)}</span>`);
+  if (m.altitude) parts.push(`<span>${escapeHtml(m.altitude)} m</span>`);
+  if (data.layers.length > 0) parts.push(`<span>${data.layers.length} couche${data.layers.length > 1 ? 's' : ''}</span>`);
+  if (wl !== null) parts.push(`<span>Nappe ${typeof wl === 'number' ? wl.toFixed(1) + ' m' : wl}</span>`);
+  if (window._labResults && window._labResults.length > 0) parts.push(`<span>${window._labResults.length} param. labo</span>`);
+
+  if (parts.length === 0) {
+    banner.innerHTML = '<span class="sondage-banner-empty">Aucun sondage actif — commencez la saisie ci-dessous</span>';
+  } else {
+    banner.innerHTML = parts.join('<span class="sep">|</span>');
+  }
+}
+
+function focusEditor() { document.getElementById('notesInput').focus(); }
+
+/* ================================================================
+   DIAGNOSTICS
+   ================================================================ */
+function updateDiagnostics(data) {
+  const flagged = window._flaggedRanges || [];
+  const panel = document.getElementById('diagPanel');
+  const statusEl = document.getElementById('diagStatus');
+  const listEl = document.getElementById('diagList');
+
+  if (flagged.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = '';
+  const ambCount = flagged.filter(f => f.type === 'ambiguous').length;
+  const unkCount = flagged.filter(f => f.type === 'unknown').length;
+
+  let statusHTML = '';
+  if (ambCount > 0) statusHTML += `<span class="diag-warn">${ambCount} interpretation${ambCount > 1 ? 's' : ''} incertaine${ambCount > 1 ? 's' : ''}</span>`;
+  if (unkCount > 0) statusHTML += `<span class="diag-warn">${unkCount} terme${unkCount > 1 ? 's' : ''} non reconnu${unkCount > 1 ? 's' : ''}</span>`;
+  statusEl.innerHTML = statusHTML;
+
+  let listHTML = '';
+  for (let i = 0; i < flagged.length; i++) {
+    const f = flagged[i];
+    const typeClass = f.type === 'ambiguous' ? 'amber' : 'red';
+    const typeLabel = f.type === 'ambiguous' ? 'Interpretation incertaine' : 'Terme non classifie';
+    listHTML += `<div class="diag-item">
+      <div class="diag-item-word">"${escapeHtml(f.word)}"</div>
+      <div class="diag-item-type ${typeClass}">${typeLabel}</div>
+      ${f.suggestion ? `<div class="diag-item-type">Suggestion : <strong>${escapeHtml(f.suggestion)}</strong></div>` : ''}
+      <div class="diag-actions">
+        ${f.suggestion ? `<button class="diag-act primary" onclick="applyDiagSuggestion(${i})">Accepter</button>` : ''}
+        <button class="diag-act" onclick="ignoreDiagWord(${i})">Ignorer</button>
+        <button class="diag-act" onclick="addToLexicon('${escapeHtml(normalizeForLookup(f.word))}')">Ajouter au lexique</button>
+      </div>
+    </div>`;
+  }
+  listEl.innerHTML = listHTML;
+}
+
+function toggleDiag() { document.getElementById('diagPanel').classList.toggle('expanded'); }
+
+function applyDiagSuggestion(idx) {
+  const f = window._flaggedRanges[idx];
+  if (!f || !f.suggestion) return;
+  const ta = document.getElementById('notesInput');
+  const text = ta.value;
+  ta.value = text.substring(0, f.globalStart) + f.suggestion + text.substring(f.globalEnd);
+  triggerFullUpdate();
+}
+
+function ignoreDiagWord(idx) {
+  const f = window._flaggedRanges[idx];
+  if (!f) return;
+  addToLexicon(normalizeForLookup(f.word));
+}
+
+function addToLexicon(word) { customVocab.add(word); triggerFullUpdate(); }
+
+/* ================================================================
+   RECOGNITION BAR
+   ================================================================ */
+function updateRecogBar(data) {
+  const bar = document.getElementById('recogBar');
+  const parts = [];
+  const m = data.meta;
+  const metaCount = [m.id, m.date, m.lieu, m.altitude, m.coordE].filter(Boolean).length;
+
+  if (data.layers.length > 0) {
+    parts.push(`<span class="recog-item"><span class="recog-dot green"></span>${data.layers.length} couche${data.layers.length > 1 ? 's' : ''}</span>`);
+  }
+  if (metaCount > 0) {
+    parts.push(`<span class="recog-item"><span class="recog-dot blue"></span>${metaCount} metadonnee${metaCount > 1 ? 's' : ''}</span>`);
+  }
+  if (data.waterLevel !== null) {
+    parts.push(`<span class="recog-item"><span class="recog-dot blue"></span>1 nappe</span>`);
+  }
+  if (data.observations.length > 0) {
+    parts.push(`<span class="recog-item"><span class="recog-dot gray"></span>${data.observations.length} obs.</span>`);
+  }
+
+  const flagged = window._flaggedRanges || [];
+  if (flagged.length > 0) {
+    parts.push(`<span class="recog-item" style="color:#b8860a;cursor:pointer;" onclick="document.getElementById('diagPanel').classList.add('expanded');document.getElementById('diagPanel').scrollIntoView({behavior:'smooth'})"><span class="recog-dot" style="background:#d4900a;"></span>${flagged.length} a verifier</span>`);
+  }
+
+  bar.innerHTML = parts.join('<span style="color:#d0dce8;"> &middot; </span>');
+}
+
+/* ================================================================
+   EDITOR ORCHESTRATION
+   ================================================================ */
+function updateEditor() {
+  const ta = document.getElementById('notesInput');
+  const text = ta.value;
+  const backdrop = document.getElementById('editorBackdrop');
+  const placeholder = document.getElementById('editorPlaceholder');
+
+  if (!text) {
+    backdrop.innerHTML = '';
+    placeholder.style.display = '';
+    document.getElementById('diagPanel').style.display = 'none';
+    document.getElementById('recogBar').innerHTML = '';
+    updateBanner({ meta: {}, layers: [], observations: [], waterLevel: null });
+    return;
+  }
+
+  placeholder.style.display = 'none';
+
+  const savedScroll = backdrop.scrollTop;
+  backdrop.innerHTML = buildBackdropHTML(text);
+  backdrop.scrollTop = savedScroll;
+
+  const data = parseCarnet(text);
+  updateDiagnostics(data);
+  updateRecogBar(data);
+  updateBanner(data);
+}
+
+function triggerFullUpdate() {
+  updateEditor();
+  updateLivePreview();
+  updateLogFromCarnet();
+}
+
+/* ================================================================
+   QUICK TAG INSERTION
+   ================================================================ */
+function insertTag(tag) {
+  const ta = document.getElementById('notesInput');
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const text = ta.value;
+  ta.value = text.substring(0, start) + tag + text.substring(end);
+  ta.selectionStart = ta.selectionEnd = start + tag.length;
+  ta.focus();
+  triggerFullUpdate();
+}
+
+/* ================================================================
+   TOOLTIP ON CLICK
+   ================================================================ */
+function handleEditorClick(e) {
+  const ta = document.getElementById('notesInput');
+  const pos = ta.selectionStart;
+  const flagged = window._flaggedRanges || [];
+
+  for (const f of flagged) {
+    if (pos >= f.globalStart && pos <= f.globalEnd) {
+      showEditorTooltip(e.clientX, e.clientY, f);
+      return;
+    }
+  }
+  hideEditorTooltip();
+}
+
+function showEditorTooltip(x, y, flagInfo) {
+  const tt = document.getElementById('editorTooltip');
+  const typeClass = flagInfo.type === 'ambiguous' ? 'amber' : 'red';
+  const typeLabel = flagInfo.type === 'ambiguous' ? 'Interpretation incertaine' : 'Terme non classifie';
+
+  let html = `<div class="tt-word">${escapeHtml(flagInfo.word)}</div>`;
+  html += `<div class="tt-type ${typeClass}">${typeLabel}</div>`;
+  if (flagInfo.suggestion) {
+    html += `<div class="tt-suggestion">Suggestion : <strong>${escapeHtml(flagInfo.suggestion)}</strong></div>`;
+  }
+  html += `<div class="tt-actions">`;
+  if (flagInfo.suggestion) {
+    html += `<button class="tt-act primary" onclick="applyTooltipSuggestion('${escapeHtml(flagInfo.suggestion)}', ${flagInfo.globalStart}, ${flagInfo.globalEnd})">Accepter</button>`;
+  }
+  html += `<button class="tt-act" onclick="addToLexicon('${escapeHtml(normalizeForLookup(flagInfo.word))}'); hideEditorTooltip();">Ignorer</button>`;
+  html += `</div>`;
+
+  tt.innerHTML = html;
+  tt.classList.add('show');
+
+  const ttRect = tt.getBoundingClientRect();
+  let left = x + 8;
+  let top = y - 10;
+  if (left + 260 > window.innerWidth) left = x - 268;
+  if (top + 120 > window.innerHeight) top = y - 120;
+  tt.style.left = left + 'px';
+  tt.style.top = top + 'px';
+}
+
+function hideEditorTooltip() {
+  document.getElementById('editorTooltip').classList.remove('show');
+}
+
+function applyTooltipSuggestion(suggestion, start, end) {
+  const ta = document.getElementById('notesInput');
+  const text = ta.value;
+  ta.value = text.substring(0, start) + suggestion + text.substring(end);
+  hideEditorTooltip();
+  triggerFullUpdate();
+}
+
+/* ================================================================
+   PARSING
+   ================================================================ */
+function parseCarnet(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const result = { meta: {}, layers: [], observations: [], waterLevel: null };
+
+  for (const line of lines) {
+    const nappeMatch = line.match(/(?:nappe|eau|NP|niveau\s*eau|water)\s*(?:[àa:])?\s*(\d+[.,]?\d*)\s*m?/i);
+    const nappeNeg = /(?:nappe|eau).*(pas|non|aucune)/i.test(line) || /(pas|non|aucune).*(nappe|eau)/i.test(line);
+    if (nappeNeg) { result.waterLevel = 'Non rencontree'; continue; }
+    if (nappeMatch) { result.waterLevel = parseFloat(nappeMatch[1].replace(',','.')); continue; }
+
+    const altMatch = line.match(/alt\.?\s*:?\s*(\d+[.,]?\d*)/i);
+    if (altMatch && !/^\d+[.,]?\d*\s*[-–—àa]\s*\d/.test(line)) { result.meta.altitude = altMatch[1].replace(',','.'); continue; }
+
+    const coordMatch = line.match(/(?:E\s*)?(\d[\d']{5,})\s*[/,\s]\s*(?:N\s*)?(\d[\d']{5,})/);
+    if (coordMatch && !line.match(/^\d+[.,]?\d*\s*[-–—àa]\s*\d/)) {
+      result.meta.coordE = coordMatch[1]; result.meta.coordN = coordMatch[2]; continue;
+    }
+
+    const layerMatch = line.match(/^(?:de\s+)?(\d+[.,]?\d*)\s*(?:[-–—]|[àa])\s*(\d+[.,]?\d*)\s*m?\s+(.+)/i);
+    if (layerMatch) {
+      result.layers.push({ profDe: parseFloat(layerMatch[1].replace(',','.')), profA: parseFloat(layerMatch[2].replace(',','.')), descBrute: layerMatch[3].trim() });
+      continue;
+    }
+
+    const endMatch = line.match(/^(\d+[.,]?\d*)\s*m?\s+(refus|fin|arrêt|roche|bloc)/i);
+    if (endMatch) {
+      result.layers.push({ profDe: parseFloat(endMatch[1].replace(',','.')), profA: null, descBrute: line.substring(line.indexOf(endMatch[2])).trim() });
+      continue;
+    }
+
+    const dateMatch = line.match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/);
+    const idMatch = line.match(/^([A-Za-z]{1,5}[-]?\d{1,4})/);
+    if (dateMatch) result.meta.date = dateMatch[0];
+    if (idMatch && !result.meta.id) result.meta.id = idMatch[1];
+    if (idMatch || dateMatch) {
+      let remainder = line;
+      if (idMatch) remainder = remainder.replace(idMatch[0], '');
+      if (dateMatch) remainder = remainder.replace(dateMatch[0], '');
+      remainder = remainder.replace(/sondage/i, '').replace(/du/i, '').trim();
+      if (remainder.length > 1 && !result.meta.lieu) result.meta.lieu = remainder;
+      continue;
+    }
+
+    result.observations.push(line);
+  }
+  return result;
+}
+
+/* ================================================================
+   DEBOUNCE — INPUT HANDLER
+   ================================================================ */
+let _backdropTimer = null;
+let _heavyTimer = null;
+function onInput() {
+  const ta = document.getElementById('notesInput');
+  const bd = document.getElementById('editorBackdrop');
+  const ph = document.getElementById('editorPlaceholder');
+
+  bd.scrollTop = ta.scrollTop;
+  ph.style.display = ta.value ? 'none' : '';
+
+  clearTimeout(_backdropTimer);
+  _backdropTimer = setTimeout(() => {
+    if (!ta.value) {
+      bd.innerHTML = '';
+      document.getElementById('diagPanel').style.display = 'none';
+      document.getElementById('recogBar').innerHTML = '';
+      updateBanner({ meta: {}, layers: [], observations: [], waterLevel: null });
+      return;
+    }
+    const saved = bd.scrollTop;
+    bd.innerHTML = buildBackdropHTML(ta.value);
+    bd.scrollTop = saved;
+  }, 60);
+
+  clearTimeout(_heavyTimer);
+  _heavyTimer = setTimeout(() => {
+    if (!ta.value) return;
+    const data = parseCarnet(ta.value);
+    updateDiagnostics(data);
+    updateRecogBar(data);
+    updateBanner(data);
+    updateLivePreview();
+    updateLogFromCarnet();
+  }, 400);
+}
+
+/* ================================================================
+   LIVE PREVIEW
+   ================================================================ */
+function updateLivePreview() {
+  const text = document.getElementById('notesInput').value;
+  if (!text.trim()) {
+    document.getElementById('liveContent').innerHTML = `<div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le tableau norme.</div>`;
+    document.getElementById('finalView').style.display = 'none';
+    document.getElementById('liveView').style.display = 'block';
+    return;
+  }
+
+  const data = parseCarnet(text);
+  if (data.layers.length === 0) {
+    document.getElementById('liveContent').innerHTML = `<div class="preview-empty">Aucune couche reconnue. Verifiez le format (ex: 0-0.3 description).</div>`;
+    return;
+  }
+
+  const m = data.meta, wl = data.waterLevel;
+  let html = '';
+
+  html += `<div class="meta-grid">
+    <div><span class="meta-label">Sondage : </span><span class="meta-value ${m.id?'':'empty'}">${m.id||'—'}</span></div>
+    <div><span class="meta-label">Date : </span><span class="meta-value ${m.date?'':'empty'}">${m.date||'—'}</span></div>
+    <div><span class="meta-label">Lieu : </span><span class="meta-value ${m.lieu?'':'empty'}">${m.lieu||'—'}</span></div>
+    <div><span class="meta-label">Alt. : </span><span class="meta-value ${m.altitude?'':'empty'}">${m.altitude?m.altitude+' m':'—'}</span></div>
+    <div class="meta-full"><span class="meta-label">Coord. : </span><span class="meta-value ${m.coordE?'':'empty'}">${m.coordE?'E '+m.coordE+' / N '+m.coordN:'—'}</span></div>
+    <div class="meta-full"><span class="meta-label">Nappe : </span><span class="meta-value ${wl!==null?'':'empty'}">${wl!==null?(typeof wl==='number'?wl.toFixed(1)+' m':wl):'—'}</span></div>
+  </div>`;
+
+  /* Auto-generate final table */
+  const maxDepth = Math.max(...data.layers.map(l => l.profA || l.profDe));
+  let nappeLayerIdx = -1, nappePosition = 'below';
+  if (typeof wl === 'number') {
+    for (let i = 0; i < data.layers.length; i++) {
+      const l = data.layers[i];
+      if (l.profA === null) continue;
+      if (wl >= l.profDe && wl <= l.profA) {
+        nappeLayerIdx = i;
+        const midpoint = l.profDe + (l.profA - l.profDe) / 2;
+        nappePosition = wl > midpoint ? 'below' : 'above';
+        break;
+      }
+      const next = data.layers[i+1];
+      if (next && wl > l.profA && wl <= next.profDe) {
+        nappeLayerIdx = i + 1;
+        nappePosition = 'above';
+        break;
+      }
+    }
+  }
+
+  html += `<div class="output-wrap"><table class="final-table"><thead><tr>
+    <th style="width:6px;padding:0;"></th>
+    <th>Prof. de</th><th>Prof. a</th><th>Ep.</th>
+    <th>Description</th><th>USCS</th>
+  </tr></thead><tbody>`;
+
+  const finalLayers = [];
+  for (let i = 0; i < data.layers.length; i++) {
+    const l = data.layers[i];
+    const ep = l.profA !== null ? (l.profA - l.profDe) : null;
+    const epStr = ep !== null ? ep.toFixed(1) : '—';
+    const epPct = ep !== null && maxDepth > 0 ? Math.round((ep / maxDepth) * 100) : 0;
+    const normee = l.profA !== null ? normaliserDescription(l.descBrute) : (l.descBrute.charAt(0).toUpperCase()+l.descBrute.slice(1));
+    const uscs = l.profA !== null ? estimerUSCS(l.descBrute) : '—';
+    const obs = l.profA === null ? 'Fin de sondage' : '';
+    const color = getLithoColor(l.descBrute);
+    const uscsClass = getUSCSClass(uscs);
+
+    finalLayers.push({ ...l, epaisseur: epStr, descNormee: normee, uscs, obs });
+
+    const nappeHtml = (i === nappeLayerIdx) ? wl : null;
+    html += buildLayerRow(l, ep, epStr, epPct, normee, uscs, obs, color, uscsClass, nappeHtml, nappePosition);
+  }
+  html += `</tbody></table></div>`;
+
+  html += `<div class="final-summary">`;
+  for (const fl of finalLayers) {
+    if (fl.profA === null) continue;
+    const c = getLithoColor(fl.descBrute);
+    html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${fl.descNormee.split(',')[0]}</span></div>`;
+  }
+  if (typeof wl === 'number') {
+    html += `<div class="summary-item" style="margin-left:auto; color:#1a4a7a; font-weight:600;">Nappe : ${wl.toFixed(1)} m</div>`;
+  }
+  html += `</div>`;
+
+  if (data.observations.length > 0) {
+    html += `<div class="obs-section" style="margin-top:12px;"><strong>Observations :</strong>`;
+    for (const o of data.observations) html += `<br>— ${escapeHtml(o)}`;
+    html += `</div>`;
+  }
+
+  document.getElementById('liveContent').innerHTML = html;
+  document.getElementById('liveView').style.display = 'block';
+  document.getElementById('finalView').style.display = 'none';
+
+  window._lastLayers = finalLayers;
+  window._lastMeta = m;
+  window._lastWater = wl;
+  window._lastObs = data.observations;
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ================================================================
+   NORMALISATION SN 670 009
+   ================================================================ */
+function normaliserDescription(desc) {
+  let d = desc.toLowerCase();
+  let nature='', couleur='', consistance='', humidite='', inclusions=[];
+
+  const natures = [
+    {p:/terre\s*v[ée]g[ée]tale|tv/i, n:'Terre vegetale'}, {p:/gravier\s+sableux|grave\s+sableuse/i, n:'Gravier sableux'},
+    {p:/gravier\s+limoneux/i, n:'Gravier limoneux'}, {p:/sable\s+graveleux/i, n:'Sable graveleux'},
+    {p:/sable\s+limoneux/i, n:'Sable limoneux'}, {p:/limon\s+argileux/i, n:'Limon argileux'},
+    {p:/limon\s+sableux/i, n:'Limon sableux'}, {p:/argile\s+limoneuse/i, n:'Argile limoneuse'},
+    {p:/argile\s+sableuse/i, n:'Argile sableuse'}, {p:/gravier/i, n:'Gravier'}, {p:/sable/i, n:'Sable'},
+    {p:/limon/i, n:'Limon'}, {p:/moraine/i, n:'Moraine'}, {p:/tourbe/i, n:'Tourbe'},
+    {p:/argile/i, n:'Argile'}, {p:/remblai/i, n:'Remblai'}, {p:/[ée]boulis/i, n:'Eboulis'},
+    {p:/molasse/i, n:'Molasse'}, {p:/roche|calcaire|gneiss|granite|schiste|gr[eè]s/i, n:''}
+  ];
+  for (const x of natures) { if (x.p.test(d)) { nature = x.n || d.match(x.p)[0].charAt(0).toUpperCase()+d.match(x.p)[0].slice(1); break; } }
+
+  const couleurs = [
+    {p:/brun\s*gris[aâ]tre|brun\s+gris/i, n:'brun grisatre'}, {p:/gris\s*bleu[tâ][ée]?/i, n:'gris bleute'},
+    {p:/gris\s*brun/i, n:'gris brunatre'}, {p:/brun\s*jaune|brun\s*jaunâtre/i, n:'brun jaunatre'},
+    {p:/gris\s*vert/i, n:'gris verdatre'}, {p:/gris\s*beige/i, n:'gris beige'},
+    {p:/ocre|jaun[aâ]tre/i, n:'ocre jaunatre'}, {p:/rouge[aâ]tre/i, n:'rougeatre'},
+    {p:/brun\s*fonc[ée]/i, n:'brun fonce'}, {p:/brun[e]?/i, n:'brun'}, {p:/gris[e]?/i, n:'gris'},
+    {p:/beige/i, n:'beige'}, {p:/noir[aâ]tre|noir/i, n:'noiratre'},
+  ];
+  for (const x of couleurs) { if (x.p.test(d)) { couleur = x.n; break; } }
+
+  const consis = [
+    {p:/tr[eè]s\s+compact/i, n:'tres compact'}, {p:/tr[eè]s\s+dense/i, n:'tres dense'},
+    {p:/compact/i, n:'compact'}, {p:/dense/i, n:'dense'}, {p:/peu\s+consistant/i, n:'peu consistant'},
+    {p:/mou|molle/i, n:'mou'}, {p:/ferme/i, n:'ferme'}, {p:/raide/i, n:'raide'},
+    {p:/l[aâ]che|meuble/i, n:'meuble'}, {p:/tendre/i, n:'tendre'},
+  ];
+  for (const x of consis) { if (x.p.test(d)) { consistance = x.n; break; } }
+
+  const hums = [{p:/satur[ée]/i, n:'sature'}, {p:/humide/i, n:'humide'}, {p:/s[eè]che?/i, n:'sec'}];
+  for (const x of hums) { if (x.p.test(d)) { humidite = x.n; break; } }
+
+  if (/blocs?\s*(erratique)?/i.test(d)) inclusions.push('avec blocs');
+  if (/caillou/i.test(d)) inclusions.push('avec cailloux');
+  if (/galet/i.test(d)) inclusions.push('avec galets');
+  if (/racine/i.test(d)) inclusions.push('avec racines');
+  if (/odeur/i.test(d)) inclusions.push('odeur perceptible');
+  if (/arrondi/i.test(d)) inclusions.push('elements arrondis');
+  if (/stri[ée]/i.test(d)) inclusions.push('elements stries');
+  if (/calcaire/i.test(d) && nature!=='') inclusions.push('traces de calcaire');
+  if (/fluvioglaci/i.test(d)) inclusions.push('origine fluvioglaciaire');
+
+  let parts = [];
+  if (nature) parts.push(nature);
+  if (couleur) parts.push(couleur);
+  if (consistance) parts.push(consistance);
+  if (humidite) parts.push(humidite);
+  if (inclusions.length>0) parts.push(inclusions.join(', '));
+  if (parts.length===0) return desc.charAt(0).toUpperCase()+desc.slice(1);
+  return parts.join(', ');
+}
+
+function estimerUSCS(desc) {
+  const d = desc.toLowerCase();
+  if (/terre\s*v[ée]g|tv|humus/i.test(d)) return 'OH/Pt';
+  if (/gravier\s+sableux/i.test(d)) return 'GW/GP';
+  if (/gravier\s+limoneux/i.test(d)) return 'GM';
+  if (/gravier/i.test(d)&&/argil/i.test(d)) return 'GC';
+  if (/gravier/i.test(d)) return 'GW/GP';
+  if (/sable\s+graveleux/i.test(d)) return 'SW/SP';
+  if (/sable\s+limoneux/i.test(d)) return 'SM';
+  if (/sable/i.test(d)&&/argil/i.test(d)) return 'SC';
+  if (/sable/i.test(d)) return 'SW/SP';
+  if (/limon\s+argileux/i.test(d)) return 'CL/ML';
+  if (/limon\s+sableux/i.test(d)) return 'ML';
+  if (/limon/i.test(d)) return 'ML';
+  if (/argile\s+limon/i.test(d)) return 'CL';
+  if (/argile/i.test(d)) return 'CL/CH';
+  if (/tourbe/i.test(d)) return 'Pt';
+  if (/moraine/i.test(d)) return 'GM/GC';
+  if (/remblai/i.test(d)) return 'R';
+  if (/molasse|gr[eè]s/i.test(d)) return 'Roche';
+  return '—';
+}
+
+/* ================================================================
+   BUILD LAYER ROW (final table)
+   ================================================================ */
+function buildLayerRow(l, ep, epStr, epPct, normee, uscs, obs, color, uscsClass, nappeWl, nappePos) {
+  const nappeBar = nappeWl !== null ? `<div class="nappe-bar"><div class="nappe-bar-line"></div><div class="nappe-bar-label">Nappe : ${nappeWl.toFixed(1)} m</div></div>` : '';
+
+  const descAbove = nappeWl !== null && nappePos === 'below';
+  const descBelow = nappeWl !== null && nappePos === 'above';
+
+  let descContent = '';
+  if (descAbove) {
+    descContent = `<div class="desc-normee">${escapeHtml(normee)}</div>
+      <div class="desc-brute">${escapeHtml(l.descBrute)}</div>${nappeBar}`;
+  } else if (descBelow) {
+    descContent = `${nappeBar}<div class="desc-normee">${escapeHtml(normee)}</div>
+      <div class="desc-brute">${escapeHtml(l.descBrute)}</div>`;
+  } else {
+    descContent = `<div class="desc-normee">${escapeHtml(normee)}</div>
+      <div class="desc-brute">${escapeHtml(l.descBrute)}</div>`;
+  }
+
+  return `<tr class="layer-row">
+    <td class="td-litho"><div class="litho-strip" style="background:${color};"></div></td>
+    <td class="td-depth">${l.profDe.toFixed(1)}</td>
+    <td class="td-depth">${l.profA!==null?l.profA.toFixed(1):'—'}</td>
+    <td class="td-ep"><div class="ep-wrap">
+      <span class="ep-val">${epStr} m</span>
+      ${ep!==null?`<div class="ep-bar-bg"><div class="ep-bar" style="width:${epPct}%;"></div></div>`:''}
+    </div></td>
+    <td class="td-desc">${descContent}</td>
+    <td class="td-uscs"><span class="uscs-badge ${uscsClass}">${uscs}</span></td>
+  </tr>`;
+}
+
+/* ================================================================
+   EXPORT FUNCTIONS
+   ================================================================ */
+function buildExportHTML(format) {
+  const m = window._lastMeta, wl = window._lastWater;
+  const layers = window._lastLayers;
+  const obs = window._lastObs;
+  const isExcel = format === 'xlsx';
+
+  const uscsColors = {
+    soil:    { bg: '#e8f0fe', fg: '#1a3a5c', bd: '#c0d4ea' },
+    rock:    { bg: '#f0f0f0', fg: '#5a5a5a', bd: '#d0d0d0' },
+    organic: { bg: '#f0ece0', fg: '#5a4a20', bd: '#d4c8a0' },
+    end:     { bg: '#f8f0f0', fg: '#7a3a3a', bd: '#e0c0c0' }
+  };
+
+  let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:${isExcel?'excel':'word'}" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:10pt;color:#1a2332;margin:${isExcel?'0':'24px 32px'}}table{border-collapse:collapse;width:100%}th,td{border:1px solid #c0d0e0;padding:6px 10px}.meta-box{background:#f6f9fc;border:1px solid #e0e8f0;border-radius:8px;padding:14px 18px;margin-bottom:16px}.meta-box td{border:none;padding:3px 10px;font-size:10pt}.meta-label{font-weight:bold;color:#1a3a5c}.hdr{background:#1a3a5c;color:white;font-weight:bold;font-size:9pt;text-transform:uppercase;letter-spacing:0.5px;text-align:center;padding:8px 10px}.obs-section{margin-top:14px;font-size:9pt}.footer{margin-top:16px;font-size:7.5pt;color:#9aa0a8}</style></head><body>`;
+
+  h += `<table class="meta-box"><tr><td class="meta-label">Sondage :</td><td>${m.id||'—'}</td><td class="meta-label">Date :</td><td>${m.date||'—'}</td></tr><tr><td class="meta-label">Lieu :</td><td>${m.lieu||'—'}</td><td class="meta-label">Alt. :</td><td>${m.altitude?m.altitude+' m.s.m.':'—'}</td></tr><tr><td class="meta-label">Coord. MN95 :</td><td>${m.coordE?'E '+m.coordE+' / N '+m.coordN:'—'}</td><td class="meta-label">Nappe :</td><td>${wl!==null?(typeof wl==='number'?wl.toFixed(1)+' m':wl):'—'}</td></tr></table>`;
+
+  if (isExcel) {
+    h += `<table><col width="30"><col width="65"><col width="65"><col width="75"><col width="340"><col width="260"><col width="70">`;
+  } else {
+    h += `<table>`;
+  }
+
+  h += `<thead><tr><th class="hdr" style="width:6px;padding:0;background:#c0d0e0;"></th><th class="hdr">Prof. de</th><th class="hdr">Prof. a</th><th class="hdr">Ep.</th><th class="hdr" style="text-align:left;">Description normee (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th><th class="hdr">USCS</th></tr></thead><tbody>`;
+
+  let expNappeIdx = -1, expNappePos = 'below';
+  if (typeof wl === 'number') {
+    for (let i = 0; i < layers.length; i++) {
+      const l = layers[i];
+      if (l.profA === null) continue;
+      if (wl >= l.profDe && wl <= l.profA) {
+        expNappeIdx = i;
+        const mid = l.profDe + (l.profA - l.profDe) / 2;
+        expNappePos = wl > mid ? 'below' : 'above';
+        break;
+      }
+      const next = layers[i+1];
+      if (next && wl > l.profA && wl <= (next.profDe || 999)) {
+        expNappeIdx = i + 1; expNappePos = 'above'; break;
+      }
+    }
+  }
+
+  for (let i = 0; i < layers.length; i++) {
+    const l = layers[i];
+    const bg = i % 2 === 0 ? '#ffffff' : '#f4f7fa';
+    const color = getLithoColor(l.descBrute);
+    const uc = uscsColors[getUSCSClass(l.uscs)] || uscsColors.soil;
+    const ep = l.profA !== null ? (l.profA - l.profDe) : null;
+    const epStr = ep !== null ? ep.toFixed(1) + ' m' : '—';
+    const nWl = (i === expNappeIdx) ? wl : null;
+    h += buildExportRow(l, bg, color, uc, epStr, nWl, expNappePos);
+  }
+
+  h += `</tbody></table>`;
+
+  if (obs && obs.length > 0) {
+    h += `<div class="obs-section"><b>Observations :</b><br>`;
+    for (const o of obs) h += `— ${o}<br>`;
+    h += `</div>`;
+  }
+
+  h += `<div class="footer">[Formate avec SYNOS — Carnet de terrain intelligent]</div></body></html>`;
+  return h;
+}
+
+function buildExportRow(l, bg, lithoColor, uc, epStr, nappeWl, nappePos) {
+  const nappeDiv = nappeWl !== null ? `<div style="position:relative;height:18px;margin:4px 0;"><div style="position:absolute;left:0;right:0;top:50%;border-top:2px dashed #2d6a9f;"></div><div style="position:relative;float:right;background:#deedf8;color:#1a4a7a;font-size:8pt;font-weight:700;padding:1px 8px;border-radius:3px;border:1px solid #b0cce4;">Nappe : ${nappeWl.toFixed(1)} m</div></div>` : '';
+
+  let descCell = '';
+  if (nappeWl !== null && nappePos === 'below') {
+    descCell = `${l.descNormee}${nappeDiv}`;
+  } else if (nappeWl !== null && nappePos === 'above') {
+    descCell = `${nappeDiv}${l.descNormee}`;
+  } else {
+    descCell = l.descNormee;
+  }
+
+  return `<tr style="background:${bg};">
+    <td style="background:${lithoColor};width:6px;padding:0;"></td>
+    <td style="text-align:center;font-weight:600;">${l.profDe.toFixed(1)}</td>
+    <td style="text-align:center;font-weight:600;">${l.profA!==null?l.profA.toFixed(1):'—'}</td>
+    <td style="text-align:center;">${epStr}</td>
+    <td style="font-size:9pt;">${descCell}</td>
+    <td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.descBrute}</td>
+    <td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${l.uscs}</td>
+  </tr>`;
+}
+
+function exportDOCX() {
+  if (!window._lastLayers) return;
+  const btn = event.target;
+  btn.textContent = 'Export...'; btn.disabled = true;
+  const html = buildExportHTML('docx');
+  const blob = new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${window._lastMeta?.id || 'sondage'}_tableau.doc`;
+  a.click();
+  setTimeout(() => { btn.textContent = 'Exporter .docx'; btn.disabled = false; }, 1500);
+}
+
+function exportXLSX() {
+  if (!window._lastLayers) return;
+  const btn = event.target;
+  btn.textContent = 'Export...'; btn.disabled = true;
+  const html = buildExportHTML('xlsx');
+  const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${window._lastMeta?.id || 'sondage'}_tableau.xls`;
+  a.click();
+  setTimeout(() => { btn.textContent = 'Exporter .xlsx'; btn.disabled = false; }, 1500);
+}
+
+function exportPNG() {
+  const liveContent = document.getElementById('liveContent');
+  if (!liveContent || !liveContent.innerHTML.trim()) return;
+
+  const btn = event.target;
+  btn.textContent = 'Export...'; btn.disabled = true;
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;background:#fff;padding:28px 32px 20px;border-radius:12px;border:1.5px solid #d0d8e4;';
+  wrapper.style.width = liveContent.scrollWidth + 64 + 'px';
+
+  const titleBar = document.createElement('div');
+  titleBar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1.5px solid #e0e8f0;';
+  titleBar.innerHTML = `<span style="font-family:Segoe UI,sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;">Tableau de sondage — SN 670 009</span>
+    <span style="font-family:Segoe UI,sans-serif;font-size:10px;color:#9aa0a8;">SYNOS</span>`;
+  wrapper.appendChild(titleBar);
+
+  const clone = liveContent.cloneNode(true);
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
+
+  /* html2canvas loaded? */
+  if (typeof html2canvas === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = () => doPngExport(wrapper, btn);
+    document.head.appendChild(script);
+  } else {
+    doPngExport(wrapper, btn);
+  }
+}
+
+function doPngExport(wrapper, btn) {
+  html2canvas(wrapper, { scale: 3, backgroundColor: '#ffffff', useCORS: true, logging: false }).then(canvas => {
+    document.body.removeChild(wrapper);
+    const a = document.createElement('a');
+    a.download = `${window._lastMeta?.id || 'sondage'}_tableau.png`;
+    a.href = canvas.toDataURL('image/png', 1.0);
+    a.click();
+    btn.textContent = 'Exporter .png'; btn.disabled = false;
+  }).catch(() => {
+    document.body.removeChild(wrapper);
+    btn.textContent = 'Exporter .png'; btn.disabled = false;
+  });
+}
+
+/* ================================================================
+   RESET / NOUVEAU SONDAGE
+   ================================================================ */
+function resetAll() {
+  if (!confirm('Effacer toutes les donnees et commencer un nouveau sondage ?')) return;
+  const ta = document.getElementById('notesInput');
+  ta.value = '';
+  document.getElementById('editorBackdrop').innerHTML = '';
+  document.getElementById('editorPlaceholder').style.display = '';
+  document.getElementById('diagPanel').style.display = 'none';
+  document.getElementById('recogBar').innerHTML = '';
+  document.getElementById('liveContent').innerHTML = `<div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le tableau norme.</div>`;
+  document.getElementById('finalView').style.display = 'none';
+  document.getElementById('liveView').style.display = 'block';
+  document.getElementById('finalContent').innerHTML = '';
+
+  /* Lab */
+  document.getElementById('labInput').value = '';
+  document.getElementById('labRecogBar').innerHTML = '';
+  document.getElementById('labOutput').innerHTML = '<div class="preview-empty">Aucun resultat de laboratoire rattache au sondage actif. Basculer sur l\'onglet Labo pour saisir les donnees analytiques.</div>';
+  document.getElementById('laboIndicator').classList.remove('visible');
+  document.getElementById('analysesTabBtn').classList.add('disabled');
+
+  /* Log */
+  document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le log de forage.</div>';
+  document.getElementById('logMeta').style.display = 'none';
+  document.getElementById('logWarnBar').style.display = 'none';
+  document.getElementById('logExportBar').style.display = 'none';
+
+  /* State */
+  window._lastLayers = null;
+  window._lastMeta = null;
+  window._lastWater = null;
+  window._lastObs = null;
+  window._flaggedRanges = [];
+  window._labResults = null;
+  _wordCache.clear();
+  lastLogSVG = '';
+
+  switchInputTab('terrain');
+  switchOutputTab('tableau');
+  updateBanner({ meta: {}, layers: [], observations: [], waterLevel: null });
+  ta.focus();
+}
+
+/* ================================================================
+   EXAMPLES
+   ================================================================ */
+function chargerExempleTerrain() {
+  document.getElementById('notesInput').value = `F-01 12.02.2026 Bulle
+alt 771
+E 2'571'230 / N 1'164'850
+0-0.3 terre vegetale brune avec racines
+0.3-2.0 limon sableux brun jaune ferme quelques graviers epars
+2.0-4.5 gravier sableux gris beige dense elements arrondis 2-6cm fluvioglaciaire
+4.5-8.0 moraine de fond gris tres dense galets stries blocs jusqu'a 30cm
+8.0-11.5 moraine gris bleu argileuse compacte traces de calcaire
+11.5-15.0 molasse greseuse gris vert roche tendre forage ralenti
+nappe 4.2
+echantillon intact preleve a 5.0m et 10.0m`;
+  triggerFullUpdate();
+}
+
+function chargerExempleLabo() {
+  document.getElementById('labInput').value = `Plomb 85 mg/kg
+Zinc 1850 mg/kg
+Cuivre 420 mg/kg
+Cadmium 25 mg/kg
+Chrome 65 mg/kg
+Nickel 48 mg/kg
+Mercure 1.2 mg/kg
+Arsenic 35 mg/kg
+Hydrocarbures C10-C40 2500 mg/kg
+HAP 18 mg/kg`;
+  onLabInput();
+}
+
+/* ================================================================
+   TAB SWITCHING
+   ================================================================ */
+function switchInputTab(tab) {
+  document.querySelectorAll('#inputTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('inputTerrain').classList.remove('active');
+  document.getElementById('inputLabo').classList.remove('active');
+  if (tab === 'terrain') {
+    document.querySelector('#inputTabs .tab-btn:first-child').classList.add('active');
+    document.getElementById('inputTerrain').classList.add('active');
+  } else {
+    document.getElementById('laboTabBtn').classList.add('active');
+    document.getElementById('inputLabo').classList.add('active');
+  }
+}
+
+function switchOutputTab(tab) {
+  if (tab === 'analyses' && document.getElementById('analysesTabBtn').classList.contains('disabled')) return;
+  document.querySelectorAll('#outputTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('outputTableau').classList.remove('active');
+  document.getElementById('outputLog').classList.remove('active');
+  document.getElementById('outputAnalyses').classList.remove('active');
+  if (tab === 'tableau') {
+    document.querySelector('#outputTabs .tab-btn:nth-child(1)').classList.add('active');
+    document.getElementById('outputTableau').classList.add('active');
+  } else if (tab === 'log') {
+    document.querySelector('#outputTabs .tab-btn:nth-child(2)').classList.add('active');
+    document.getElementById('outputLog').classList.add('active');
+  } else {
+    document.getElementById('analysesTabBtn').classList.add('active');
+    document.getElementById('outputAnalyses').classList.add('active');
+  }
+}
+
+/* ================================================================
+   LOG DE FORAGE — SVG ENGINE (from outil4)
+   ================================================================ */
+const lithoConfig = {
+  'Terre vegetale':    { color: '#6B5B3A', pattern: 'topsoil',   uscs: 'OH' },
+  'Terre végétale':    { color: '#6B5B3A', pattern: 'topsoil',   uscs: 'OH' },
+  'Remblai':           { color: '#8B6B4A', pattern: 'fill',      uscs: 'R' },
+  'Limon':             { color: '#C4A35A', pattern: 'silt',      uscs: 'ML' },
+  'Limon sableux':     { color: '#C8B070', pattern: 'silt',      uscs: 'ML' },
+  'Limon argileux':    { color: '#A0785A', pattern: 'clay',      uscs: 'CL/ML' },
+  'Argile':            { color: '#7B68AE', pattern: 'clay',      uscs: 'CL/CH' },
+  'Sable':             { color: '#E8D080', pattern: 'sand',      uscs: 'SW/SP' },
+  'Sable limoneux':    { color: '#D4C070', pattern: 'sand',      uscs: 'SM' },
+  'Sable graveleux':   { color: '#C8B860', pattern: 'sand',      uscs: 'SW' },
+  'Gravier':           { color: '#B0B0A0', pattern: 'gravel',    uscs: 'GW/GP' },
+  'Gravier sableux':   { color: '#A8A890', pattern: 'gravel',    uscs: 'GW/GP' },
+  'Gravier limoneux':  { color: '#9A9A80', pattern: 'gravel',    uscs: 'GM' },
+  'Moraine':           { color: '#8B8680', pattern: 'moraine',   uscs: 'GM/GC' },
+  'Moraine de fond':   { color: '#7A7670', pattern: 'moraine',   uscs: 'GM/GC' },
+  'Molasse greseuse':  { color: '#8A9A60', pattern: 'sandstone', uscs: '—' },
+  'Molasse gréseuse':  { color: '#8A9A60', pattern: 'sandstone', uscs: '—' },
+  'Molasse marneuse':  { color: '#7A8B6F', pattern: 'marlstone', uscs: '—' },
+  'Calcaire':          { color: '#C0C0B0', pattern: 'limestone', uscs: '—' },
+  'Eboulis':           { color: '#9A8A70', pattern: 'gravel',    uscs: 'GP/GM' },
+  'Tourbe':            { color: '#4A3A2A', pattern: 'topsoil',   uscs: 'Pt' },
+};
+
+function matchLithoConfig(descNormee) {
+  const first = descNormee.split(',')[0].trim();
+  if (lithoConfig[first]) return lithoConfig[first];
+  for (const [key, cfg] of Object.entries(lithoConfig)) {
+    if (first.toLowerCase().includes(key.toLowerCase())) return cfg;
+  }
+  return { color: '#ccc', pattern: 'none', uscs: '—' };
+}
+
+function drawPattern(x, y, w, h, pattern, color) {
+  let s = '';
+  const step = 12;
+  switch (pattern) {
+    case 'topsoil':
+      for (let py = y + 8; py < y + h - 4; py += step) {
+        for (let px = x + 8; px < x + w - 4; px += 18) {
+          const ox = (Math.floor((py - y) / step) % 2) * 9;
+          s += `<line x1="${px + ox}" y1="${py}" x2="${px + ox - 3}" y2="${py - 5}" stroke="${color}" stroke-width="1.2"/>`;
+          s += `<line x1="${px + ox}" y1="${py}" x2="${px + ox + 3}" y2="${py - 4}" stroke="${color}" stroke-width="1.2"/>`;
+        }
+      }
+      break;
+    case 'fill':
+      for (let py = y + 8; py < y + h - 4; py += 14) {
+        for (let px = x + 6; px < x + w - 4; px += 16) {
+          const ox = (Math.floor((py - y) / 14) % 2) * 8;
+          s += `<polygon points="${px+ox},${py} ${px+ox+5},${py} ${px+ox+2.5},${py-6}" fill="none" stroke="${color}" stroke-width="1"/>`;
+        }
+      }
+      break;
+    case 'silt':
+      for (let py = y + 6; py < y + h - 2; py += 8) {
+        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.6" stroke-dasharray="8,5"/>`;
+      }
+      break;
+    case 'clay':
+      for (let py = y + 6; py < y + h - 2; py += 6) {
+        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.8"/>`;
+      }
+      break;
+    case 'sand':
+      for (let py = y + 6; py < y + h - 3; py += 8) {
+        for (let px = x + 5; px < x + w - 3; px += 7) {
+          const ox = (Math.floor((py - y) / 8) % 2) * 3.5;
+          s += `<circle cx="${px + ox}" cy="${py}" r="1.2" fill="${color}"/>`;
+        }
+      }
+      break;
+    case 'gravel':
+      for (let py = y + 8; py < y + h - 6; py += 14) {
+        for (let px = x + 6; px < x + w - 8; px += 18) {
+          const ox = (Math.floor((py - y) / 14) % 2) * 9;
+          const rx = 4 + Math.abs(((px * 7 + py * 3) % 5) - 2);
+          const ry = 3 + Math.abs(((px * 3 + py * 7) % 4) - 1.5);
+          s += `<ellipse cx="${px + ox + rx}" cy="${py}" rx="${rx}" ry="${ry}" fill="none" stroke="${color}" stroke-width="1"/>`;
+        }
+      }
+      break;
+    case 'moraine':
+      for (let py = y + 6; py < y + h - 2; py += 10) {
+        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.4" stroke-dasharray="4,8"/>`;
+      }
+      for (let py = y + 10; py < y + h - 6; py += 18) {
+        for (let px = x + 8; px < x + w - 10; px += 22) {
+          const ox = (Math.floor((py - y) / 18) % 2) * 11;
+          s += `<ellipse cx="${px + ox}" cy="${py}" rx="5" ry="3.5" fill="none" stroke="${color}" stroke-width="1.2"/>`;
+        }
+      }
+      break;
+    case 'sandstone':
+      for (let py = y + 6; py < y + h - 3; py += 10) {
+        for (let px = x + 5; px < x + w - 3; px += 7) {
+          const ox = (Math.floor((py - y) / 10) % 2) * 3.5;
+          s += `<circle cx="${px + ox}" cy="${py}" r="1" fill="${color}"/>`;
+        }
+        s += `<line x1="${x + 4}" y1="${py + 4}" x2="${x + w - 4}" y2="${py + 4}" stroke="${color}" stroke-width="0.4"/>`;
+      }
+      break;
+    case 'marlstone':
+      for (let py = y + 5; py < y + h - 2; py += 7) {
+        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.7"/>`;
+      }
+      for (let py = y + 8; py < y + h - 6; py += 14) {
+        s += `<line x1="${x + 10}" y1="${py}" x2="${x + w - 10}" y2="${py}" stroke="${color}" stroke-width="0.4" stroke-dasharray="3,4"/>`;
+      }
+      break;
+    case 'limestone':
+      for (let py = y + 10; py < y + h - 4; py += 16) {
+        s += `<rect x="${x + 4}" y="${py}" width="${w - 8}" height="8" fill="none" stroke="${color}" stroke-width="0.8" rx="1"/>`;
+      }
+      break;
+  }
+  return s;
+}
+
+let lastLogSVG = '';
+
+function updateLogFromCarnet() {
+  const text = document.getElementById('notesInput').value;
+  if (!text.trim()) {
+    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Saisir des couches dans le carnet de terrain pour generer le log de forage.</div>';
+    document.getElementById('logMeta').style.display = 'none';
+    document.getElementById('logWarnBar').style.display = 'none';
+    document.getElementById('logExportBar').style.display = 'none';
+    lastLogSVG = '';
+    return;
+  }
+
+  const data = parseCarnet(text);
+  if (data.layers.length === 0 || !data.layers.some(l => l.profA !== null)) {
+    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complete detectee.</div>';
+    document.getElementById('logMeta').style.display = 'none';
+    document.getElementById('logWarnBar').style.display = 'none';
+    document.getElementById('logExportBar').style.display = 'none';
+    lastLogSVG = '';
+    return;
+  }
+
+  const m = data.meta;
+  const layers = data.layers.filter(l => l.profA !== null).map(l => {
+    const normee = normaliserDescription(l.descBrute);
+    const cfg = matchLithoConfig(normee);
+    return { from: l.profDe, to: l.profA, litho: normee.split(',')[0].trim(), cfg, normee };
+  });
+
+  const maxDepth = Math.max(...layers.map(l => l.to));
+  const nappeDepth = typeof data.waterLevel === 'number' ? data.waterLevel : null;
+
+  const marginTop = 60, marginBottom = 30, marginLeft = 65;
+  const scaleColW = 30, logColW = 90, patternColW = 90, descColW = 260;
+  const totalW = marginLeft + scaleColW + logColW + patternColW + descColW + 20;
+  const pxPerMeter = 40;
+  const logH = maxDepth * pxPerMeter;
+  const totalH = marginTop + logH + marginBottom;
+  const logX = marginLeft + scaleColW;
+  const patX = logX + logColW;
+  const descX = patX + patternColW + 10;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;">`;
+  svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
+  svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${m.id || '—'}</text>`;
+  svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${m.date||''} | ${m.coordE?'E '+m.coordE+' / N '+m.coordN:''} | Alt. ${m.altitude||'—'} m</text>`;
+
+  const headY = marginTop - 10;
+  svg += `<text x="${marginLeft + scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
+  svg += `<text x="${logX + logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
+  svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
+
+  const meterStep = maxDepth <= 10 ? 1 : maxDepth <= 30 ? 2 : 5;
+  for (let d = 0; d <= maxDepth; d += meterStep) {
+    const y = marginTop + d * pxPerMeter;
+    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
+    svg += `<text x="${marginLeft + scaleColW - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
+  }
+
+  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW + patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
+
+  layers.forEach((layer, i) => {
+    const y = marginTop + layer.from * pxPerMeter;
+    const h = (layer.to - layer.from) * pxPerMeter;
+    const cfg = layer.cfg;
+
+    svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${cfg.color}" opacity="0.35"/>`;
+    svg += drawPattern(patX, y, patternColW, h, cfg.pattern, cfg.color);
+
+    if (i > 0) {
+      svg += `<line x1="${logX}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+    }
+
+    const textY = y + h / 2 + 4;
+    const uscs = cfg.uscs ? ` (${cfg.uscs})` : '';
+    svg += `<text x="${descX}" y="${textY - 6}" font-size="11" font-weight="600" fill="#1a2332">${layer.litho}${uscs}</text>`;
+    svg += `<text x="${descX}" y="${textY + 8}" font-size="9" fill="#6a8aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to - layer.from).toFixed(1)} m</text>`;
+  });
+
+  if (nappeDepth !== null && nappeDepth <= maxDepth) {
+    const wy = marginTop + nappeDepth * pxPerMeter;
+    svg += `<line x1="${logX - 15}" y1="${wy}" x2="${patX + patternColW + 5}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    svg += `<text x="${logX - 18}" y="${wy + 4}" text-anchor="end" font-size="9" font-weight="700" fill="#1a6aaf">&#9660; ${nappeDepth.toFixed(1)} m</text>`;
+  }
+
+  svg += `</svg>`;
+
+  const metaEl = document.getElementById('logMeta');
+  metaEl.style.display = 'grid';
+  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${m.id||'—'}</div><div><strong>Date :</strong> ${m.date||'—'}</div><div><strong>Coord. MN95 :</strong> ${m.coordE?'E '+m.coordE+' / N '+m.coordN:'—'}</div><div><strong>Altitude :</strong> ${m.altitude||'—'} m</div><div><strong>Profondeur totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontree'}</div>`;
+
+  document.getElementById('logOutput').innerHTML = `<div class="log-svg-wrap">${svg}</div>`;
+  lastLogSVG = svg;
+  document.getElementById('logWarnBar').style.display = 'block';
+  document.getElementById('logExportBar').style.display = 'flex';
+}
+
+function exportLogPNG(scale) {
+  if (!lastLogSVG) return;
+  const svgEl = document.querySelector('#logOutput svg');
+  if (!svgEl) return;
+
+  const w = svgEl.getAttribute('width') * scale;
+  const h = svgEl.getAttribute('height') * scale;
+  const canvas = document.getElementById('logCanvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  const img = new Image();
+  const svgBlob = new Blob([lastLogSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = function() {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    const id = window._lastMeta?.id || 'log';
+    a.download = `log_${id}${scale > 1 ? '_HD' : ''}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = url;
+}
+
+function exportLogSVG() {
+  if (!lastLogSVG) return;
+  const blob = new Blob([lastLogSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const a = document.createElement('a');
+  const id = window._lastMeta?.id || 'log';
+  a.download = `log_${id}.svg`;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+}
+
+/* ================================================================
+   LAB RESULTS — ANALYSES
+   ================================================================ */
+const PARAM_ALIASES = {
+  'pb': 'Plomb', 'zn': 'Zinc', 'cu': 'Cuivre', 'cd': 'Cadmium',
+  'cr': 'Chrome', 'ni': 'Nickel', 'hg': 'Mercure', 'as': 'Arsenic',
+  'hc': 'Hydrocarbures C10-C40', 'c10-c40': 'Hydrocarbures C10-C40',
+  'hap': 'HAP', 'plomb': 'Plomb', 'zinc': 'Zinc', 'cuivre': 'Cuivre',
+  'cadmium': 'Cadmium', 'chrome': 'Chrome', 'nickel': 'Nickel',
+  'mercure': 'Mercure', 'arsenic': 'Arsenic', 'hydrocarbures c10-c40': 'Hydrocarbures C10-C40',
+  'benzene': 'Benzene', 'toluene': 'Toluene', 'ethylbenzene': 'Ethylbenzene',
+  'xylenes': 'Xylenes', 'naphtalene': 'Naphtalene',
+};
+
+const OSITES_A1 = { 'Plomb':10,'Zinc':5000,'Cuivre':1500,'Cadmium':5,'Chrome':50,'Nickel':70,'Mercure':1,'Arsenic':50,'Benzene':10,'Toluene':40,'Ethylbenzene':2,'Xylenes':10,'Naphtalene':2,'HAP':5,'Hydrocarbures C10-C40':500 };
+const OSITES_A3 = { 'Plomb':1000,'Zinc':2000,'Cuivre':1000,'Cadmium':20,'Chrome':1000,'Nickel':500,'Mercure':5,'Arsenic':100 };
+const OSOL = { 'Plomb':50,'Zinc':150,'Cuivre':40,'Cadmium':0.8,'Chrome':50,'Nickel':50,'Mercure':0.5,'Arsenic':15 };
+
+let currentReferentiel = 'ositesA3';
+window._labResults = null;
+
+function setReferentiel(ref) {
+  currentReferentiel = ref;
+  document.querySelectorAll('.ref-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('refOsitesA3').classList.toggle('active', ref === 'ositesA3');
+  document.getElementById('refOsol').classList.toggle('active', ref === 'osol');
+  document.getElementById('refOsitesA1').classList.toggle('active', ref === 'ositesA1');
+  if (window._labResults && window._labResults.length > 0) renderLabResults();
+}
+
+function getRefData() {
+  if (currentReferentiel === 'ositesA1') return { data: OSITES_A1, label: 'OSites Annexe 1 (eaux souterraines)' };
+  if (currentReferentiel === 'osol') return { data: OSOL, label: 'OSOl (valeurs indicatives sol)' };
+  return { data: OSITES_A3, label: 'OSites Annexe 3 (sol)' };
+}
+
+function parseLabResults(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const results = [];
+  for (const line of lines) {
+    const m = line.match(/^([^:;,\t\d]+?)\s*[:;,\t]\s*(\d+[.,]?\d*)\s*(.*)/i) ||
+              line.match(/^([^0-9]+?)\s+(\d+[.,]?\d*)\s*(.*)/i);
+    if (m) {
+      const rawName = m[1].trim();
+      const value = parseFloat(m[2].replace(',','.'));
+      const unit = m[3].replace(/[;,\t]/g,'').trim() || 'mg/kg';
+      const key = rawName.toLowerCase().replace(/[éè]/g,'e').replace(/[àâ]/g,'a');
+      const name = PARAM_ALIASES[key] || rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      results.push({ name, value, unit });
+    }
+  }
+  return results;
+}
+
+function onLabInput() {
+  const text = document.getElementById('labInput').value;
+  const results = parseLabResults(text);
+  window._labResults = results;
+
+  const bar = document.getElementById('labRecogBar');
+  if (results.length > 0) {
+    bar.innerHTML = `<span class="recog-item"><span class="recog-dot green"></span>${results.length} parametre${results.length > 1 ? 's' : ''} detecte${results.length > 1 ? 's' : ''}</span><span style="color:#d0dce8;"> &middot; </span><span class="recog-item"><span class="recog-dot blue"></span>Referentiel : ${getRefData().label}</span>`;
+    document.getElementById('laboIndicator').classList.add('visible');
+    document.getElementById('analysesTabBtn').classList.remove('disabled');
+  } else {
+    bar.innerHTML = '';
+    document.getElementById('laboIndicator').classList.remove('visible');
+    document.getElementById('analysesTabBtn').classList.add('disabled');
+  }
+
+  renderLabResults();
+  /* Update banner */
+  const terrainText = document.getElementById('notesInput').value;
+  if (terrainText.trim()) {
+    const data = parseCarnet(terrainText);
+    updateBanner(data);
+  }
+}
+
+function renderLabResults() {
+  const results = window._labResults;
+  const output = document.getElementById('labOutput');
+  if (!results || results.length === 0) {
+    output.innerHTML = '<div class="preview-empty">Aucun resultat de laboratoire rattache au sondage actif. Basculer sur l\'onglet Labo pour saisir les donnees analytiques.</div>';
+    return;
+  }
+
+  const ref = getRefData();
+  let html = `<div class="info-bar" style="margin-bottom:14px;">Comparaison — ${ref.label}</div>`;
+  html += `<div class="output-wrap"><table class="lab-table"><thead><tr><th>Parametre</th><th>Valeur mesuree</th><th>Unite</th><th>Seuil</th><th>Rapport (%)</th></tr></thead><tbody>`;
+
+  for (const r of results) {
+    const seuil = ref.data[r.name];
+    if (seuil !== undefined) {
+      const rapport = (r.value / seuil * 100);
+      let badgeClass = 'ok';
+      if (rapport >= 100) badgeClass = 'exceed';
+      else if (rapport >= 50) badgeClass = 'warn';
+      html += `<tr><td style="font-weight:600;">${escapeHtml(r.name)}</td><td>${r.value}</td><td>${escapeHtml(r.unit)}</td><td>${seuil}</td><td><span class="lab-badge ${badgeClass}">${rapport.toFixed(0)}%</span></td></tr>`;
+    } else {
+      html += `<tr><td style="font-weight:600;">${escapeHtml(r.name)}</td><td>${r.value}</td><td>${escapeHtml(r.unit)}</td><td style="color:#9ab0c8;">—</td><td style="color:#9ab0c8;">—</td></tr>`;
+    }
+  }
+
+  html += `</tbody></table></div>`;
+  html += `<div class="warn-bar" style="margin-top:14px;">Ce tableau a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.</div>`;
+  output.innerHTML = html;
+}
+
+/* ================================================================
+   CONVERTER MN03/MN95
+   ================================================================ */
+let convDirection = '03to95';
+
+function toggleConverter() {
+  const toggle = document.getElementById('convToggle');
+  const body = document.getElementById('convBody');
+  toggle.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function setConvDir(dir) {
+  convDirection = dir;
+  document.getElementById('convDir03to95').classList.toggle('active', dir === '03to95');
+  document.getElementById('convDir95to03').classList.toggle('active', dir === '95to03');
+  if (dir === '03to95') {
+    document.getElementById('convLabelE').textContent = 'Y (Est) — MN03';
+    document.getElementById('convLabelN').textContent = 'X (Nord) — MN03';
+    document.getElementById('convE').placeholder = "Ex: 571'230";
+    document.getElementById('convN').placeholder = "Ex: 164'850";
+  } else {
+    document.getElementById('convLabelE').textContent = 'E (Est) — MN95';
+    document.getElementById('convLabelN').textContent = 'N (Nord) — MN95';
+    document.getElementById('convE').placeholder = "Ex: 2'571'230";
+    document.getElementById('convN').placeholder = "Ex: 1'164'850";
+  }
+  document.getElementById('convE').value = '';
+  document.getElementById('convN').value = '';
+  document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>';
+}
+
+function parseCoord(s) { return parseFloat(s.replace(/['\s]/g, '').replace(',', '.')); }
+
+function formatApostrophe(n) {
+  const s = Math.round(n).toString();
+  let r = '';
+  for (let i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) r += "'";
+    r += s[i];
+  }
+  return r;
+}
+
+function convertCoord() {
+  const eStr = document.getElementById('convE').value, nStr = document.getElementById('convN').value;
+  if (!eStr || !nStr) {
+    document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>';
+    return;
+  }
+  const e = parseCoord(eStr), n = parseCoord(nStr);
+  if (isNaN(e) || isNaN(n)) {
+    document.getElementById('convResult').innerHTML = '<div style="color:#c44a3a;">Coordonnees invalides.</div>';
+    return;
+  }
+  let resE, resN, labelE, labelN;
+  if (convDirection === '03to95') { resE = e + 2000000; resN = n + 1000000; labelE = 'E (MN95)'; labelN = 'N (MN95)'; }
+  else { resE = e - 2000000; resN = n - 1000000; labelE = 'Y (MN03)'; labelN = 'X (MN03)'; }
+  document.getElementById('convResult').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><span style="font-size:11px;color:#6a8aaa;font-weight:600;">${labelE}</span><br><strong>${formatApostrophe(resE)}</strong></div><div><span style="font-size:11px;color:#6a8aaa;font-weight:600;">${labelN}</span><br><strong>${formatApostrophe(resN)}</strong></div></div>`;
+}
+
+function convertBatch() {
+  const text = document.getElementById('convBatch').value;
+  if (!text.trim()) return;
+  const lines = text.split('\n').filter(l => l.trim());
+  let html = '<div class="output-wrap"><table class="lab-table"><thead><tr>';
+  if (convDirection === '03to95') html += '<th>Y (MN03)</th><th>X (MN03)</th><th></th><th>E (MN95)</th><th>N (MN95)</th>';
+  else html += '<th>E (MN95)</th><th>N (MN95)</th><th></th><th>Y (MN03)</th><th>X (MN03)</th>';
+  html += '</tr></thead><tbody>';
+  for (const line of lines) {
+    const parts = line.split(/[;,\t\s]+/).filter(p => p.trim());
+    if (parts.length < 2) continue;
+    const e = parseCoord(parts[parts.length >= 3 ? 1 : 0]);
+    const n = parseCoord(parts[parts.length >= 3 ? 2 : 1]);
+    const label = parts.length >= 3 ? parts[0] : '';
+    if (isNaN(e) || isNaN(n)) continue;
+    let resE, resN;
+    if (convDirection === '03to95') { resE = e + 2000000; resN = n + 1000000; } else { resE = e - 2000000; resN = n - 1000000; }
+    html += `<tr><td>${label ? escapeHtml(label) + ' — ' : ''}${formatApostrophe(e)}</td><td>${formatApostrophe(n)}</td><td style="color:#9ab0c8;">&#8594;</td><td><strong>${formatApostrophe(resE)}</strong></td><td><strong>${formatApostrophe(resN)}</strong></td></tr>`;
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('convOutput').innerHTML = html;
+}
+
+/* ================================================================
+   i18n — LANGUAGE SWITCHER
+   ================================================================ */
+const TRANSLATIONS = {
+  fr: { 'subtitle':'Carnet de terrain intelligent','normes-label':'Normes et bases legales integrees :','banner-empty':'Aucun sondage actif — commencez la saisie ci-dessous','btn-new':'Nouveau sondage','disclaimer':'Ce contenu a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.','svp':'Projet soutenu par le Student Venture Program de la HES-SO et de l\'Universite de Fribourg' },
+  de: { 'subtitle':'Intelligentes Feldbuch','normes-label':'Integrierte Normen und Rechtsgrundlagen:','banner-empty':'Kein aktiver Bohrung — beginnen Sie mit der Eingabe','btn-new':'Neue Bohrung','disclaimer':'Dieser Inhalt wurde automatisch aus den eingegebenen Daten generiert. Eine Ueberpruefung ist vor der Integration in den Bericht erforderlich.','svp':'Projekt unterstuetzt durch das Student Venture Program der HES-SO und der Universitaet Freiburg' },
+  en: { 'subtitle':'Smart field notebook','normes-label':'Integrated norms and legal bases:','banner-empty':'No active borehole — start typing below','btn-new':'New borehole','disclaimer':'This content was generated automatically from the entered data. Verification is required before integration into the report.','svp':'Project supported by the Student Venture Program of HES-SO and the University of Fribourg' }
+};
+
+function setLang(lang) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === lang.toUpperCase()));
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) el.textContent = TRANSLATIONS[lang][key];
+  });
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+const _ta = document.getElementById('notesInput');
+const _bd = document.getElementById('editorBackdrop');
+const _wrap = document.getElementById('editorWrap');
+
+_ta.addEventListener('input', onInput);
+_ta.addEventListener('scroll', function() { _bd.scrollTop = this.scrollTop; });
+_ta.addEventListener('focus', function() { _wrap.classList.add('focused'); });
+_ta.addEventListener('blur', function() { _wrap.classList.remove('focused'); });
+_ta.addEventListener('click', handleEditorClick);
+
+document.getElementById('labInput').addEventListener('input', onLabInput);
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.editor-tooltip') && !e.target.closest('.editor-input')) {
+    hideEditorTooltip();
+  }
+});
+</script>
+</body>
+</html>
