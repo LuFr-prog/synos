@@ -23,17 +23,18 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .lang-btn {
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
   color: rgba(255,255,255,0.7); border-radius: 6px; padding: 5px 12px;
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  font-size: 12px; font-weight: 700; cursor: pointer;
 }
 .lang-btn:hover { background: rgba(255,255,255,0.25); color: white; }
 .lang-btn.active { background: rgba(255,255,255,0.3); color: white; border-color: rgba(255,255,255,0.5); }
 
+/* ====== NORMES — small single line ====== */
 .normes {
   max-width: 1600px; margin: 0 auto;
   background: #e8f0fe; border-bottom: 1px solid #d0dce8;
-  padding: 10px 32px; font-size: 11.5px; color: #3a5a7a; line-height: 1.5;
+  padding: 6px 32px; font-size: 11px; color: #5a7a9a; line-height: 1.4;
 }
-.normes strong { color: #1a3a5c; }
+.normes strong { color: #3a5a7a; font-weight: 600; }
 
 /* ====== ACTIVE BOREHOLE BANNER ====== */
 .sondage-banner {
@@ -46,22 +47,56 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .sondage-banner-info { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
 .sondage-banner-info .sep { color: #b0c0d0; margin: 0 8px; font-size: 10px; }
 .sondage-banner-info .bv { font-weight: 600; color: #1a3a5c; }
-.sondage-banner-empty { color: #9ab0c8; font-style: italic; }
 .sondage-banner .reset-btn {
   padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 600;
   cursor: pointer; border: 1.5px solid #d0a0a0; background: #fdf5f5; color: #8a3a3a;
-  transition: all 0.15s; white-space: nowrap;
+  white-space: nowrap;
 }
 .sondage-banner .reset-btn:hover { background: #f8e0e0; border-color: #c07070; }
 
-/* ====== WORKSPACE ====== */
-.workspace {
-  max-width: 1600px; margin: 0 auto; padding: 20px 20px 28px;
-  display: grid; grid-template-columns: 480px 1fr; gap: 24px;
+/* ====== TWO-STATE LAYOUT ====== */
+
+/* STATE EMPTY — centered textarea hero */
+.state-empty .sondage-banner { display: none; }
+.state-empty .workspace {
+  max-width: 1600px; margin: 0 auto; padding: 40px 20px 28px;
+  display: block;
 }
-.card {
+.state-empty .carnet-wrap {
+  max-width: 700px; margin: 0 auto;
+  background: white; border-radius: 16px; padding: 28px 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  transition: max-width 0.3s ease, margin 0.3s ease;
+}
+.state-empty .results-wrap { display: none; }
+.state-empty .btn-structurer {
+  width: 60%; min-width: 300px; padding: 16px; font-size: 16px;
+}
+.state-empty .btn-row {
+  justify-content: center; margin-top: 18px;
+}
+
+/* STATE ACTIVE — two-column layout */
+.state-active .sondage-banner { display: flex; }
+.state-active .workspace {
+  max-width: 1600px; margin: 0 auto; padding: 20px 20px 28px;
+  display: grid; grid-template-columns: 35% 1fr; gap: 24px;
+  transition: all 0.3s ease;
+}
+.state-active .carnet-wrap {
   background: white; border-radius: 16px; padding: 24px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  transition: max-width 0.3s ease;
+}
+.state-active .results-wrap {
+  display: block;
+  background: white; border-radius: 16px; padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  animation: fadeSlideIn 0.3s ease;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* ====== TAB SYSTEM ====== */
@@ -73,7 +108,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
   padding: 8px 18px; font-size: 12px; font-weight: 600;
   cursor: pointer; border: none; background: none;
   color: #8a9aaa; border-bottom: 2px solid transparent;
-  margin-bottom: -2px; transition: all 0.15s;
+  margin-bottom: -2px;
 }
 .tab-btn:hover { color: #4a6a8a; }
 .tab-btn.active { color: #1a3a5c; border-bottom-color: #1a3a5c; }
@@ -82,18 +117,17 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 
 /* ====== CARNET TEXTAREA ====== */
 .carnet-input {
-  display: block; width: 100%; min-height: 380px;
+  display: block; width: 100%; min-height: 340px;
   padding: 16px 18px;
-  border: 1.5px solid #c0d0e0; border-radius: 10px;
+  border: 1.5px solid #a0b8d0; border-radius: 10px;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   font-size: 14px; line-height: 1.8;
   background: #fff; color: #1a2332;
   resize: vertical; outline: none;
-  transition: border-color 0.2s;
 }
 .carnet-input:focus { border-color: #2d6a9f; }
 .carnet-input::placeholder {
-  color: #b0c0d0;
+  color: rgba(0,0,0,0.35);
   font-family: 'Courier New', 'Consolas', monospace;
   font-size: 12.5px;
   line-height: 1.7;
@@ -104,7 +138,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .btn-row { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
 .btn-structurer {
   flex: 1; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 700;
-  cursor: pointer; transition: all 0.2s; border: none;
+  cursor: pointer; border: none;
   background: linear-gradient(135deg, #1a3a5c, #2d6a9f); color: white;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
@@ -127,7 +161,6 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 .btn-example {
   padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 600;
   cursor: pointer; border: 1.5px solid #d0dce8; background: #f5f8fc; color: #6a8aaa;
-  transition: all 0.15s;
 }
 .btn-example:hover { background: #e8f0fe; color: #1a3a5c; }
 
@@ -172,7 +205,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 table.final-table {
   width: 100%; border-collapse: collapse;
   font-size: 12px;
-  border: 1.5px solid #c0d0e0;
+  border: 1.5px solid #b0c0d0;
 }
 table.final-table thead th {
   background: #1a3a5c; color: white;
@@ -185,9 +218,8 @@ table.final-table thead th {
 table.final-table thead th.th-center { text-align: center; }
 table.final-table tbody td {
   padding: 0; vertical-align: top;
-  border: 1px solid #d0d8e0;
+  border: 1px solid #c0c8d0;
 }
-table.final-table tbody tr:last-child td { border-bottom: 1px solid #d0d8e0; }
 
 .layer-row { position: relative; }
 .layer-row td { background: white; }
@@ -271,20 +303,10 @@ td.fig-cell svg {
 /* ====== EDITABLE CELLS ====== */
 .cell-editable { cursor: pointer; position: relative; min-height: 20px; }
 .cell-editable:hover { background: #f0f6ff !important; }
-/* Orange dot for manual edits */
-.cell-edited-manual::before {
-  content: '';
-  position: absolute; top: 3px; left: 3px;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #e8a030;
-}
-/* Blue dot for AI edits */
-.cell-edited-ai::before {
-  content: '';
-  position: absolute; top: 3px; left: 3px;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #4a90d0;
-}
+/* Orange left border for manual edits */
+td.cell-modified { border-left: 3px solid #d4a017 !important; }
+/* Blue left border for AI-assisted edits */
+td.cell-assisted { border-left: 3px solid #2d6a9f !important; }
 .cell-edit-input {
   width: 100%; border: 1.5px solid #2d6a9f; border-radius: 4px;
   padding: 4px 6px; font-size: 12px; font-family: inherit;
@@ -319,7 +341,7 @@ td.fig-cell svg {
 .btn-correction {
   padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
   cursor: pointer; border: 1.5px solid #2d6a9f; background: #e8f0fe; color: #1a3a5c;
-  white-space: nowrap; transition: all 0.15s;
+  white-space: nowrap;
   display: flex; align-items: center; gap: 6px;
 }
 .btn-correction:hover { background: #d0e0f4; }
@@ -349,7 +371,6 @@ td.fig-cell svg {
 .ref-btn {
   padding: 5px 12px; border-radius: 6px; font-size: 10.5px; font-weight: 600;
   cursor: pointer; border: 1.5px solid #d0dce8; background: #f5f8fc; color: #6a8aaa;
-  transition: all 0.15s;
 }
 .ref-btn:hover { background: #e8f0fe; color: #1a3a5c; }
 .ref-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
@@ -367,7 +388,6 @@ table.lab-table tbody tr:nth-child(even) { background: #f5f8fc; }
   display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; user-select: none;
   font-size: 13px; font-weight: 600; color: #6a8aaa;
-  transition: background 0.15s;
 }
 .converter-toggle:hover { background: #f5f8fc; }
 .converter-toggle .chevron { font-size: 10px; transition: transform 0.2s; color: #9ab0c8; }
@@ -405,11 +425,11 @@ footer {
 }
 
 @media (max-width: 960px) {
-  .workspace { grid-template-columns: 1fr; }
+  .state-active .workspace { grid-template-columns: 1fr; }
 }
 </style>
 </head>
-<body>
+<body class="state-empty">
 
 <!-- ====== SITE HEADER ====== -->
 <div class="site-header">
@@ -428,37 +448,35 @@ footer {
 
 <!-- Normes banner -->
 <div class="normes">
-  <strong data-i18n="normes-label">Normes et bases l&eacute;gales int&eacute;gr&eacute;es :</strong>
+  <strong data-i18n="normes-label">Normes :</strong>
   SN 670 009 &middot; SN 670 010 &middot; SN 670 048 &middot; USCS
 </div>
 
 <!-- ====== ACTIVE BOREHOLE BANNER ====== -->
 <div class="sondage-banner" id="sondageBanner">
-  <div class="sondage-banner-info" id="sondageBannerInfo">
-    <span class="sondage-banner-empty" data-i18n="banner-empty">Aucun sondage actif &mdash; commencez la saisie ci-dessous</span>
-  </div>
+  <div class="sondage-banner-info" id="sondageBannerInfo"></div>
   <button class="reset-btn" onclick="resetAll()" title="Nouveau sondage" data-i18n="btn-new">Nouveau sondage</button>
 </div>
 
 <!-- ====== WORKSPACE ====== -->
 <div class="workspace">
 
-  <!-- LEFT COLUMN — INPUT -->
-  <div class="card">
+  <!-- LEFT / CENTER COLUMN — INPUT -->
+  <div class="carnet-wrap">
     <div id="inputTerrain">
       <textarea class="carnet-input" id="notesInput" spellcheck="false" placeholder="Identifiant  Date  Lieu
-alt [altitude en m]
+alt [altitude]
 E [coord est] / N [coord nord]
 
-[prof. de]-[prof. a] [lithologie] [couleur] [etat] [details]
-[prof. de]-[prof. a] [lithologie] [couleur] [etat] [details]
-nappe [profondeur en m]
+[de]-[a] [lithologie] [couleur] [etat] [details]
+[de]-[a] [lithologie] [couleur] [etat] [details]
+nappe [profondeur]
 
 [observations]"></textarea>
 
       <div class="btn-row">
         <button class="btn-structurer" id="btnStructurer" onclick="structurer()">
-          <span class="btn-label" data-i18n="btn-structurer">Structurer</span>
+          <span class="btn-label" id="btnStructurerLabel" data-i18n="btn-structurer">Structurer</span>
           <span class="spinner"></span>
         </button>
         <button class="btn-example" onclick="chargerExempleTerrain()">Exemple</button>
@@ -468,8 +486,8 @@ nappe [profondeur en m]
     </div>
   </div>
 
-  <!-- RIGHT COLUMN — RESTITUTION -->
-  <div class="card">
+  <!-- RIGHT COLUMN — RESULTS (hidden in state-empty) -->
+  <div class="results-wrap">
     <div class="tab-bar" id="outputTabs">
       <button class="tab-btn active" onclick="switchOutputTab('tableau')">Tableau</button>
       <button class="tab-btn" onclick="switchOutputTab('log')">Log</button>
@@ -477,16 +495,10 @@ nappe [profondeur en m]
 
     <!-- TAB: TABLEAU -->
     <div class="tab-content active" id="outputTableau">
-      <div id="tableauContent">
-        <div class="preview-empty" data-i18n="preview-empty-tableau">Saisissez vos notes de terrain, puis cliquez sur &laquo; Structurer &raquo; pour g&eacute;n&eacute;rer le tableau norm&eacute;.</div>
-      </div>
+      <div id="tableauContent"></div>
       <div id="tableauExports" style="display:none;">
-        <div class="warn-bar">Ce tableau a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. Une v&eacute;rification pr&eacute;alable demeure requise avant int&eacute;gration au rapport.</div>
-
-        <!-- Corrections count -->
+        <div class="warn-bar">Ce tableau a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.</div>
         <div class="corrections-count" id="correctionsCount"></div>
-
-        <!-- Correction assistee -->
         <div class="correction-box" id="correctionBox">
           <h4>Corriger avec l'assistant</h4>
           <div class="correction-row">
@@ -498,7 +510,6 @@ nappe [profondeur en m]
           </div>
           <div class="correction-status" id="correctionStatus"></div>
         </div>
-
         <div class="export-row">
           <button class="btn-secondary" onclick="exportDOCX()">Exporter .docx</button>
           <button class="btn-secondary" onclick="exportXLSX()">Exporter .xlsx</button>
@@ -510,19 +521,17 @@ nappe [profondeur en m]
     <!-- TAB: LOG -->
     <div class="tab-content" id="outputLog">
       <div id="logMeta" class="log-meta" style="display:none;"></div>
-      <div id="logOutput">
-        <div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur &laquo; Structurer &raquo; pour g&eacute;n&eacute;rer le log de forage.</div>
-      </div>
+      <div id="logOutput"></div>
       <canvas id="logCanvas" style="display:none;"></canvas>
-      <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. Une v&eacute;rification pr&eacute;alable demeure requise avant int&eacute;gration au rapport.</div>
+      <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.</div>
       <div class="export-row" id="logExportBar" style="display:none;">
         <button class="btn-secondary" onclick="exportLogPNG(1)">PNG</button>
         <button class="btn-secondary" onclick="exportLogPNG(2)">PNG HD (x2)</button>
         <button class="btn-secondary" onclick="exportLogSVG()">SVG</button>
       </div>
     </div>
-
   </div>
+
 </div>
 
 <!-- ====== CONVERTER (collapsible) ====== -->
@@ -571,19 +580,19 @@ nappe [profondeur en m]
 
 <!-- ====== FOOTER ====== -->
 <div class="disclaimer-block" data-i18n="disclaimer">
-  Ce contenu a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement &agrave; partir des donn&eacute;es saisies. Une v&eacute;rification pr&eacute;alable demeure requise avant int&eacute;gration au rapport.
+  Ce contenu a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.
 </div>
 <div class="soutien">
   <img src="svp_fribourg_rvb.png" alt="Student Venture Program">
   <p data-i18n="svp">Projet soutenu par le Student Venture Program de la HES-SO et de l'Universit&eacute; de Fribourg</p>
 </div>
 <footer>
-  <p>SYNOS &mdash; v6.1 &mdash; Mars 2026</p>
+  <p>SYNOS &mdash; v7.0 &mdash; Mars 2026</p>
 </footer>
 
 <script>
 /* ================================================================
-   LITHO COLORS (for table row color strip)
+   LITHO COLORS
    ================================================================ */
 const LITHO_COLORS = {
   'terre végétale': '#5c3d1e', 'terre vegetale': '#5c3d1e', 'tv': '#5c3d1e', 'humus': '#3d2e10',
@@ -650,6 +659,36 @@ function matchLithoConfig(litho) {
     if (litho.toLowerCase().includes(key.toLowerCase())) return cfg;
   }
   return { color: '#ccc', pattern: 'none', uscs: '—' };
+}
+
+/* ================================================================
+   ESTIMATE USCS from lithology name (Part 1.2)
+   ================================================================ */
+function estimateUSCS(litho) {
+  const l = litho.toLowerCase().trim();
+  if (/terre\s*v[ée]g/i.test(l)) return 'OH';
+  if (/tourbe/i.test(l)) return 'Pt';
+  if (/remblai/i.test(l)) return 'R';
+  if (/gravier\s+sableux/i.test(l) || /grav.*sabl/i.test(l)) return 'GW';
+  if (/gravier\s+limoneux/i.test(l) || /grav.*lim/i.test(l)) return 'GM';
+  if (/gravier\s+argileux/i.test(l) || /grav.*arg/i.test(l)) return 'GC';
+  if (/gravier/i.test(l)) return 'GW/GP';
+  if (/sable\s+graveleux/i.test(l) || /sabl.*grav/i.test(l)) return 'SW';
+  if (/sable\s+limoneux/i.test(l) || /sabl.*lim/i.test(l)) return 'SM';
+  if (/sable\s+argileux/i.test(l) || /sabl.*arg/i.test(l)) return 'SC';
+  if (/sable/i.test(l)) return 'SW/SP';
+  if (/limon\s+argileux/i.test(l) || /lim.*arg/i.test(l)) return 'CL/ML';
+  if (/limon\s+sableux/i.test(l) || /lim.*sabl/i.test(l)) return 'ML';
+  if (/limon/i.test(l)) return 'ML';
+  if (/argile\s+limoneuse/i.test(l) || /arg.*lim/i.test(l)) return 'CL';
+  if (/argile\s+sableuse/i.test(l) || /arg.*sabl/i.test(l)) return 'CL';
+  if (/argile/i.test(l)) return 'CL/CH';
+  if (/moraine.*arg/i.test(l)) return 'GC';
+  if (/moraine.*fond/i.test(l)) return 'GM/GC';
+  if (/moraine/i.test(l)) return 'GM';
+  if (/molasse|gr[eè]s|gr[eé]seuse|marneuse|calcaire|gneiss|granite|schiste/i.test(l)) return 'Roche';
+  if (/[ée]boulis/i.test(l)) return 'GP/GM';
+  return '?';
 }
 
 /* ================================================================
@@ -741,7 +780,7 @@ function drawPattern(x, y, w, h, pattern, color) {
   return s;
 }
 
-/* Inline SVG figure for table cell — fills entire cell */
+/* Inline SVG figure for table cell */
 function buildInlineFigureSVG(litho, height) {
   const cfg = matchLithoConfig(litho);
   const h = height || 48;
@@ -759,14 +798,27 @@ let lastStructuredData = null;
 let lastLogSVG = '';
 let editedCells = {};  // key: "layerIdx-field", value: "manual" | "ai"
 
-function countEdits() {
-  return Object.keys(editedCells).length;
-}
+function countEdits() { return Object.keys(editedCells).length; }
 
 function updateCorrectionsCount() {
   const n = countEdits();
   const el = document.getElementById('correctionsCount');
   el.textContent = n > 0 ? `${n} correction${n > 1 ? 's' : ''} apportee${n > 1 ? 's' : ''}` : '';
+}
+
+/* ================================================================
+   STATE TRANSITIONS (Part 2)
+   ================================================================ */
+function transitionToActive() {
+  document.body.classList.remove('state-empty');
+  document.body.classList.add('state-active');
+  document.getElementById('btnStructurerLabel').textContent = 'Restructurer';
+}
+
+function transitionToEmpty() {
+  document.body.classList.remove('state-active');
+  document.body.classList.add('state-empty');
+  document.getElementById('btnStructurerLabel').textContent = 'Structurer';
 }
 
 /* ================================================================
@@ -781,7 +833,6 @@ async function structurer() {
   const statusEl = document.getElementById('statusMsg');
   statusEl.className = 'status-msg';
   statusEl.textContent = '';
-
   btn.classList.add('loading');
   btn.disabled = true;
 
@@ -791,24 +842,22 @@ async function structurer() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes: text })
     });
-
     if (!response.ok) {
       const errText = await response.text();
       throw new Error(`Erreur serveur (${response.status}) : ${errText}`);
     }
-
     const result = await response.json();
     lastStructuredData = result;
     editedCells = {};
 
+    transitionToActive();
     renderTableau(result);
     renderLog(result);
     updateBanner(result);
     switchOutputTab('tableau');
 
     statusEl.className = 'status-msg success';
-    statusEl.textContent = `Structuration terminee — ${result.layers ? result.layers.length : 0} couche(s) identifiee(s).`;
-
+    statusEl.textContent = `Structuration terminee — ${result.layers ? result.layers.length : 0} couche(s).`;
   } catch (err) {
     statusEl.className = 'status-msg error';
     statusEl.textContent = err.message || 'Erreur de connexion au serveur.';
@@ -826,7 +875,6 @@ function updateBanner(data) {
   const banner = document.getElementById('sondageBannerInfo');
   const parts = [];
   const m = data.meta || {};
-
   if (m.id) parts.push(`<span class="bv">${escapeHtml(m.id)}</span>`);
   if (m.date) parts.push(`<span>${escapeHtml(m.date)}</span>`);
   if (m.lieu) parts.push(`<span>${escapeHtml(m.lieu)}</span>`);
@@ -834,72 +882,52 @@ function updateBanner(data) {
   if (m.coord_e) parts.push(`<span>E ${escapeHtml(m.coord_e)} / N ${escapeHtml(m.coord_n)}</span>`);
   if (data.layers && data.layers.length > 0) parts.push(`<span>${data.layers.length} couche${data.layers.length > 1 ? 's' : ''}</span>`);
   if (m.nappe_m) parts.push(`<span>Nappe ${m.nappe_m} m</span>`);
-
   if (data.warnings && data.warnings.length > 0) {
-    parts.push(`<span style="color:#b8860a;">${data.warnings.length} avertissement${data.warnings.length > 1 ? 's' : ''}</span>`);
+    parts.push(`<span style="color:#b8860a;">${data.warnings.length} avert.</span>`);
   }
-
-  if (parts.length === 0) {
-    banner.innerHTML = '<span class="sondage-banner-empty">Aucun sondage actif — commencez la saisie ci-dessous</span>';
-  } else {
-    banner.innerHTML = parts.join('<span class="sep">|</span>');
-  }
+  banner.innerHTML = parts.length > 0 ? parts.join('<span class="sep">|</span>') : '';
 }
 
 /* ================================================================
-   COLUMN LABELS & ORDER
+   COLUMN ORDER & LABELS
    ================================================================ */
 const COL_LABELS = {
-  profondeur: 'Profondeur',
-  figure: 'Figure',
-  description: 'Description',
-  couleur: 'Couleur',
-  consistance: 'Consistance',
-  humidite: 'Humidite',
-  granulometrie: 'Granulo.',
-  inclusions: 'Inclusions',
-  altitude: 'Altitude',
-  uscs: 'USCS'
+  profondeur:'Profondeur', figure:'Fig.', description:'Description',
+  couleur:'Couleur', consistance:'Consistance', humidite:'Humidite',
+  granulometrie:'Granulo.', inclusions:'Inclusions', altitude:'Altitude', uscs:'USCS'
 };
 
-/* Reorder columns: figure FIRST, then profondeur, description, conditionals, uscs LAST */
 function reorderColumns(columns) {
   const ordered = [];
   if (columns.includes('figure')) ordered.push('figure');
   if (columns.includes('profondeur')) ordered.push('profondeur');
   if (columns.includes('description')) ordered.push('description');
-  const conditionals = ['couleur', 'consistance', 'humidite', 'granulometrie', 'inclusions', 'altitude'];
-  for (const c of conditionals) {
+  for (const c of ['couleur','consistance','humidite','granulometrie','inclusions','altitude']) {
     if (columns.includes(c)) ordered.push(c);
   }
   if (columns.includes('uscs')) ordered.push('uscs');
   return ordered;
 }
 
-/* Non-editable fields */
 const NON_EDITABLE = new Set(['figure', 'profondeur']);
 
 /* ================================================================
-   RENDER TABLEAU — ADAPTIVE COLUMNS
+   RENDER TABLEAU
    ================================================================ */
 function renderTableau(data) {
   const container = document.getElementById('tableauContent');
   const exportsEl = document.getElementById('tableauExports');
-
   if (!data.layers || data.layers.length === 0) {
-    container.innerHTML = '<div class="preview-empty">Aucune couche identifiee dans les notes.</div>';
+    container.innerHTML = '<div class="preview-empty">Aucune couche identifiee.</div>';
     exportsEl.style.display = 'none';
     return;
   }
-
   const m = data.meta || {};
   const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
-  const rawColumns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
-  const columns = reorderColumns(rawColumns);
+  const columns = reorderColumns(data.columns || ['profondeur','figure','description','uscs']);
   const layers = data.layers;
   let html = '';
 
-  /* Meta grid */
   html += `<div class="meta-grid">
     <div><span class="meta-label">Sondage : </span><span class="meta-value ${m.id?'':'empty'}">${escapeHtml(m.id||'—')}</span></div>
     <div><span class="meta-label">Date : </span><span class="meta-value ${m.date?'':'empty'}">${escapeHtml(m.date||'—')}</span></div>
@@ -909,7 +937,6 @@ function renderTableau(data) {
     <div class="meta-full"><span class="meta-label">Nappe : </span><span class="meta-value ${wl!=null?'':'empty'}">${wl!=null?wl+' m':'—'}</span></div>
   </div>`;
 
-  /* Nappe position */
   let nappeLayerIdx = -1, nappePosition = 'below';
   if (wl !== null) {
     for (let i = 0; i < layers.length; i++) {
@@ -923,29 +950,20 @@ function renderTableau(data) {
     }
   }
 
-  /* Build header */
   html += '<div class="output-wrap"><table class="final-table"><thead><tr>';
   for (const col of columns) {
-    if (col === 'figure') {
-      html += '<th class="th-center" style="width:48px;min-width:48px;">Fig.</th>';
-    } else if (col === 'profondeur') {
-      html += '<th class="th-center">Profondeur</th>';
-    } else if (col === 'uscs') {
-      html += '<th class="th-center">USCS</th>';
-    } else if (col === 'altitude') {
-      html += '<th class="th-center">Alt. (m.s.m.)</th>';
-    } else {
-      html += `<th>${COL_LABELS[col] || col}</th>`;
-    }
+    if (col === 'figure') html += '<th class="th-center" style="width:48px;min-width:48px;">Fig.</th>';
+    else if (col === 'profondeur') html += '<th class="th-center">Profondeur</th>';
+    else if (col === 'uscs') html += '<th class="th-center">USCS</th>';
+    else if (col === 'altitude') html += '<th class="th-center">Alt. (m.s.m.)</th>';
+    else html += `<th>${COL_LABELS[col]||col}</th>`;
   }
   html += '</tr></thead><tbody>';
 
-  /* Build rows */
   for (let i = 0; i < layers.length; i++) {
     const l = layers[i];
     const ep = (l.to != null) ? (l.to - l.from) : null;
     const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
-    const cfg = matchLithoConfig(litho);
     const uscs = l.uscs || '—';
     const uscsClass = getUSCSClass(uscs);
     const isVerify = l.status === 'verify';
@@ -956,67 +974,59 @@ function renderTableau(data) {
     const rowH = ep ? Math.max(42, Math.min(70, ep * 14)) : 48;
 
     html += `<tr class="layer-row" data-idx="${i}" style="height:${rowH}px;">`;
-
     for (const col of columns) {
       const editKey = `${i}-${col}`;
-      const isEdited = editedCells[editKey];
-      const editClass = isEdited === 'manual' ? ' cell-edited-manual' : isEdited === 'ai' ? ' cell-edited-ai' : '';
+      const editType = editedCells[editKey];
+      const modClass = editType === 'manual' ? ' cell-modified' : editType === 'ai' ? ' cell-assisted' : '';
       const canEdit = !NON_EDITABLE.has(col);
 
       if (col === 'figure') {
         html += `<td class="fig-cell" style="height:${rowH}px;">${buildInlineFigureSVG(litho, rowH)}</td>`;
       } else if (col === 'profondeur') {
-        html += `<td class="td-depth">${l.from.toFixed(1)} – ${l.to != null ? l.to.toFixed(1) : '—'} m<div class="depth-ep">${ep != null ? 'ep. ' + ep.toFixed(1) + ' m' : ''}</div></td>`;
+        html += `<td class="td-depth">${l.from.toFixed(1)} – ${l.to!=null?l.to.toFixed(1):'—'} m<div class="depth-ep">${ep!=null?'ep. '+ep.toFixed(1)+' m':''}</div></td>`;
       } else if (col === 'description') {
-        const verifyBadge = isVerify ? '<span class="verify-badge">a verifier</span>' : '';
-        let descContent = '';
+        const vb = isVerify ? '<span class="verify-badge">a verifier</span>' : '';
+        let dc = '';
         if (showNappe !== null && nappePosition === 'above') {
-          descContent = `${nappeBar}<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>`;
-        } else if (showNappe !== null && nappePosition === 'below') {
-          descContent = `<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>${nappeBar}`;
+          dc = `${nappeBar}<div class="desc-normee cell-editable" data-idx="${i}" data-field="description">${escapeHtml(l.description||'')}${vb}</div><div class="desc-brute">${escapeHtml(l.raw||'')}</div>`;
+        } else if (showNappe !== null) {
+          dc = `<div class="desc-normee cell-editable" data-idx="${i}" data-field="description">${escapeHtml(l.description||'')}${vb}</div><div class="desc-brute">${escapeHtml(l.raw||'')}</div>${nappeBar}`;
         } else {
-          descContent = `<div class="desc-normee cell-editable${editClass}" data-idx="${i}" data-field="description">${escapeHtml(l.description || '')}${verifyBadge}</div><div class="desc-brute">${escapeHtml(l.raw || '')}</div>`;
+          dc = `<div class="desc-normee cell-editable" data-idx="${i}" data-field="description">${escapeHtml(l.description||'')}${vb}</div><div class="desc-brute">${escapeHtml(l.raw||'')}</div>`;
         }
-        html += `<td class="td-desc">${descContent}</td>`;
+        html += `<td class="td-desc${modClass}">${dc}</td>`;
       } else if (col === 'uscs') {
-        html += `<td class="td-uscs"><span class="uscs-badge ${uscsClass} cell-editable${editClass}" data-idx="${i}" data-field="uscs">${escapeHtml(uscs)}</span></td>`;
+        html += `<td class="td-uscs${modClass}"><span class="uscs-badge ${uscsClass} cell-editable" data-idx="${i}" data-field="uscs">${escapeHtml(uscs)}</span></td>`;
       } else if (col === 'altitude') {
         const altTop = m.altitude ? (m.altitude - l.from).toFixed(1) : '—';
         const altBot = (m.altitude && l.to != null) ? (m.altitude - l.to).toFixed(1) : '—';
         html += `<td class="td-altitude">${altTop}<br>${altBot}</td>`;
       } else {
-        // Conditional columns: couleur, consistance, humidite, granulometrie, inclusions
         const val = l[col] || '—';
-        html += `<td class="td-detail cell-editable${editClass}" data-idx="${i}" data-field="${col}">${escapeHtml(val)}</td>`;
+        html += `<td class="td-detail${modClass} cell-editable" data-idx="${i}" data-field="${col}">${escapeHtml(val)}</td>`;
       }
     }
     html += '</tr>';
   }
   html += '</tbody></table></div>';
 
-  /* Summary strip */
   html += '<div class="final-summary">';
   for (const l of layers) {
     if (l.to == null) continue;
-    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
+    const lit = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
     const c = getLithoColor(l.description || l.raw || '');
-    html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${escapeHtml(litho)}</span></div>`;
+    html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${escapeHtml(lit)}</span></div>`;
   }
-  if (wl !== null) {
-    html += `<div class="summary-item" style="margin-left:auto; color:#1a4a7a; font-weight:600;">Nappe : ${wl} m</div>`;
-  }
+  if (wl !== null) html += `<div class="summary-item" style="margin-left:auto;color:#1a4a7a;font-weight:600;">Nappe : ${wl} m</div>`;
   html += '</div>';
 
-  /* Observations */
   if (data.observations && data.observations.length > 0) {
     html += '<div class="obs-section"><strong>Observations :</strong>';
     for (const o of data.observations) html += `<br>— ${escapeHtml(o)}`;
     html += '</div>';
   }
-
-  /* Warnings */
   if (data.warnings && data.warnings.length > 0) {
-    html += '<div class="warn-bar" style="margin-top:14px; border-left-color:#d4900a;"><strong>Avertissements :</strong>';
+    html += '<div class="warn-bar" style="margin-top:14px;border-left-color:#d4900a;"><strong>Avertissements :</strong>';
     for (const w of data.warnings) html += `<br>— ${escapeHtml(w)}`;
     html += '</div>';
   }
@@ -1028,7 +1038,7 @@ function renderTableau(data) {
 }
 
 /* ================================================================
-   INLINE EDITING — all data cells
+   INLINE EDITING — with estimateUSCS auto-update (Part 1.2)
    ================================================================ */
 function attachEditListeners() {
   document.querySelectorAll('.cell-editable').forEach(el => {
@@ -1042,7 +1052,6 @@ function startCellEdit(e) {
   const idx = parseInt(el.dataset.idx);
   const field = el.dataset.field;
   if (isNaN(idx) || !field) return;
-
   const layer = lastStructuredData.layers[idx];
   if (!layer) return;
 
@@ -1073,6 +1082,12 @@ function startCellEdit(e) {
         const firstPart = newValue.split(',')[0].trim();
         if (firstPart && firstPart !== layer.lithologie) {
           layer.lithologie = firstPart;
+          // Auto-update USCS when lithology changes
+          const newUscs = estimateUSCS(firstPart);
+          if (newUscs !== '?') {
+            layer.uscs = newUscs;
+            editedCells[`${idx}-uscs`] = 'manual';
+          }
         }
       } else {
         layer[field] = newValue;
@@ -1112,37 +1127,24 @@ async function applyCorrection() {
     const response = await fetch('/.netlify/functions/structurer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        correction: {
-          current: lastStructuredData,
-          instruction: instruction
-        }
-      })
+      body: JSON.stringify({ correction: { current: lastStructuredData, instruction } })
     });
-
     if (!response.ok) {
       const errText = await response.text();
       throw new Error(`Erreur (${response.status}) : ${errText}`);
     }
-
     const result = await response.json();
 
-    // Mark AI-edited cells by comparing old vs new
     if (result.layers && lastStructuredData.layers) {
-      const fields = ['description', 'lithologie', 'couleur', 'consistance', 'humidite', 'granulometrie', 'inclusions', 'uscs'];
+      const fields = ['description','lithologie','couleur','consistance','humidite','granulometrie','inclusions','uscs'];
       for (let i = 0; i < result.layers.length; i++) {
         const oldL = lastStructuredData.layers[i];
         const newL = result.layers[i];
         if (!oldL || !newL) continue;
         for (const f of fields) {
-          if (String(newL[f] || '') !== String(oldL[f] || '')) {
+          if (String(newL[f]||'') !== String(oldL[f]||'')) {
             editedCells[`${i}-${f}`] = 'ai';
           }
-        }
-      }
-      if (result.meta && lastStructuredData.meta) {
-        if (String(result.meta.nappe_m) !== String(lastStructuredData.meta.nappe_m)) {
-          editedCells['meta-nappe'] = 'ai';
         }
       }
     }
@@ -1156,7 +1158,6 @@ async function applyCorrection() {
     statusEl.textContent = 'Correction appliquee';
     statusEl.className = 'correction-status visible';
     setTimeout(() => { statusEl.className = 'correction-status'; }, 3000);
-
   } catch (err) {
     statusEl.textContent = err.message || 'Erreur de connexion.';
     statusEl.className = 'correction-status visible';
@@ -1169,7 +1170,7 @@ async function applyCorrection() {
 }
 
 /* ================================================================
-   RENDER LOG — IMPROVED: aligned descriptions, altitude at boundaries, better nappe
+   RENDER LOG — aligned descriptions, altitude at boundaries, nappe
    ================================================================ */
 function renderLog(data) {
   if (!data.layers || !data.layers.some(l => l.to != null)) {
@@ -1193,16 +1194,12 @@ function renderLog(data) {
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
 
   const marginTop = 65, marginBottom = 50, marginLeft = 70;
-  const scaleColW = 35;
-  const logColW = 110;
-  const patternColW = 110;
-  const descColW = 280;
+  const scaleColW = 35, logColW = 110, patternColW = 110, descColW = 280;
   const altColW = hasAlt ? 65 : 0;
   const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
   const pxPerMeter = 40;
   const logH = maxDepth * pxPerMeter;
 
-  // Legend at bottom
   const usedLithos = [...new Set(layers.map(l => l.litho))];
   const legendRows = Math.ceil(usedLithos.length / 4);
   const legendH = legendRows * 28 + 20;
@@ -1215,117 +1212,86 @@ function renderLog(data) {
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;">`;
   svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
-
-  // Title
-  svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id || '—')}</text>`;
+  svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id||'—')}</text>`;
   svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
 
-  // Column headers
   const headY = marginTop - 10;
-  svg += `<text x="${marginLeft + scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
-  svg += `<text x="${logX + logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
-  svg += `<text x="${patX + patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
+  svg += `<text x="${marginLeft+scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
+  svg += `<text x="${logX+logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
+  svg += `<text x="${patX+patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
   svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
-  if (hasAlt) {
-    svg += `<text x="${altX + altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
-  }
+  if (hasAlt) svg += `<text x="${altX+altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
 
-  // Depth scale ticks
   const meterStep = maxDepth <= 10 ? 1 : maxDepth <= 30 ? 2 : 5;
   for (let d = 0; d <= maxDepth; d += meterStep) {
     const y = marginTop + d * pxPerMeter;
-    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
-    svg += `<text x="${marginLeft + scaleColW - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
+    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
+    svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
   }
 
-  // Altitude at layer BOUNDARIES (not at regular intervals)
+  // Altitude at layer BOUNDARIES
   if (hasAlt) {
-    // Top boundary (0.0)
+    const drawnDepths = new Set();
     const y0 = marginTop;
-    svg += `<text x="${altX + altColW/2}" y="${y0 + 4}" text-anchor="middle" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
-    // Each layer bottom boundary
-    const drawnDepths = new Set([0]);
+    svg += `<text x="${altX+altColW/2}" y="${y0+4}" text-anchor="middle" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
+    drawnDepths.add(0);
     layers.forEach(layer => {
       if (!drawnDepths.has(layer.to)) {
         const y = marginTop + layer.to * pxPerMeter;
-        svg += `<text x="${altX + altColW/2}" y="${y + 4}" text-anchor="middle" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
+        svg += `<text x="${altX+altColW/2}" y="${y+4}" text-anchor="middle" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
         drawnDepths.add(layer.to);
       }
     });
   }
 
-  // Outer border
-  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW + patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
-  // Separator between color and pattern
-  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop + logH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
+  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW+patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
+  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop+logH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
 
-  // Draw layers
   layers.forEach((layer, i) => {
     const y = marginTop + layer.from * pxPerMeter;
     const h = (layer.to - layer.from) * pxPerMeter;
     const cfg = layer.cfg;
-
-    // Color fill
     svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${cfg.color}" opacity="0.35"/>`;
-    // Pattern fill
     svg += drawPattern(patX, y, patternColW, h, cfg.pattern, cfg.color);
+    if (i > 0) svg += `<line x1="${logX}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
 
-    // Layer boundary
-    if (i > 0) {
-      svg += `<line x1="${logX}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-    }
-
-    // Description — centered vertically in layer band
     const centerY = y + h / 2;
     const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
-    const depthInfo = `${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to - layer.from).toFixed(1)} m`;
+    const depthInfo = `${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to-layer.from).toFixed(1)} m`;
 
     if (h >= 50) {
-      // 3 lines: litho bold, depth info, details
       const lineCount = details ? 3 : 2;
       const blockH = lineCount * 14;
       const startY = centerY - blockH / 2 + 12;
-
       svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
-      svg += `<text x="${descX}" y="${startY + 14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
-      if (details) {
-        svg += `<text x="${descX}" y="${startY + 26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
-      }
-      // USCS badge right-aligned, vertically centered
+      svg += `<text x="${descX}" y="${startY+14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
+      if (details) svg += `<text x="${descX}" y="${startY+26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
       const badgeX = descX + descColW - 38;
-      svg += `<rect x="${badgeX}" y="${centerY - 9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-      svg += `<text x="${badgeX + 17.5}" y="${centerY + 4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+      svg += `<rect x="${badgeX}" y="${centerY-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+      svg += `<text x="${badgeX+17.5}" y="${centerY+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
     } else if (h >= 30) {
-      // 2 lines: litho + depth
-      svg += `<text x="${descX}" y="${centerY - 2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
-      svg += `<text x="${descX}" y="${centerY + 11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
+      svg += `<text x="${descX}" y="${centerY-2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      svg += `<text x="${descX}" y="${centerY+11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
       const badgeX = descX + descColW - 35;
-      svg += `<rect x="${badgeX}" y="${centerY - 8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-      svg += `<text x="${badgeX + 16}" y="${centerY + 4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+      svg += `<rect x="${badgeX}" y="${centerY-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+      svg += `<text x="${badgeX+16}" y="${centerY+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
     } else {
-      // Thin layer: just litho name
-      svg += `<text x="${descX}" y="${centerY + 4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      svg += `<text x="${descX}" y="${centerY+4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
     }
   });
 
-  // Water level — improved with triangle and right-side annotation
   if (nappeDepth !== null && nappeDepth <= maxDepth) {
     const wy = marginTop + nappeDepth * pxPerMeter;
-    // Dashed line
-    svg += `<line x1="${logX}" y1="${wy}" x2="${patX + patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    // Triangle on left edge of log
-    svg += `<polygon points="${logX},${wy - 7} ${logX + 8},${wy - 7} ${logX + 4},${wy}" fill="#1a6aaf"/>`;
-    // Label to the right of the log
+    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
     let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
-    if (hasAlt) nappeText += ` (${(m.altitude - nappeDepth).toFixed(1)} m.s.m.)`;
-    svg += `<text x="${descX}" y="${wy - 4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
+    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
+    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
   }
 
-  // Legend
   const legendY = marginTop + logH + marginBottom - 5;
-  svg += `<line x1="20" y1="${legendY}" x2="${totalW - 20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
-  svg += `<text x="20" y="${legendY + 16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des lithologies</text>`;
-
+  svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
+  svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des lithologies</text>`;
   const legendStartY = legendY + 28;
   const colW = Math.floor((totalW - 40) / 4);
   usedLithos.forEach((litho, idx) => {
@@ -1336,16 +1302,13 @@ function renderLog(data) {
     const ly = legendStartY + row * 28;
     svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="${cfg.color}" opacity="0.35" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
     svg += drawPattern(lx, ly, 20, 16, cfg.pattern, cfg.color);
-    svg += `<text x="${lx + 25}" y="${ly + 12}" font-size="9" fill="#3a5a7a">${escapeHtml(litho)}</text>`;
+    svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${escapeHtml(litho)}</text>`;
   });
-
   svg += '</svg>';
 
-  // Meta
   const metaEl = document.getElementById('logMeta');
   metaEl.style.display = 'grid';
-  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Profondeur totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontree'}</div>`;
-
+  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Prof. totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontree'}</div>`;
   document.getElementById('logOutput').innerHTML = `<div class="log-svg-wrap">${svg}</div>`;
   lastLogSVG = svg;
   document.getElementById('logWarnBar').style.display = 'block';
@@ -1361,206 +1324,142 @@ function buildExportHTML(format) {
   const m = data.meta || {};
   const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
   const layers = data.layers || [];
-  const rawColumns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
-  const columns = reorderColumns(rawColumns);
+  const columns = reorderColumns(data.columns || ['profondeur','figure','description','uscs']);
   const obs = data.observations || [];
   const isExcel = format === 'xlsx';
-
-  const uscsColors = {
-    soil:    { bg: '#e8f0fe', fg: '#1a3a5c', bd: '#c0d4ea' },
-    rock:    { bg: '#f0f0f0', fg: '#5a5a5a', bd: '#d0d0d0' },
-    organic: { bg: '#f0ece0', fg: '#5a4a20', bd: '#d4c8a0' },
-    end:     { bg: '#f8f0f0', fg: '#7a3a3a', bd: '#e0c0c0' }
-  };
-
+  const uscsColors = { soil:{bg:'#e8f0fe',fg:'#1a3a5c',bd:'#c0d4ea'}, rock:{bg:'#f0f0f0',fg:'#5a5a5a',bd:'#d0d0d0'}, organic:{bg:'#f0ece0',fg:'#5a4a20',bd:'#d4c8a0'}, end:{bg:'#f8f0f0',fg:'#7a3a3a',bd:'#e0c0c0'} };
   let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:${isExcel?'excel':'word'}" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:10pt;color:#1a2332;margin:${isExcel?'0':'24px 32px'}}table{border-collapse:collapse;width:100%}th,td{border:1px solid #c0d0e0;padding:6px 10px}.meta-box{background:#f6f9fc;border:1px solid #e0e8f0;border-radius:8px;padding:14px 18px;margin-bottom:16px}.meta-box td{border:none;padding:3px 10px;font-size:10pt}.meta-label{font-weight:bold;color:#1a3a5c}.hdr{background:#1a3a5c;color:white;font-weight:bold;font-size:9pt;text-transform:uppercase;letter-spacing:0.5px;text-align:center;padding:8px 10px}.obs-section{margin-top:14px;font-size:9pt}.footer{margin-top:16px;font-size:7.5pt;color:#9aa0a8}</style></head><body>`;
-
   h += `<table class="meta-box"><tr><td class="meta-label">Sondage :</td><td>${m.id||'—'}</td><td class="meta-label">Date :</td><td>${m.date||'—'}</td></tr><tr><td class="meta-label">Lieu :</td><td>${m.lieu||'—'}</td><td class="meta-label">Alt. :</td><td>${m.altitude?m.altitude+' m.s.m.':'—'}</td></tr><tr><td class="meta-label">Coord. MN95 :</td><td>${m.coord_e?'E '+m.coord_e+' / N '+m.coord_n:'—'}</td><td class="meta-label">Nappe :</td><td>${wl!=null?wl+' m':'—'}</td></tr></table>`;
-
-  // Build header
   h += '<table><thead><tr>';
   const exportCols = columns.filter(c => c !== 'figure');
   for (const col of exportCols) {
-    if (col === 'profondeur') { h += '<th class="hdr">Prof. de</th><th class="hdr">Prof. a</th><th class="hdr">Ep.</th>'; }
-    else if (col === 'description') { h += '<th class="hdr" style="text-align:left;">Description normee (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th>'; }
-    else { h += `<th class="hdr">${COL_LABELS[col] || col}</th>`; }
+    if (col === 'profondeur') h += '<th class="hdr">Prof. de</th><th class="hdr">Prof. a</th><th class="hdr">Ep.</th>';
+    else if (col === 'description') h += '<th class="hdr" style="text-align:left;">Description normee (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th>';
+    else h += `<th class="hdr">${COL_LABELS[col]||col}</th>`;
   }
   h += '</tr></thead><tbody>';
-
   for (let i = 0; i < layers.length; i++) {
-    const l = layers[i];
-    const bg = i % 2 === 0 ? '#ffffff' : '#f4f7fa';
-    const uscs = l.uscs || '—';
-    const uc = uscsColors[getUSCSClass(uscs)] || uscsColors.soil;
-    const ep = (l.to != null) ? (l.to - l.from) : null;
-
+    const l = layers[i]; const bg = i%2===0?'#fff':'#f4f7fa'; const uscs = l.uscs||'—';
+    const uc = uscsColors[getUSCSClass(uscs)]||uscsColors.soil;
+    const ep = (l.to!=null)?(l.to-l.from):null;
     h += `<tr style="background:${bg};">`;
     for (const col of exportCols) {
-      if (col === 'profondeur') {
-        h += `<td style="text-align:center;font-weight:600;">${l.from.toFixed(1)}</td>`;
-        h += `<td style="text-align:center;font-weight:600;">${l.to != null ? l.to.toFixed(1) : '—'}</td>`;
-        h += `<td style="text-align:center;">${ep != null ? ep.toFixed(1) + ' m' : '—'}</td>`;
-      } else if (col === 'description') {
-        h += `<td style="font-size:9pt;">${l.description || ''}</td>`;
-        h += `<td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.raw || ''}</td>`;
-      } else if (col === 'uscs') {
-        h += `<td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${uscs}</td>`;
-      } else if (col === 'altitude') {
-        const altTop = m.altitude ? (m.altitude - l.from).toFixed(1) : '—';
-        h += `<td style="text-align:center;">${altTop}</td>`;
-      } else {
-        h += `<td>${l[col] || '—'}</td>`;
-      }
+      if (col==='profondeur') { h+=`<td style="text-align:center;font-weight:600;">${l.from.toFixed(1)}</td><td style="text-align:center;font-weight:600;">${l.to!=null?l.to.toFixed(1):'—'}</td><td style="text-align:center;">${ep!=null?ep.toFixed(1)+' m':'—'}</td>`; }
+      else if (col==='description') { h+=`<td style="font-size:9pt;">${l.description||''}</td><td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.raw||''}</td>`; }
+      else if (col==='uscs') { h+=`<td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${uscs}</td>`; }
+      else if (col==='altitude') { const at=m.altitude?(m.altitude-l.from).toFixed(1):'—'; h+=`<td style="text-align:center;">${at}</td>`; }
+      else { h+=`<td>${l[col]||'—'}</td>`; }
     }
     h += '</tr>';
   }
-
   h += '</tbody></table>';
-
-  if (obs.length > 0) {
-    h += '<div class="obs-section"><b>Observations :</b><br>';
-    for (const o of obs) h += `— ${o}<br>`;
-    h += '</div>';
-  }
-
+  if (obs.length>0) { h+='<div class="obs-section"><b>Observations :</b><br>'; for (const o of obs) h+=`— ${o}<br>`; h+='</div>'; }
   h += '<div class="footer">[Formate avec SYNOS — Carnet de terrain intelligent]</div></body></html>';
   return h;
 }
 
 function exportDOCX() {
   if (!lastStructuredData) return;
-  const btn = event.target;
-  btn.textContent = 'Export...'; btn.disabled = true;
+  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
   const html = buildExportHTML('docx');
-  const blob = new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${lastStructuredData.meta?.id || 'sondage'}_tableau.doc`;
-  a.click();
+  const blob = new Blob(['\ufeff'+html], {type:'application/msword;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `${lastStructuredData.meta?.id||'sondage'}_tableau.doc`; a.click();
   setTimeout(() => { btn.textContent = 'Exporter .docx'; btn.disabled = false; }, 1500);
 }
 
 function exportXLSX() {
   if (!lastStructuredData) return;
-  const btn = event.target;
-  btn.textContent = 'Export...'; btn.disabled = true;
+  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
   const html = buildExportHTML('xlsx');
-  const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${lastStructuredData.meta?.id || 'sondage'}_tableau.xls`;
-  a.click();
+  const blob = new Blob(['\ufeff'+html], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `${lastStructuredData.meta?.id||'sondage'}_tableau.xls`; a.click();
   setTimeout(() => { btn.textContent = 'Exporter .xlsx'; btn.disabled = false; }, 1500);
 }
 
 function exportPNG() {
   const content = document.getElementById('tableauContent');
   if (!content || !content.innerHTML.trim() || !lastStructuredData) return;
-  const btn = event.target;
-  btn.textContent = 'Export...'; btn.disabled = true;
-
+  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;background:#fff;padding:28px 32px 20px;border-radius:12px;border:1.5px solid #d0d8e4;';
   wrapper.style.width = content.scrollWidth + 64 + 'px';
-
   const titleBar = document.createElement('div');
   titleBar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1.5px solid #e0e8f0;';
-  titleBar.innerHTML = `<span style="font-family:Segoe UI,sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;">Tableau de sondage — SN 670 009</span>
-    <span style="font-family:Segoe UI,sans-serif;font-size:10px;color:#9aa0a8;">SYNOS</span>`;
+  titleBar.innerHTML = `<span style="font-family:Segoe UI,sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;">Tableau de sondage — SN 670 009</span><span style="font-family:Segoe UI,sans-serif;font-size:10px;color:#9aa0a8;">SYNOS</span>`;
   wrapper.appendChild(titleBar);
-
-  const clone = content.cloneNode(true);
-  wrapper.appendChild(clone);
+  wrapper.appendChild(content.cloneNode(true));
   document.body.appendChild(wrapper);
-
   if (typeof html2canvas === 'undefined') {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
     script.onload = () => doPngExport(wrapper, btn);
     document.head.appendChild(script);
-  } else {
-    doPngExport(wrapper, btn);
-  }
+  } else { doPngExport(wrapper, btn); }
 }
 
 function doPngExport(wrapper, btn) {
-  html2canvas(wrapper, { scale: 3, backgroundColor: '#ffffff', useCORS: true, logging: false }).then(canvas => {
+  html2canvas(wrapper, {scale:3, backgroundColor:'#fff', useCORS:true, logging:false}).then(canvas => {
     document.body.removeChild(wrapper);
     const a = document.createElement('a');
-    a.download = `${lastStructuredData?.meta?.id || 'sondage'}_tableau.png`;
-    a.href = canvas.toDataURL('image/png', 1.0);
-    a.click();
+    a.download = `${lastStructuredData?.meta?.id||'sondage'}_tableau.png`;
+    a.href = canvas.toDataURL('image/png',1.0); a.click();
     btn.textContent = 'Exporter .png'; btn.disabled = false;
-  }).catch(() => {
-    document.body.removeChild(wrapper);
-    btn.textContent = 'Exporter .png'; btn.disabled = false;
-  });
+  }).catch(() => { document.body.removeChild(wrapper); btn.textContent = 'Exporter .png'; btn.disabled = false; });
 }
 
 function exportLogPNG(scale) {
   if (!lastLogSVG) return;
   const svgEl = document.querySelector('#logOutput svg');
   if (!svgEl) return;
-
   const w = svgEl.getAttribute('width') * scale;
   const h = svgEl.getAttribute('height') * scale;
   const canvas = document.getElementById('logCanvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
-
   const img = new Image();
-  const svgBlob = new Blob([lastLogSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const svgBlob = new Blob([lastLogSVG], {type:'image/svg+xml;charset=utf-8'});
   const url = URL.createObjectURL(svgBlob);
-
   img.onload = function() {
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(img, 0, 0, w, h);
-    URL.revokeObjectURL(url);
+    ctx.fillStyle = 'white'; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img,0,0,w,h); URL.revokeObjectURL(url);
     const a = document.createElement('a');
-    const id = lastStructuredData?.meta?.id || 'log';
-    a.download = `log_${id}${scale > 1 ? '_HD' : ''}.png`;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
+    a.download = `log_${lastStructuredData?.meta?.id||'log'}${scale>1?'_HD':''}.png`;
+    a.href = canvas.toDataURL('image/png'); a.click();
   };
   img.src = url;
 }
 
 function exportLogSVG() {
   if (!lastLogSVG) return;
-  const blob = new Blob([lastLogSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const blob = new Blob([lastLogSVG], {type:'image/svg+xml;charset=utf-8'});
   const a = document.createElement('a');
-  const id = lastStructuredData?.meta?.id || 'log';
-  a.download = `log_${id}.svg`;
-  a.href = URL.createObjectURL(blob);
-  a.click();
+  a.download = `log_${lastStructuredData?.meta?.id||'log'}.svg`;
+  a.href = URL.createObjectURL(blob); a.click();
 }
 
 /* ================================================================
-   RESET
+   RESET — back to state-empty
    ================================================================ */
 function resetAll() {
   if (!confirm('Effacer toutes les donnees et commencer un nouveau sondage ?')) return;
-
   document.getElementById('notesInput').value = '';
   document.getElementById('statusMsg').className = 'status-msg';
   document.getElementById('statusMsg').textContent = '';
-  document.getElementById('tableauContent').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le tableau norme.</div>';
+  document.getElementById('tableauContent').innerHTML = '';
   document.getElementById('tableauExports').style.display = 'none';
-  document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le log de forage.</div>';
+  document.getElementById('logOutput').innerHTML = '';
   document.getElementById('logMeta').style.display = 'none';
   document.getElementById('logWarnBar').style.display = 'none';
   document.getElementById('logExportBar').style.display = 'none';
   document.getElementById('correctionInput').value = '';
   document.getElementById('correctionStatus').className = 'correction-status';
-
   lastStructuredData = null;
   lastLogSVG = '';
   editedCells = {};
-
+  transitionToEmpty();
   switchOutputTab('tableau');
-  updateBanner({ meta: {}, layers: [] });
-  updateCorrectionsCount();
   document.getElementById('notesInput').focus();
 }
 
@@ -1641,18 +1540,12 @@ function formatApostrophe(n) {
 
 function convertCoord() {
   const eStr = document.getElementById('convE').value, nStr = document.getElementById('convN').value;
-  if (!eStr || !nStr) {
-    document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>';
-    return;
-  }
+  if (!eStr || !nStr) { document.getElementById('convResult').innerHTML = '<div style="color:#9ab0c8;font-style:italic;">Entrez des coordonnees pour voir la conversion.</div>'; return; }
   const e = parseCoord(eStr), n = parseCoord(nStr);
-  if (isNaN(e) || isNaN(n)) {
-    document.getElementById('convResult').innerHTML = '<div style="color:#c44a3a;">Coordonnees invalides.</div>';
-    return;
-  }
+  if (isNaN(e) || isNaN(n)) { document.getElementById('convResult').innerHTML = '<div style="color:#c44a3a;">Coordonnees invalides.</div>'; return; }
   let resE, resN, labelE, labelN;
-  if (convDirection === '03to95') { resE = e + 2000000; resN = n + 1000000; labelE = 'E (MN95)'; labelN = 'N (MN95)'; }
-  else { resE = e - 2000000; resN = n - 1000000; labelE = 'Y (MN03)'; labelN = 'X (MN03)'; }
+  if (convDirection === '03to95') { resE = e+2000000; resN = n+1000000; labelE = 'E (MN95)'; labelN = 'N (MN95)'; }
+  else { resE = e-2000000; resN = n-1000000; labelE = 'Y (MN03)'; labelN = 'X (MN03)'; }
   document.getElementById('convResult').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><span style="font-size:11px;color:#6a8aaa;font-weight:600;">${labelE}</span><br><strong>${formatApostrophe(resE)}</strong></div><div><span style="font-size:11px;color:#6a8aaa;font-weight:600;">${labelN}</span><br><strong>${formatApostrophe(resN)}</strong></div></div>`;
 }
 
@@ -1667,13 +1560,13 @@ function convertBatch() {
   for (const line of lines) {
     const parts = line.split(/[;,\t\s]+/).filter(p => p.trim());
     if (parts.length < 2) continue;
-    const e = parseCoord(parts[parts.length >= 3 ? 1 : 0]);
-    const n = parseCoord(parts[parts.length >= 3 ? 2 : 1]);
-    const label = parts.length >= 3 ? parts[0] : '';
-    if (isNaN(e) || isNaN(n)) continue;
+    const e = parseCoord(parts[parts.length>=3?1:0]);
+    const n = parseCoord(parts[parts.length>=3?2:1]);
+    const label = parts.length>=3?parts[0]:'';
+    if (isNaN(e)||isNaN(n)) continue;
     let resE, resN;
-    if (convDirection === '03to95') { resE = e + 2000000; resN = n + 1000000; } else { resE = e - 2000000; resN = n - 1000000; }
-    html += `<tr><td>${label ? escapeHtml(label) + ' — ' : ''}${formatApostrophe(e)}</td><td>${formatApostrophe(n)}</td><td style="color:#9ab0c8;">&#8594;</td><td><strong>${formatApostrophe(resE)}</strong></td><td><strong>${formatApostrophe(resN)}</strong></td></tr>`;
+    if (convDirection==='03to95') { resE=e+2000000; resN=n+1000000; } else { resE=e-2000000; resN=n-1000000; }
+    html += `<tr><td>${label?escapeHtml(label)+' — ':''}${formatApostrophe(e)}</td><td>${formatApostrophe(n)}</td><td style="color:#9ab0c8;">&#8594;</td><td><strong>${formatApostrophe(resE)}</strong></td><td><strong>${formatApostrophe(resN)}</strong></td></tr>`;
   }
   html += '</tbody></table></div>';
   document.getElementById('convOutput').innerHTML = html;
@@ -1683,9 +1576,9 @@ function convertBatch() {
    i18n
    ================================================================ */
 const TRANSLATIONS = {
-  fr: { 'subtitle':'Carnet de terrain intelligent','normes-label':'Normes et bases legales integrees :','banner-empty':'Aucun sondage actif — commencez la saisie ci-dessous','btn-new':'Nouveau sondage','btn-structurer':'Structurer','preview-empty-tableau':'Saisissez vos notes de terrain, puis cliquez sur \u00ab Structurer \u00bb pour generer le tableau norme.','disclaimer':'Ce contenu a ete genere automatiquement a partir des donnees saisies. Une verification prealable demeure requise avant integration au rapport.','svp':'Projet soutenu par le Student Venture Program de la HES-SO et de l\'Universite de Fribourg' },
-  de: { 'subtitle':'Intelligentes Feldbuch','normes-label':'Integrierte Normen und Rechtsgrundlagen:','banner-empty':'Kein aktiver Bohrung — beginnen Sie mit der Eingabe','btn-new':'Neue Bohrung','btn-structurer':'Strukturieren','preview-empty-tableau':'Geben Sie Ihre Feldnotizen ein und klicken Sie auf \u00ab Strukturieren \u00bb.','disclaimer':'Dieser Inhalt wurde automatisch generiert. Eine Ueberpruefung ist vor der Integration in den Bericht erforderlich.','svp':'Projekt unterstuetzt durch das Student Venture Program der HES-SO und der Universitaet Freiburg' },
-  en: { 'subtitle':'Smart field notebook','normes-label':'Integrated norms and legal bases:','banner-empty':'No active borehole — start typing below','btn-new':'New borehole','btn-structurer':'Structure','preview-empty-tableau':'Enter your field notes, then click "Structure" to generate the standard table.','disclaimer':'This content was generated automatically. Verification is required before integration into the report.','svp':'Project supported by the Student Venture Program of HES-SO and the University of Fribourg' }
+  fr: { 'subtitle':'Carnet de terrain intelligent','normes-label':'Normes :','banner-empty':'Aucun sondage actif','btn-new':'Nouveau sondage','btn-structurer':'Structurer','preview-empty-tableau':'Saisissez vos notes de terrain, puis cliquez sur Structurer.','disclaimer':'Ce contenu a ete genere automatiquement. Verification requise avant integration au rapport.','svp':'Projet soutenu par le Student Venture Program de la HES-SO et de l\'Universite de Fribourg' },
+  de: { 'subtitle':'Intelligentes Feldbuch','normes-label':'Normen:','banner-empty':'Kein aktiver Bohrung','btn-new':'Neue Bohrung','btn-structurer':'Strukturieren','preview-empty-tableau':'Geben Sie Ihre Feldnotizen ein und klicken Sie auf Strukturieren.','disclaimer':'Dieser Inhalt wurde automatisch generiert. Ueberpruefung erforderlich.','svp':'Projekt unterstuetzt durch das Student Venture Program der HES-SO und der Universitaet Freiburg' },
+  en: { 'subtitle':'Smart field notebook','normes-label':'Norms:','banner-empty':'No active borehole','btn-new':'New borehole','btn-structurer':'Structure','preview-empty-tableau':'Enter your field notes, then click Structure.','disclaimer':'This content was generated automatically. Verification required.','svp':'Project supported by the Student Venture Program of HES-SO and the University of Fribourg' }
 };
 
 function setLang(lang) {
