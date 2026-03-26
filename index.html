@@ -92,7 +92,13 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
   transition: border-color 0.2s;
 }
 .carnet-input:focus { border-color: #2d6a9f; }
-.carnet-input::placeholder { color: #a0b4c8; }
+.carnet-input::placeholder {
+  color: #b0c0d0;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
 
 /* ====== BUTTONS ====== */
 .btn-row { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
@@ -164,31 +170,40 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332;
 
 /* ====== ADAPTIVE TABLE ====== */
 table.final-table {
-  width: 100%; border-collapse: separate; border-spacing: 0;
-  font-size: 12px; border-radius: 10px; overflow: hidden;
-  border: 1px solid #d0dce8;
+  width: 100%; border-collapse: collapse;
+  font-size: 12px;
+  border: 1.5px solid #c0d0e0;
 }
 table.final-table thead th {
   background: #1a3a5c; color: white;
   padding: 10px 10px; text-align: left;
   font-weight: 700; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.5px;
-  border-bottom: 2px solid #0d2a45;
+  border: 1px solid #0d2a45;
   white-space: nowrap;
 }
 table.final-table thead th.th-center { text-align: center; }
 table.final-table tbody td {
-  padding: 0; vertical-align: top; border-bottom: 1px solid #e4eaf0;
+  padding: 0; vertical-align: top;
+  border: 1px solid #d0d8e0;
 }
-table.final-table tbody tr:last-child td { border-bottom: none; }
+table.final-table tbody tr:last-child td { border-bottom: 1px solid #d0d8e0; }
 
 .layer-row { position: relative; }
 .layer-row td { background: white; }
 .layer-row:nth-child(even) td { background: #fafcff; }
 
-/* Figure column */
-.td-figure { width: 40px; padding: 0 !important; position: relative; }
-.td-figure svg { display: block; width: 40px; }
+/* Figure column — first column, full bleed */
+td.fig-cell {
+  padding: 0 !important;
+  width: 48px; min-width: 48px; max-width: 48px;
+  position: relative; overflow: hidden;
+  border-left: none;
+}
+td.fig-cell svg {
+  display: block; width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0;
+}
 
 /* Depth column */
 .td-depth {
@@ -256,11 +271,29 @@ table.final-table tbody tr:last-child td { border-bottom: none; }
 /* ====== EDITABLE CELLS ====== */
 .cell-editable { cursor: pointer; position: relative; min-height: 20px; }
 .cell-editable:hover { background: #f0f6ff !important; }
-.cell-edited-manual { border-left: 3px solid #e8a030 !important; }
-.cell-edited-ai { border-left: 3px solid #4a90d0 !important; }
+/* Orange dot for manual edits */
+.cell-edited-manual::before {
+  content: '';
+  position: absolute; top: 3px; left: 3px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #e8a030;
+}
+/* Blue dot for AI edits */
+.cell-edited-ai::before {
+  content: '';
+  position: absolute; top: 3px; left: 3px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4a90d0;
+}
 .cell-edit-input {
   width: 100%; border: 1.5px solid #2d6a9f; border-radius: 4px;
   padding: 4px 6px; font-size: 12px; font-family: inherit;
+  background: #fff; outline: none;
+}
+.cell-edit-input-uscs {
+  width: 60px; border: 1.5px solid #2d6a9f; border-radius: 4px;
+  padding: 3px 6px; font-size: 11px; font-family: inherit;
+  font-weight: 700; text-align: center;
   background: #fff; outline: none;
 }
 .corrections-count {
@@ -413,16 +446,15 @@ footer {
   <!-- LEFT COLUMN — INPUT -->
   <div class="card">
     <div id="inputTerrain">
-      <textarea class="carnet-input" id="notesInput" spellcheck="false" placeholder="F-01 12.03.2026 Bulle
-alt 771
-E 2'571'230 / N 1'164'850
+      <textarea class="carnet-input" id="notesInput" spellcheck="false" placeholder="Identifiant  Date  Lieu
+alt [altitude en m]
+E [coord est] / N [coord nord]
 
-0-0.3 tv brune racines
-0.3-2.0 limon sabl brun jaune ferme
-2.0-4.5 gravier sabl gris beige dense
-nappe 4.2
+[prof. de]-[prof. a] [lithologie] [couleur] [etat] [details]
+[prof. de]-[prof. a] [lithologie] [couleur] [etat] [details]
+nappe [profondeur en m]
 
-ech. preleve a 3.5m"></textarea>
+[observations]"></textarea>
 
       <div class="btn-row">
         <button class="btn-structurer" id="btnStructurer" onclick="structurer()">
@@ -546,7 +578,7 @@ ech. preleve a 3.5m"></textarea>
   <p data-i18n="svp">Projet soutenu par le Student Venture Program de la HES-SO et de l'Universit&eacute; de Fribourg</p>
 </div>
 <footer>
-  <p>SYNOS &mdash; v6.0 &mdash; Mars 2026</p>
+  <p>SYNOS &mdash; v6.1 &mdash; Mars 2026</p>
 </footer>
 
 <script>
@@ -709,13 +741,13 @@ function drawPattern(x, y, w, h, pattern, color) {
   return s;
 }
 
-/* Inline SVG figure for table cell (small 40x40 block) */
+/* Inline SVG figure for table cell — fills entire cell */
 function buildInlineFigureSVG(litho, height) {
   const cfg = matchLithoConfig(litho);
-  const h = height || 40;
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="${h}" style="display:block;">`;
-  svg += `<rect width="40" height="${h}" fill="${cfg.color}" opacity="0.3"/>`;
-  svg += drawPattern(0, 0, 40, h, cfg.pattern, cfg.color);
+  const h = height || 48;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 ${h}" preserveAspectRatio="none" style="display:block;width:100%;height:100%;position:absolute;top:0;left:0;">`;
+  svg += `<rect width="48" height="${h}" fill="${cfg.color}" opacity="0.3"/>`;
+  svg += drawPattern(0, 0, 48, h, cfg.pattern, cfg.color);
   svg += `</svg>`;
   return svg;
 }
@@ -815,7 +847,7 @@ function updateBanner(data) {
 }
 
 /* ================================================================
-   COLUMN LABELS
+   COLUMN LABELS & ORDER
    ================================================================ */
 const COL_LABELS = {
   profondeur: 'Profondeur',
@@ -829,6 +861,23 @@ const COL_LABELS = {
   altitude: 'Altitude',
   uscs: 'USCS'
 };
+
+/* Reorder columns: figure FIRST, then profondeur, description, conditionals, uscs LAST */
+function reorderColumns(columns) {
+  const ordered = [];
+  if (columns.includes('figure')) ordered.push('figure');
+  if (columns.includes('profondeur')) ordered.push('profondeur');
+  if (columns.includes('description')) ordered.push('description');
+  const conditionals = ['couleur', 'consistance', 'humidite', 'granulometrie', 'inclusions', 'altitude'];
+  for (const c of conditionals) {
+    if (columns.includes(c)) ordered.push(c);
+  }
+  if (columns.includes('uscs')) ordered.push('uscs');
+  return ordered;
+}
+
+/* Non-editable fields */
+const NON_EDITABLE = new Set(['figure', 'profondeur']);
 
 /* ================================================================
    RENDER TABLEAU — ADAPTIVE COLUMNS
@@ -845,9 +894,9 @@ function renderTableau(data) {
 
   const m = data.meta || {};
   const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
-  const columns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
+  const rawColumns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
+  const columns = reorderColumns(rawColumns);
   const layers = data.layers;
-  const maxDepth = Math.max(...layers.filter(l => l.to != null).map(l => l.to));
   let html = '';
 
   /* Meta grid */
@@ -878,7 +927,7 @@ function renderTableau(data) {
   html += '<div class="output-wrap"><table class="final-table"><thead><tr>';
   for (const col of columns) {
     if (col === 'figure') {
-      html += '<th class="th-center" style="width:40px;">Figure</th>';
+      html += '<th class="th-center" style="width:48px;min-width:48px;">Fig.</th>';
     } else if (col === 'profondeur') {
       html += '<th class="th-center">Profondeur</th>';
     } else if (col === 'uscs') {
@@ -904,16 +953,18 @@ function renderTableau(data) {
     const nappeAlt = (showNappe !== null && m.altitude) ? (m.altitude - showNappe).toFixed(1) : null;
     const nappeLabel = showNappe !== null ? `Nappe : ${showNappe} m${nappeAlt ? ' (' + nappeAlt + ' m.s.m.)' : ''}` : '';
     const nappeBar = showNappe !== null ? `<div class="nappe-bar"><div class="nappe-bar-line"></div><div class="nappe-bar-label">${nappeLabel}</div></div>` : '';
+    const rowH = ep ? Math.max(42, Math.min(70, ep * 14)) : 48;
 
-    html += `<tr class="layer-row" data-idx="${i}">`;
+    html += `<tr class="layer-row" data-idx="${i}" style="height:${rowH}px;">`;
 
     for (const col of columns) {
       const editKey = `${i}-${col}`;
-      const editClass = editedCells[editKey] === 'manual' ? ' cell-edited-manual' : editedCells[editKey] === 'ai' ? ' cell-edited-ai' : '';
+      const isEdited = editedCells[editKey];
+      const editClass = isEdited === 'manual' ? ' cell-edited-manual' : isEdited === 'ai' ? ' cell-edited-ai' : '';
+      const canEdit = !NON_EDITABLE.has(col);
 
       if (col === 'figure') {
-        const rowH = ep ? Math.max(36, Math.min(60, ep * 12)) : 40;
-        html += `<td class="td-figure">${buildInlineFigureSVG(litho, rowH)}</td>`;
+        html += `<td class="fig-cell" style="height:${rowH}px;">${buildInlineFigureSVG(litho, rowH)}</td>`;
       } else if (col === 'profondeur') {
         html += `<td class="td-depth">${l.from.toFixed(1)} – ${l.to != null ? l.to.toFixed(1) : '—'} m<div class="depth-ep">${ep != null ? 'ep. ' + ep.toFixed(1) + ' m' : ''}</div></td>`;
       } else if (col === 'description') {
@@ -928,7 +979,7 @@ function renderTableau(data) {
         }
         html += `<td class="td-desc">${descContent}</td>`;
       } else if (col === 'uscs') {
-        html += `<td class="td-uscs${editClass}"><span class="uscs-badge ${uscsClass} cell-editable" data-idx="${i}" data-field="uscs">${escapeHtml(uscs)}</span></td>`;
+        html += `<td class="td-uscs"><span class="uscs-badge ${uscsClass} cell-editable${editClass}" data-idx="${i}" data-field="uscs">${escapeHtml(uscs)}</span></td>`;
       } else if (col === 'altitude') {
         const altTop = m.altitude ? (m.altitude - l.from).toFixed(1) : '—';
         const altBot = (m.altitude && l.to != null) ? (m.altitude - l.to).toFixed(1) : '—';
@@ -977,7 +1028,7 @@ function renderTableau(data) {
 }
 
 /* ================================================================
-   INLINE EDITING
+   INLINE EDITING — all data cells
    ================================================================ */
 function attachEditListeners() {
   document.querySelectorAll('.cell-editable').forEach(el => {
@@ -987,7 +1038,7 @@ function attachEditListeners() {
 
 function startCellEdit(e) {
   const el = e.currentTarget;
-  if (el.querySelector('.cell-edit-input')) return;
+  if (el.querySelector('.cell-edit-input') || el.querySelector('.cell-edit-input-uscs')) return;
   const idx = parseInt(el.dataset.idx);
   const field = el.dataset.field;
   if (isNaN(idx) || !field) return;
@@ -1000,10 +1051,11 @@ function startCellEdit(e) {
                        (layer[field] || '');
 
   const isUscs = field === 'uscs';
-  const input = document.createElement(isUscs ? 'input' : 'textarea');
-  input.className = 'cell-edit-input';
-  input.value = currentValue;
-  if (!isUscs) { input.rows = 2; input.style.minHeight = '36px'; }
+  const isDesc = field === 'description';
+  const input = document.createElement(isDesc ? 'textarea' : 'input');
+  input.className = isUscs ? 'cell-edit-input-uscs' : 'cell-edit-input';
+  input.value = currentValue === '—' ? '' : currentValue;
+  if (isDesc) { input.rows = 2; input.style.minHeight = '36px'; }
 
   const originalHTML = el.innerHTML;
   el.innerHTML = '';
@@ -1014,19 +1066,19 @@ function startCellEdit(e) {
   function commitEdit() {
     const newValue = input.value.trim();
     if (newValue !== currentValue && newValue !== '') {
-      layer[field] = newValue;
-      editedCells[`${idx}-${field}`] = 'manual';
-
-      // If lithologie changed via description, update figure
-      if (field === 'description') {
-        // Extract first part as lithologie
+      if (field === 'uscs') {
+        layer.uscs = newValue;
+      } else if (field === 'description') {
+        layer.description = newValue;
         const firstPart = newValue.split(',')[0].trim();
         if (firstPart && firstPart !== layer.lithologie) {
           layer.lithologie = firstPart;
         }
+      } else {
+        layer[field] = newValue;
       }
+      editedCells[`${idx}-${field}`] = 'manual';
     }
-    // Re-render the whole tableau to get consistent state
     renderTableau(lastStructuredData);
     renderLog(lastStructuredData);
     updateCorrectionsCount();
@@ -1035,6 +1087,7 @@ function startCellEdit(e) {
   input.addEventListener('blur', commitEdit);
   input.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); commitEdit(); }
+    if (ev.key === 'Tab') { ev.preventDefault(); commitEdit(); }
     if (ev.key === 'Escape') { el.innerHTML = originalHTML; attachEditListeners(); }
   });
 }
@@ -1087,7 +1140,6 @@ async function applyCorrection() {
           }
         }
       }
-      // Check meta changes
       if (result.meta && lastStructuredData.meta) {
         if (String(result.meta.nappe_m) !== String(lastStructuredData.meta.nappe_m)) {
           editedCells['meta-nappe'] = 'ai';
@@ -1117,7 +1169,7 @@ async function applyCorrection() {
 }
 
 /* ================================================================
-   RENDER LOG from structured JSON — IMPROVED
+   RENDER LOG — IMPROVED: aligned descriptions, altitude at boundaries, better nappe
    ================================================================ */
 function renderLog(data) {
   if (!data.layers || !data.layers.some(l => l.to != null)) {
@@ -1145,7 +1197,7 @@ function renderLog(data) {
   const logColW = 110;
   const patternColW = 110;
   const descColW = 280;
-  const altColW = hasAlt ? 55 : 0;
+  const altColW = hasAlt ? 65 : 0;
   const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
   const pxPerMeter = 40;
   const logH = maxDepth * pxPerMeter;
@@ -1178,15 +1230,28 @@ function renderLog(data) {
     svg += `<text x="${altX + altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
   }
 
-  // Depth scale (left) + Altitude scale (right if hasAlt)
+  // Depth scale ticks
   const meterStep = maxDepth <= 10 ? 1 : maxDepth <= 30 ? 2 : 5;
   for (let d = 0; d <= maxDepth; d += meterStep) {
     const y = marginTop + d * pxPerMeter;
     svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
     svg += `<text x="${marginLeft + scaleColW - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
-    if (hasAlt) {
-      svg += `<text x="${altX + altColW/2}" y="${y + 4}" text-anchor="middle" font-size="9" fill="#4a7a6a">${(m.altitude - d).toFixed(1)}</text>`;
-    }
+  }
+
+  // Altitude at layer BOUNDARIES (not at regular intervals)
+  if (hasAlt) {
+    // Top boundary (0.0)
+    const y0 = marginTop;
+    svg += `<text x="${altX + altColW/2}" y="${y0 + 4}" text-anchor="middle" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
+    // Each layer bottom boundary
+    const drawnDepths = new Set([0]);
+    layers.forEach(layer => {
+      if (!drawnDepths.has(layer.to)) {
+        const y = marginTop + layer.to * pxPerMeter;
+        svg += `<text x="${altX + altColW/2}" y="${y + 4}" text-anchor="middle" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
+        drawnDepths.add(layer.to);
+      }
+    });
   }
 
   // Outer border
@@ -1210,33 +1275,50 @@ function renderLog(data) {
       svg += `<line x1="${logX}" y1="${y}" x2="${patX + patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
     }
 
-    // Description — improved: litho bold, details below, USCS badge
-    const textY = y + h / 2;
+    // Description — centered vertically in layer band
+    const centerY = y + h / 2;
     const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
+    const depthInfo = `${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to - layer.from).toFixed(1)} m`;
 
-    if (h >= 40) {
-      svg += `<text x="${descX}" y="${textY - 4}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+    if (h >= 50) {
+      // 3 lines: litho bold, depth info, details
+      const lineCount = details ? 3 : 2;
+      const blockH = lineCount * 14;
+      const startY = centerY - blockH / 2 + 12;
+
+      svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      svg += `<text x="${descX}" y="${startY + 14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
       if (details) {
-        svg += `<text x="${descX}" y="${textY + 10}" font-size="9.5" fill="#5a6a7a">${escapeHtml(details)}</text>`;
+        svg += `<text x="${descX}" y="${startY + 26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
       }
-      svg += `<text x="${descX}" y="${textY + (details ? 22 : 10)}" font-size="8.5" fill="#8a9aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to - layer.from).toFixed(1)} m</text>`;
-      // USCS badge
+      // USCS badge right-aligned, vertically centered
+      const badgeX = descX + descColW - 38;
+      svg += `<rect x="${badgeX}" y="${centerY - 9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+      svg += `<text x="${badgeX + 17.5}" y="${centerY + 4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+    } else if (h >= 30) {
+      // 2 lines: litho + depth
+      svg += `<text x="${descX}" y="${centerY - 2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      svg += `<text x="${descX}" y="${centerY + 11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
       const badgeX = descX + descColW - 35;
-      svg += `<rect x="${badgeX}" y="${textY - 12}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-      svg += `<text x="${badgeX + 16}" y="${textY}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+      svg += `<rect x="${badgeX}" y="${centerY - 8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+      svg += `<text x="${badgeX + 16}" y="${centerY + 4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
     } else {
-      svg += `<text x="${descX}" y="${textY + 4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+      // Thin layer: just litho name
+      svg += `<text x="${descX}" y="${centerY + 4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
     }
   });
 
-  // Water level — improved with triangle
+  // Water level — improved with triangle and right-side annotation
   if (nappeDepth !== null && nappeDepth <= maxDepth) {
     const wy = marginTop + nappeDepth * pxPerMeter;
-    svg += `<line x1="${logX - 12}" y1="${wy}" x2="${patX + patternColW + 5}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    svg += `<polygon points="${logX - 14},${wy - 6} ${logX - 8},${wy - 6} ${logX - 11},${wy}" fill="#1a6aaf"/>`;
+    // Dashed line
+    svg += `<line x1="${logX}" y1="${wy}" x2="${patX + patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    // Triangle on left edge of log
+    svg += `<polygon points="${logX},${wy - 7} ${logX + 8},${wy - 7} ${logX + 4},${wy}" fill="#1a6aaf"/>`;
+    // Label to the right of the log
     let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
     if (hasAlt) nappeText += ` (${(m.altitude - nappeDepth).toFixed(1)} m.s.m.)`;
-    svg += `<text x="${logX - 16}" y="${wy - 8}" text-anchor="end" font-size="8.5" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
+    svg += `<text x="${descX}" y="${wy - 4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
   }
 
   // Legend
@@ -1279,7 +1361,8 @@ function buildExportHTML(format) {
   const m = data.meta || {};
   const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
   const layers = data.layers || [];
-  const columns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
+  const rawColumns = data.columns || ['profondeur', 'figure', 'description', 'uscs'];
+  const columns = reorderColumns(rawColumns);
   const obs = data.observations || [];
   const isExcel = format === 'xlsx';
 
