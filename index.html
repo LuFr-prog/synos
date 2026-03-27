@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SYNOS — Carnet de terrain intelligent</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332; }
@@ -525,8 +526,7 @@ nappe [profondeur]
       <canvas id="logCanvas" style="display:none;"></canvas>
       <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.</div>
       <div class="export-row" id="logExportBar" style="display:none;">
-        <button class="btn-secondary" onclick="exportLogPNG(1)">PNG</button>
-        <button class="btn-secondary" onclick="exportLogPNG(2)">PNG HD (x2)</button>
+        <button class="btn-secondary" onclick="exportLogPNG(2)">PNG</button>
         <button class="btn-secondary" onclick="exportLogSVG()">SVG</button>
       </div>
     </div>
@@ -1229,16 +1229,20 @@ function renderLog(data) {
     svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
   }
 
-  // Altitude at layer BOUNDARIES
+  // Altitude at layer BOUNDARIES — aligned to separation lines
   if (hasAlt) {
     const drawnDepths = new Set();
+    // Top boundary (depth 0)
     const y0 = marginTop;
-    svg += `<text x="${altX+altColW/2}" y="${y0+4}" text-anchor="middle" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
+    svg += `<line x1="${altX}" y1="${y0}" x2="${altX+5}" y2="${y0}" stroke="#999" stroke-width="0.5"/>`;
+    svg += `<text x="${altX+altColW-2}" y="${y0+4}" text-anchor="end" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
     drawnDepths.add(0);
+    // Each layer boundary
     layers.forEach(layer => {
       if (!drawnDepths.has(layer.to)) {
         const y = marginTop + layer.to * pxPerMeter;
-        svg += `<text x="${altX+altColW/2}" y="${y+4}" text-anchor="middle" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
+        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
+        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
         drawnDepths.add(layer.to);
       }
     });
@@ -1316,66 +1320,227 @@ function renderLog(data) {
 }
 
 /* ================================================================
-   EXPORT FUNCTIONS
+   EXPORT HELPERS
    ================================================================ */
-function buildExportHTML(format) {
-  if (!lastStructuredData) return '';
+function getExportColumns(data) {
+  // Order: figure, profondeur, epaisseur, description (normée only), [adaptive], uscs
+  // Exclude 'figure' from raw columns, we add it manually
+  const raw = reorderColumns(data.columns || ['profondeur','figure','description','uscs']);
+  const ordered = [];
+  ordered.push('figure');
+  ordered.push('profondeur');
+  ordered.push('epaisseur');
+  for (const c of raw) {
+    if (c === 'figure' || c === 'profondeur' || c === 'uscs') continue;
+    if (c === 'description') { ordered.push('description_normee'); continue; }
+    ordered.push(c);
+  }
+  ordered.push('uscs');
+  return ordered;
+}
+
+function getExportColLabel(col) {
+  const labels = {
+    'figure': 'Fig.', 'profondeur': 'Profondeur', 'epaisseur': 'Ép.',
+    'description_normee': 'Description normée (SN 670 009)',
+    'couleur': 'Couleur', 'consistance': 'Consistance', 'humidite': 'Humidité',
+    'granulometrie': 'Granulo.', 'inclusions': 'Inclusions', 'altitude': 'Altitude',
+    'uscs': 'USCS'
+  };
+  return labels[col] || col;
+}
+
+function getExportCellValue(layer, col, meta) {
+  switch (col) {
+    case 'figure': return '';
+    case 'profondeur': return layer.from.toFixed(1) + ' – ' + (layer.to != null ? layer.to.toFixed(1) : '—') + ' m';
+    case 'epaisseur': return layer.to != null ? (layer.to - layer.from).toFixed(1) + ' m' : '—';
+    case 'description_normee': return layer.description || '';
+    case 'uscs': return layer.uscs || '—';
+    case 'altitude': return meta.altitude ? (meta.altitude - layer.from).toFixed(1) : '—';
+    default: return layer[col] || '—';
+  }
+}
+
+function getLithoColorForExport(layer) {
+  const litho = layer.lithologie || (layer.description ? layer.description.split(',')[0].trim() : '');
+  const cfg = matchLithoConfig(litho);
+  return cfg.color;
+}
+
+/* ================================================================
+   EXPORT .xlsx — real xlsx via ExcelJS
+   ================================================================ */
+async function exportXLSX() {
+  if (!lastStructuredData) return;
+  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
+  try {
+    const data = lastStructuredData;
+    const m = data.meta || {};
+    const layers = data.layers || [];
+    const cols = getExportColumns(data);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Sondage');
+
+    // Meta header rows
+    const metaRows = [
+      ['Sondage :', m.id||'—', '', 'Date :', m.date||'—'],
+      ['Lieu :', m.lieu||'—', '', 'Alt. :', m.altitude ? m.altitude+' m.s.m.' : '—'],
+      ['Coord. MN95 :', m.coord_e ? 'E '+m.coord_e+' / N '+m.coord_n : '—', '', 'Nappe :', typeof m.nappe_m==='number' ? m.nappe_m+' m' : '—']
+    ];
+    metaRows.forEach((row, ri) => {
+      const r = ws.addRow(row);
+      r.getCell(1).font = { bold: true, color: { argb: 'FF1A3A5C' } };
+      r.getCell(4).font = { bold: true, color: { argb: 'FF1A3A5C' } };
+    });
+    ws.addRow([]);
+
+    // Header row
+    const headerLabels = cols.map(c => getExportColLabel(c));
+    const headerRow = ws.addRow(headerLabels);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 9 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A3A5C' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+    });
+
+    // Data rows
+    for (let i = 0; i < layers.length; i++) {
+      const l = layers[i];
+      const values = cols.map(c => getExportCellValue(l, c, m));
+      const row = ws.addRow(values);
+      const lithoColor = getLithoColorForExport(l).replace('#', '');
+      const bgColor = i % 2 === 0 ? 'FFFFFFFF' : 'FFF4F7FA';
+
+      row.eachCell((cell, colNumber) => {
+        const col = cols[colNumber - 1];
+        cell.font = { size: 9 };
+        cell.border = { top:{style:'thin',color:{argb:'FFC0D0E0'}}, bottom:{style:'thin',color:{argb:'FFC0D0E0'}}, left:{style:'thin',color:{argb:'FFC0D0E0'}}, right:{style:'thin',color:{argb:'FFC0D0E0'}} };
+        cell.alignment = { vertical: 'middle', wrapText: true };
+
+        if (col === 'figure') {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + lithoColor } };
+        } else if (col === 'profondeur' || col === 'epaisseur' || col === 'altitude') {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.font = { size: 9, bold: col === 'profondeur' };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        } else if (col === 'uscs') {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.font = { size: 9, bold: true, color: { argb: 'FF1A3A5C' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F0FE' } };
+        } else {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        }
+      });
+    }
+
+    // Column widths
+    cols.forEach((col, idx) => {
+      const w = col === 'figure' ? 4 : col === 'profondeur' ? 16 : col === 'epaisseur' ? 8 :
+                col === 'description_normee' ? 45 : col === 'uscs' ? 8 : col === 'altitude' ? 10 : 14;
+      ws.getColumn(idx + 1).width = w;
+    });
+
+    // Observations
+    if (data.observations && data.observations.length > 0) {
+      ws.addRow([]);
+      const obsRow = ws.addRow(['Observations :']);
+      obsRow.getCell(1).font = { bold: true };
+      for (const o of data.observations) { ws.addRow(['— ' + o]); }
+    }
+
+    // Footer
+    ws.addRow([]);
+    ws.addRow(['[Formaté avec SYNOS — Carnet de terrain intelligent]']);
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${m.id||'sondage'}_tableau.xlsx`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    console.error('XLSX export error:', err);
+    alert('Erreur lors de l\'export .xlsx : ' + err.message);
+  } finally {
+    setTimeout(() => { btn.textContent = 'Exporter .xlsx'; btn.disabled = false; }, 1200);
+  }
+}
+
+/* ================================================================
+   EXPORT .docx — landscape, no desc brute, fig color column
+   ================================================================ */
+function exportDOCX() {
+  if (!lastStructuredData) return;
+  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
   const data = lastStructuredData;
   const m = data.meta || {};
   const wl = typeof m.nappe_m === 'number' ? m.nappe_m : null;
   const layers = data.layers || [];
-  const columns = reorderColumns(data.columns || ['profondeur','figure','description','uscs']);
+  const cols = getExportColumns(data);
   const obs = data.observations || [];
-  const isExcel = format === 'xlsx';
-  const uscsColors = { soil:{bg:'#e8f0fe',fg:'#1a3a5c',bd:'#c0d4ea'}, rock:{bg:'#f0f0f0',fg:'#5a5a5a',bd:'#d0d0d0'}, organic:{bg:'#f0ece0',fg:'#5a4a20',bd:'#d4c8a0'}, end:{bg:'#f8f0f0',fg:'#7a3a3a',bd:'#e0c0c0'} };
-  let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:${isExcel?'excel':'word'}" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:10pt;color:#1a2332;margin:${isExcel?'0':'24px 32px'}}table{border-collapse:collapse;width:100%}th,td{border:1px solid #c0d0e0;padding:6px 10px}.meta-box{background:#f6f9fc;border:1px solid #e0e8f0;border-radius:8px;padding:14px 18px;margin-bottom:16px}.meta-box td{border:none;padding:3px 10px;font-size:10pt}.meta-label{font-weight:bold;color:#1a3a5c}.hdr{background:#1a3a5c;color:white;font-weight:bold;font-size:9pt;text-transform:uppercase;letter-spacing:0.5px;text-align:center;padding:8px 10px}.obs-section{margin-top:14px;font-size:9pt}.footer{margin-top:16px;font-size:7.5pt;color:#9aa0a8}</style></head><body>`;
+
+  // A4 landscape orientation via Word XML
+  let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+@page { size: 297mm 210mm; margin: 15mm 18mm; mso-page-orientation: landscape; }
+body { font-family: Calibri, sans-serif; font-size: 9pt; color: #1a2332; margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #c0d0e0; padding: 4px 6px; font-size: 9pt; }
+.meta-box { margin-bottom: 12px; }
+.meta-box td { border: none; padding: 2px 8px; font-size: 9pt; }
+.meta-label { font-weight: bold; color: #1a3a5c; }
+.hdr { background: #1a3a5c; color: white; font-weight: bold; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; padding: 5px 4px; }
+.fig-col { width: 22px; min-width: 22px; padding: 0; }
+.detail-col { width: 65px; font-size: 8pt; }
+.obs-section { margin-top: 10px; font-size: 8pt; }
+.footer { margin-top: 12px; font-size: 7pt; color: #9aa0a8; }
+</style></head><body>`;
+
   h += `<table class="meta-box"><tr><td class="meta-label">Sondage :</td><td>${m.id||'—'}</td><td class="meta-label">Date :</td><td>${m.date||'—'}</td></tr><tr><td class="meta-label">Lieu :</td><td>${m.lieu||'—'}</td><td class="meta-label">Alt. :</td><td>${m.altitude?m.altitude+' m.s.m.':'—'}</td></tr><tr><td class="meta-label">Coord. MN95 :</td><td>${m.coord_e?'E '+m.coord_e+' / N '+m.coord_n:'—'}</td><td class="meta-label">Nappe :</td><td>${wl!=null?wl+' m':'—'}</td></tr></table>`;
+
   h += '<table><thead><tr>';
-  const exportCols = columns.filter(c => c !== 'figure');
-  for (const col of exportCols) {
-    if (col === 'profondeur') h += '<th class="hdr">Prof. de</th><th class="hdr">Prof. a</th><th class="hdr">Ep.</th>';
-    else if (col === 'description') h += '<th class="hdr" style="text-align:left;">Description normee (SN 670 009)</th><th class="hdr" style="text-align:left;">Description brute</th>';
-    else h += `<th class="hdr">${COL_LABELS[col]||col}</th>`;
+  for (const col of cols) {
+    if (col === 'figure') h += '<th class="hdr fig-col">Fig.</th>';
+    else if (col === 'description_normee') h += '<th class="hdr" style="text-align:left;">Description normée (SN 670 009)</th>';
+    else h += `<th class="hdr${['couleur','consistance','humidite','granulometrie','inclusions'].includes(col)?' detail-col':''}">${getExportColLabel(col)}</th>`;
   }
   h += '</tr></thead><tbody>';
+
   for (let i = 0; i < layers.length; i++) {
-    const l = layers[i]; const bg = i%2===0?'#fff':'#f4f7fa'; const uscs = l.uscs||'—';
-    const uc = uscsColors[getUSCSClass(uscs)]||uscsColors.soil;
-    const ep = (l.to!=null)?(l.to-l.from):null;
+    const l = layers[i];
+    const bg = i % 2 === 0 ? '#fff' : '#f4f7fa';
+    const lithoColor = getLithoColorForExport(l);
+    const uscs = l.uscs || '—';
+    const uc = { soil:{bg:'#e8f0fe',fg:'#1a3a5c'}, rock:{bg:'#f0f0f0',fg:'#5a5a5a'}, organic:{bg:'#f0ece0',fg:'#5a4a20'}, end:{bg:'#f8f0f0',fg:'#7a3a3a'} }[getUSCSClass(uscs)] || {bg:'#e8f0fe',fg:'#1a3a5c'};
     h += `<tr style="background:${bg};">`;
-    for (const col of exportCols) {
-      if (col==='profondeur') { h+=`<td style="text-align:center;font-weight:600;">${l.from.toFixed(1)}</td><td style="text-align:center;font-weight:600;">${l.to!=null?l.to.toFixed(1):'—'}</td><td style="text-align:center;">${ep!=null?ep.toFixed(1)+' m':'—'}</td>`; }
-      else if (col==='description') { h+=`<td style="font-size:9pt;">${l.description||''}</td><td style="font-size:8pt;color:#7a8a9a;font-style:italic;">${l.raw||''}</td>`; }
-      else if (col==='uscs') { h+=`<td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:9pt;border:1px solid ${uc.bd};">${uscs}</td>`; }
-      else if (col==='altitude') { const at=m.altitude?(m.altitude-l.from).toFixed(1):'—'; h+=`<td style="text-align:center;">${at}</td>`; }
-      else { h+=`<td>${l[col]||'—'}</td>`; }
+    for (const col of cols) {
+      if (col === 'figure') {
+        h += `<td class="fig-col" style="background:${lithoColor};"></td>`;
+      } else if (col === 'uscs') {
+        h += `<td style="text-align:center;background:${uc.bg};color:${uc.fg};font-weight:700;font-size:8pt;">${uscs}</td>`;
+      } else if (col === 'profondeur' || col === 'epaisseur' || col === 'altitude') {
+        h += `<td style="text-align:center;${col==='profondeur'?'font-weight:600;':''}">${getExportCellValue(l, col, m)}</td>`;
+      } else {
+        h += `<td>${getExportCellValue(l, col, m)}</td>`;
+      }
     }
     h += '</tr>';
   }
   h += '</tbody></table>';
-  if (obs.length>0) { h+='<div class="obs-section"><b>Observations :</b><br>'; for (const o of obs) h+=`— ${o}<br>`; h+='</div>'; }
-  h += '<div class="footer">[Formate avec SYNOS — Carnet de terrain intelligent]</div></body></html>';
-  return h;
-}
+  if (obs.length > 0) { h += '<div class="obs-section"><b>Observations :</b><br>'; for (const o of obs) h += `— ${o}<br>`; h += '</div>'; }
+  h += '<div class="footer">[Formaté avec SYNOS — Carnet de terrain intelligent]</div></body></html>';
 
-function exportDOCX() {
-  if (!lastStructuredData) return;
-  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
-  const html = buildExportHTML('docx');
-  const blob = new Blob(['\ufeff'+html], {type:'application/msword;charset=utf-8'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `${lastStructuredData.meta?.id||'sondage'}_tableau.doc`; a.click();
+  const blob = new Blob(['\ufeff' + h], { type: 'application/msword;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${m.id||'sondage'}_tableau.doc`;
+  a.click();
+  URL.revokeObjectURL(a.href);
   setTimeout(() => { btn.textContent = 'Exporter .docx'; btn.disabled = false; }, 1500);
-}
-
-function exportXLSX() {
-  if (!lastStructuredData) return;
-  const btn = event.target; btn.textContent = 'Export...'; btn.disabled = true;
-  const html = buildExportHTML('xlsx');
-  const blob = new Blob(['\ufeff'+html], {type:'application/vnd.ms-excel;charset=utf-8'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `${lastStructuredData.meta?.id||'sondage'}_tableau.xls`; a.click();
-  setTimeout(() => { btn.textContent = 'Exporter .xlsx'; btn.disabled = false; }, 1500);
 }
 
 function exportPNG() {
@@ -1425,7 +1590,7 @@ function exportLogPNG(scale) {
     ctx.fillStyle = 'white'; ctx.fillRect(0,0,w,h);
     ctx.drawImage(img,0,0,w,h); URL.revokeObjectURL(url);
     const a = document.createElement('a');
-    a.download = `log_${lastStructuredData?.meta?.id||'log'}${scale>1?'_HD':''}.png`;
+    a.download = `log_${lastStructuredData?.meta?.id||'log'}.png`;
     a.href = canvas.toDataURL('image/png'); a.click();
   };
   img.src = url;
