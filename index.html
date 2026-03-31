@@ -592,26 +592,508 @@ nappe [profondeur]
 
 <script>
 /* ================================================================
-   LITHO COLORS
+   GEOTYPE CONFIG — 30 geotypes with colors and SVG patterns
    ================================================================ */
-const LITHO_COLORS = {
-  'terre végétale': '#5c3d1e', 'terre vegetale': '#5c3d1e', 'tv': '#5c3d1e', 'humus': '#3d2e10',
-  'remblai': '#7a6a50', 'limon sableux': '#c4a64a', 'limon argileux': '#a08840',
-  'limon': '#b89840', 'sable limoneux': '#d4b870', 'sable graveleux': '#c8b880',
-  'sable': '#d4c090', 'gravier sableux': '#c8bfa0', 'gravier limoneux': '#b0a880',
-  'gravier': '#b8b090', 'argile limoneuse': '#8a8a70', 'argile sableuse': '#8a8a70',
-  'argile': '#7a8070', 'moraine': '#9a9a90', 'tourbe': '#2a2010',
-  'éboulis': '#8a8a80', 'eboulis': '#8a8a80', 'molasse': '#7a9a80', 'roche': '#6a8a70',
-  'calcaire': '#9aaa98', 'gneiss': '#6a7a6a', 'granite': '#8a8a8a',
-  'grès': '#8a9a7a', 'gres': '#8a9a7a', 'schiste': '#5a6a5a',
+const GEOTYPE_CONFIG = {
+  'Tv': {
+    color: '#8B7355', label: 'Terre vegetale',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#8B7355"/>
+        <path d="M4,6 L6,10 L8,6" fill="none" stroke="#5a4a35" stroke-width="1"/>
+        <path d="M12,3 L14,7 L16,3" fill="none" stroke="#5a4a35" stroke-width="1"/>
+        <path d="M7,14 L9,18 L11,14" fill="none" stroke="#5a4a35" stroke-width="1"/>
+        <path d="M15,12 L17,16 L19,12" fill="none" stroke="#5a4a35" stroke-width="1"/>
+      </pattern>`;
+    }
+  },
+  'R': {
+    color: '#A89080', label: 'Remblai',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A89080"/>
+        <polygon points="2,4 5,4 4,1" fill="#706050" opacity="0.6"/>
+        <polygon points="12,7 16,8 13,5" fill="#706050" opacity="0.6"/>
+        <polygon points="6,14 10,15 7,12" fill="#706050" opacity="0.6"/>
+        <polygon points="15,16 18,18 17,14" fill="#706050" opacity="0.6"/>
+      </pattern>`;
+    }
+  },
+  'CE': {
+    color: '#C4B090', label: 'Colluvions/eluvions',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#C4B090"/>
+        <circle cx="3" cy="3" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <circle cx="10" cy="5" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <circle cx="17" cy="2" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <circle cx="6" cy="11" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <circle cx="14" cy="13" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <circle cx="2" cy="17" r="0.8" fill="#8a7a60" opacity="0.5"/>
+        <line x1="4" y1="8" x2="8" y2="8" stroke="#8a7a60" stroke-width="0.6" opacity="0.5"/>
+        <line x1="12" y1="16" x2="16" y2="16" stroke="#8a7a60" stroke-width="0.6" opacity="0.5"/>
+        <line x1="8" y1="19" x2="12" y2="19" stroke="#8a7a60" stroke-width="0.6" opacity="0.5"/>
+      </pattern>`;
+    }
+  },
+  'E': {
+    color: '#B8A890', label: 'Eboulis',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#B8A890"/>
+        <polygon points="2,5 8,3 10,8 4,9" fill="none" stroke="#706050" stroke-width="0.8"/>
+        <polygon points="12,12 18,10 19,16 13,17" fill="none" stroke="#706050" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'GT': {
+    color: '#B0A090', label: 'Terrain glisse',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#B0A090"/>
+        <path d="M0,5 Q5,3 10,5 Q15,7 20,5" fill="none" stroke="#807060" stroke-width="0.8"/>
+        <path d="M0,10 Q5,8 10,10 Q15,12 20,10" fill="none" stroke="#807060" stroke-width="0.8"/>
+        <path d="M0,15 Q5,13 10,15 Q15,17 20,15" fill="none" stroke="#807060" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'T': {
+    color: '#E8DCC0', label: 'Tuf calcaire',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#E8DCC0"/>
+        <circle cx="4" cy="4" r="1.5" fill="none" stroke="#B0A080" stroke-width="0.6"/>
+        <circle cx="14" cy="7" r="1.5" fill="none" stroke="#B0A080" stroke-width="0.6"/>
+        <circle cx="8" cy="14" r="1.5" fill="none" stroke="#B0A080" stroke-width="0.6"/>
+        <circle cx="17" cy="16" r="1.5" fill="none" stroke="#B0A080" stroke-width="0.6"/>
+        <line x1="1" y1="10" x2="5" y2="10" stroke="#B0A080" stroke-width="0.5"/>
+        <line x1="12" y1="18" x2="16" y2="18" stroke="#B0A080" stroke-width="0.5"/>
+      </pattern>`;
+    }
+  },
+  'APA': {
+    color: '#D4C8A8', label: 'Alluvions plaines act.',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#D4C8A8"/>
+        <circle cx="5" cy="6" r="2.2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="14" cy="5" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="10" cy="14" r="2.3" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="3" cy="15" r="0.7" fill="#9a8a70"/><circle cx="8" cy="3" r="0.7" fill="#9a8a70"/>
+        <circle cx="17" cy="11" r="0.7" fill="#9a8a70"/><circle cx="18" cy="17" r="0.7" fill="#9a8a70"/>
+        <circle cx="1" cy="9" r="0.7" fill="#9a8a70"/><circle cx="12" cy="19" r="0.7" fill="#9a8a70"/>
+      </pattern>`;
+    }
+  },
+  'APT': {
+    color: '#CCC0A0', label: 'Alluvions plaines terr.',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#CCC0A0"/>
+        <line x1="0" y1="1" x2="20" y2="1" stroke="#8a7a60" stroke-width="2"/>
+        <circle cx="5" cy="8" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="14" cy="9" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="10" cy="16" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="3" cy="14" r="0.7" fill="#9a8a70"/><circle cx="17" cy="14" r="0.7" fill="#9a8a70"/>
+        <circle cx="8" cy="5" r="0.7" fill="#9a8a70"/><circle cx="18" cy="18" r="0.7" fill="#9a8a70"/>
+      </pattern>`;
+    }
+  },
+  'ACA': {
+    color: '#D0C098', label: 'Alluvions cones act.',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#D0C098"/>
+        <circle cx="5" cy="5" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <polygon points="13,3 17,4 16,8 12,7" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="14" cy="15" r="2.2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <polygon points="2,13 6,12 5,16 1,16" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'ACT': {
+    color: '#C8B890', label: 'Alluvions cones terr.',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#C8B890"/>
+        <line x1="0" y1="1" x2="20" y2="1" stroke="#8a7a60" stroke-width="2"/>
+        <circle cx="5" cy="8" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <polygon points="13,6 17,7 16,11 12,10" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="14" cy="17" r="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <polygon points="2,14 6,13 5,17 1,17" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'LD': {
+    color: '#B8C8D0', label: 'Lacustre delta',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#B8C8D0"/>
+        <line x1="0" y1="5" x2="15" y2="20" stroke="#8098A8" stroke-width="0.6"/>
+        <line x1="5" y1="0" x2="20" y2="15" stroke="#8098A8" stroke-width="0.6"/>
+        <line x1="10" y1="0" x2="20" y2="5" stroke="#8098A8" stroke-width="0.6"/>
+        <line x1="0" y1="15" x2="10" y2="20" stroke="#8098A8" stroke-width="0.6"/>
+        <circle cx="8" cy="8" r="0.6" fill="#8098A8"/><circle cx="16" cy="12" r="0.6" fill="#8098A8"/>
+      </pattern>`;
+    }
+  },
+  'LF': {
+    color: '#A8B8C8', label: 'Lacustre de fond',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A8B8C8"/>
+        <line x1="1" y1="3" x2="19" y2="3" stroke="#7888A0" stroke-width="0.4"/>
+        <line x1="3" y1="6" x2="17" y2="6" stroke="#7888A0" stroke-width="0.4"/>
+        <line x1="1" y1="9" x2="19" y2="9" stroke="#7888A0" stroke-width="0.4"/>
+        <line x1="3" y1="12" x2="17" y2="12" stroke="#7888A0" stroke-width="0.4"/>
+        <line x1="1" y1="15" x2="19" y2="15" stroke="#7888A0" stroke-width="0.4"/>
+        <line x1="3" y1="18" x2="17" y2="18" stroke="#7888A0" stroke-width="0.4"/>
+      </pattern>`;
+    }
+  },
+  'CRL': {
+    color: '#E8E0D0', label: 'Craie lacustre',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#E8E0D0"/>
+        <circle cx="3" cy="4" r="0.5" fill="#B8B0A0"/><circle cx="10" cy="2" r="0.5" fill="#B8B0A0"/>
+        <circle cx="17" cy="5" r="0.5" fill="#B8B0A0"/><circle cx="6" cy="9" r="0.5" fill="#B8B0A0"/>
+        <circle cx="14" cy="11" r="0.5" fill="#B8B0A0"/><circle cx="2" cy="14" r="0.5" fill="#B8B0A0"/>
+        <circle cx="9" cy="16" r="0.5" fill="#B8B0A0"/><circle cx="17" cy="14" r="0.5" fill="#B8B0A0"/>
+        <circle cx="5" cy="19" r="0.5" fill="#B8B0A0"/><circle cx="13" cy="18" r="0.5" fill="#B8B0A0"/>
+      </pattern>`;
+    }
+  },
+  'P': {
+    color: '#6B5B4B', label: 'Depots palustres',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#6B5B4B"/>
+        <path d="M1,5 Q5,3 10,5 Q15,7 19,5" fill="none" stroke="#4a3a2a" stroke-width="0.8"/>
+        <path d="M1,10 Q5,8 10,10 Q15,12 19,10" fill="none" stroke="#4a3a2a" stroke-width="0.8"/>
+        <path d="M1,16 Q5,14 10,16 Q15,18 19,16" fill="none" stroke="#4a3a2a" stroke-width="0.8"/>
+        <path d="M4,13 L5,15 L6,13" fill="none" stroke="#4a3a2a" stroke-width="0.8"/>
+        <path d="M14,7 L15,9 L16,7" fill="none" stroke="#4a3a2a" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'MS': {
+    color: '#C0B8A8', label: 'Moraines superficielles',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#C0B8A8"/>
+        <polygon points="6,7 12,5 14,10 8,12" fill="none" stroke="#808070" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  },
+  'MFR': {
+    color: '#A8A098', label: 'Moraines frontales',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A8A098"/>
+        <polygon points="1,3 5,2 6,5 2,6" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <polygon points="9,1 14,2 13,6 8,5" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <polygon points="3,11 7,10 8,14 4,15" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <polygon points="13,12 18,11 19,16 14,16" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <circle cx="16" cy="5" r="1.2" fill="#686058" opacity="0.5"/>
+        <circle cx="7" cy="17" r="1.2" fill="#686058" opacity="0.5"/>
+        <circle cx="11" cy="9" r="1" fill="#686058" opacity="0.5"/>
+        <circle cx="17" cy="18" r="1" fill="#686058" opacity="0.5"/>
+      </pattern>`;
+    }
+  },
+  'MLAT': {
+    color: '#A8A098', label: 'Moraines laterales',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A8A098"/>
+        <polygon points="2,4 7,3 8,7 3,8" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <polygon points="12,11 17,10 18,15 13,15" fill="none" stroke="#686058" stroke-width="0.8"/>
+        <circle cx="15" cy="4" r="1.2" fill="#686058" opacity="0.5"/>
+        <circle cx="6" cy="15" r="1.2" fill="#686058" opacity="0.5"/>
+        <circle cx="10" cy="18" r="1" fill="#686058" opacity="0.5"/>
+      </pattern>`;
+    }
+  },
+  'MF': {
+    color: '#908880', label: 'Moraine de fond',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#908880"/>
+        <line x1="0" y1="5" x2="20" y2="5" stroke="#706860" stroke-width="0.5"/>
+        <line x1="0" y1="10" x2="20" y2="10" stroke="#706860" stroke-width="0.5"/>
+        <line x1="0" y1="15" x2="20" y2="15" stroke="#706860" stroke-width="0.5"/>
+        <polygon points="3,7 7,6 8,9 4,10" fill="#605850" opacity="0.7"/>
+        <polygon points="13,12 17,11 16,16 12,15" fill="#605850" opacity="0.7"/>
+      </pattern>`;
+    }
+  },
+  'MA': {
+    color: '#98908C', label: 'Moraines aquatiques',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#98908C"/>
+        <line x1="1" y1="3" x2="19" y2="3" stroke="#78706C" stroke-width="0.5"/>
+        <line x1="1" y1="6" x2="19" y2="6" stroke="#78706C" stroke-width="0.5"/>
+        <line x1="1" y1="9" x2="19" y2="9" stroke="#78706C" stroke-width="0.5"/>
+        <line x1="1" y1="12" x2="19" y2="12" stroke="#78706C" stroke-width="0.5"/>
+        <line x1="1" y1="15" x2="19" y2="15" stroke="#78706C" stroke-width="0.5"/>
+        <line x1="1" y1="18" x2="19" y2="18" stroke="#78706C" stroke-width="0.5"/>
+        <circle cx="10" cy="10" r="1.5" fill="none" stroke="#78706C" stroke-width="0.7"/>
+      </pattern>`;
+    }
+  },
+  'FG': {
+    color: '#C8C0A8', label: 'Fluvioglaciaire',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#C8C0A8"/>
+        <ellipse cx="5" cy="6" rx="2.5" ry="2" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <ellipse cx="15" cy="5" rx="2" ry="2.3" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <ellipse cx="10" cy="14" rx="2.5" ry="1.8" fill="none" stroke="#9a8a70" stroke-width="0.8"/>
+        <circle cx="3" cy="14" r="0.7" fill="#9a8a70"/><circle cx="8" cy="3" r="0.7" fill="#9a8a70"/>
+        <circle cx="18" cy="11" r="0.7" fill="#9a8a70"/><circle cx="17" cy="17" r="0.7" fill="#9a8a70"/>
+        <circle cx="1" cy="9" r="0.7" fill="#9a8a70"/><circle cx="12" cy="19" r="0.7" fill="#9a8a70"/>
+      </pattern>`;
+    }
+  },
+  'GL': {
+    color: '#A0A8B0', label: 'Glaciolacustre',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A0A8B0"/>
+        <line x1="1" y1="3" x2="19" y2="3" stroke="#788090" stroke-width="0.3"/>
+        <line x1="1" y1="6" x2="19" y2="6" stroke="#788090" stroke-width="0.6"/>
+        <line x1="1" y1="9" x2="19" y2="9" stroke="#788090" stroke-width="0.3"/>
+        <line x1="1" y1="12" x2="19" y2="12" stroke="#788090" stroke-width="0.6"/>
+        <line x1="1" y1="15" x2="19" y2="15" stroke="#788090" stroke-width="0.3"/>
+        <line x1="1" y1="18" x2="19" y2="18" stroke="#788090" stroke-width="0.6"/>
+        <circle cx="14" cy="8" r="1.5" fill="none" stroke="#788090" stroke-width="0.7"/>
+      </pattern>`;
+    }
+  },
+  'LO': {
+    color: '#D8D0B8', label: 'Loess',
+    pattern: (id) => {
+      let dots = '';
+      for (let y = 2; y < 20; y += 3) for (let x = 2; x < 20; x += 3) dots += `<circle cx="${x}" cy="${y}" r="0.5" fill="#A8A088"/>`;
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#D8D0B8"/>${dots}</pattern>`;
+    }
+  },
+  'GR': {
+    color: '#C8B890', label: 'Gres',
+    pattern: (id) => {
+      let dots = '';
+      for (let y = 2; y < 20; y += 4) for (let x = 2; x < 20; x += 4) dots += `<circle cx="${x}" cy="${y}" r="0.8" fill="#988860"/>`;
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#C8B890"/>${dots}<line x1="0" y1="7" x2="20" y2="7" stroke="#988860" stroke-width="0.3"/><line x1="0" y1="14" x2="20" y2="14" stroke="#988860" stroke-width="0.3"/></pattern>`;
+    }
+  },
+  'GRM': {
+    color: '#B8B098', label: 'Gres marneux',
+    pattern: (id) => {
+      let dots = '';
+      for (let y = 2; y < 20; y += 4) for (let x = 2; x < 20; x += 4) dots += `<circle cx="${x}" cy="${y}" r="0.8" fill="#908870"/>`;
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#B8B098"/>${dots}<line x1="0" y1="5" x2="20" y2="5" stroke="#908870" stroke-width="0.6"/><line x1="0" y1="10" x2="20" y2="10" stroke="#908870" stroke-width="0.6"/><line x1="0" y1="15" x2="20" y2="15" stroke="#908870" stroke-width="0.6"/></pattern>`;
+    }
+  },
+  'MGR': {
+    color: '#A0A098', label: 'Marnes greseuses',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A0A098"/>
+        <line x1="0" y1="4" x2="20" y2="4" stroke="#808078" stroke-width="0.5"/>
+        <line x1="0" y1="8" x2="20" y2="8" stroke="#808078" stroke-width="0.5"/>
+        <line x1="0" y1="12" x2="20" y2="12" stroke="#808078" stroke-width="0.5"/>
+        <line x1="0" y1="16" x2="20" y2="16" stroke="#808078" stroke-width="0.5"/>
+        <line x1="0" y1="20" x2="20" y2="20" stroke="#808078" stroke-width="0.5"/>
+        <circle cx="5" cy="6" r="0.7" fill="#808078"/><circle cx="15" cy="10" r="0.7" fill="#808078"/>
+        <circle cx="8" cy="14" r="0.7" fill="#808078"/><circle cx="17" cy="18" r="0.7" fill="#808078"/>
+      </pattern>`;
+    }
+  },
+  'M': {
+    color: '#989890', label: 'Marnes',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#989890"/>
+        <line x1="0" y1="3" x2="20" y2="3" stroke="#686860" stroke-width="0.5"/>
+        <line x1="0" y1="6" x2="20" y2="6" stroke="#686860" stroke-width="0.5"/>
+        <line x1="0" y1="9" x2="20" y2="9" stroke="#686860" stroke-width="0.5"/>
+        <line x1="0" y1="12" x2="20" y2="12" stroke="#686860" stroke-width="0.5"/>
+        <line x1="0" y1="15" x2="20" y2="15" stroke="#686860" stroke-width="0.5"/>
+        <line x1="0" y1="18" x2="20" y2="18" stroke="#686860" stroke-width="0.5"/>
+      </pattern>`;
+    }
+  },
+  'MC': {
+    color: '#90A8A0', label: 'Marnes-calcaires',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#90A8A0"/>
+        <rect x="1" y="1" width="8" height="3" fill="none" stroke="#708880" stroke-width="0.5"/>
+        <rect x="11" y="1" width="8" height="3" fill="none" stroke="#708880" stroke-width="0.5"/>
+        <rect x="5" y="5" width="8" height="3" fill="none" stroke="#708880" stroke-width="0.5"/>
+        <rect x="15" y="5" width="5" height="3" fill="none" stroke="#708880" stroke-width="0.5"/>
+        <line x1="0" y1="11" x2="20" y2="11" stroke="#708880" stroke-width="0.5"/>
+        <line x1="0" y1="14" x2="20" y2="14" stroke="#708880" stroke-width="0.5"/>
+        <line x1="0" y1="17" x2="20" y2="17" stroke="#708880" stroke-width="0.5"/>
+      </pattern>`;
+    }
+  },
+  'C': {
+    color: '#A8B8C8', label: 'Calcaires',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#A8B8C8"/>
+        <rect x="0" y="1" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="10" y="1" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="5" y="6" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="15" y="6" width="5" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="0" y="11" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="10" y="11" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="5" y="16" width="8" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+        <rect x="15" y="16" width="5" height="3" fill="none" stroke="#7888A0" stroke-width="0.5" rx="0.5"/>
+      </pattern>`;
+    }
+  },
+  'GN': {
+    color: '#B0A8A0', label: 'Gneiss',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#B0A8A0"/>
+        <path d="M0,4 Q5,3 10,5 Q15,4 20,5" fill="none" stroke="#807870" stroke-width="0.6"/>
+        <path d="M0,9 Q5,8 10,10 Q15,9 20,10" fill="none" stroke="#807870" stroke-width="0.6"/>
+        <path d="M0,14 Q5,13 10,15 Q15,14 20,15" fill="none" stroke="#807870" stroke-width="0.6"/>
+        <path d="M0,19 Q5,18 10,20 Q15,19 20,20" fill="none" stroke="#807870" stroke-width="0.6"/>
+      </pattern>`;
+    }
+  },
+  'GRA': {
+    color: '#C0B0A8', label: 'Granite',
+    pattern: (id) => {
+      return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="20" height="20">
+        <rect width="20" height="20" fill="#C0B0A8"/>
+        <line x1="3" y1="4" x2="7" y2="4" stroke="#908878" stroke-width="0.8"/>
+        <line x1="5" y1="2" x2="5" y2="6" stroke="#908878" stroke-width="0.8"/>
+        <line x1="13" y1="4" x2="17" y2="4" stroke="#908878" stroke-width="0.8"/>
+        <line x1="15" y1="2" x2="15" y2="6" stroke="#908878" stroke-width="0.8"/>
+        <line x1="3" y1="14" x2="7" y2="14" stroke="#908878" stroke-width="0.8"/>
+        <line x1="5" y1="12" x2="5" y2="16" stroke="#908878" stroke-width="0.8"/>
+        <line x1="13" y1="14" x2="17" y2="14" stroke="#908878" stroke-width="0.8"/>
+        <line x1="15" y1="12" x2="15" y2="16" stroke="#908878" stroke-width="0.8"/>
+      </pattern>`;
+    }
+  }
 };
 
-function getLithoColor(desc) {
-  const d = desc.toLowerCase();
-  for (const [key, color] of Object.entries(LITHO_COLORS)) {
-    if (d.includes(key)) return color;
-  }
-  return '#b0b8c0';
+/* ================================================================
+   ESTIMATE GEOTYPE from lithology name
+   ================================================================ */
+function estimateGeotype(lithologie) {
+  const l = (lithologie || '').toLowerCase().trim();
+  if (!l) return 'CE';
+
+  // Tv: Terre végétale
+  if (/terre\s*v[ée]g|humus|topsoil/i.test(l)) return 'Tv';
+
+  // R: Remblai
+  if (/remblai|rembla|fill|backfill/i.test(l)) return 'R';
+
+  // CE: Colluvions/Eluvions (default)
+  if (/colluvion|eluvion|d[ée]pôt\s*de\s*pente/i.test(l)) return 'CE';
+
+  // E: Éboulis
+  if (/[ée]boulis|scree|talus|rockfall/i.test(l)) return 'E';
+
+  // GT: Glissement de terrain
+  if (/gliss|landslide|movement/i.test(l)) return 'GT';
+
+  // T: Tuf calcaire
+  if (/tuf\s*calcaire|tufa/i.test(l)) return 'T';
+
+  // APA: Alluvions de plaines actuelles
+  if (/alluvion.*plaine.*actuelle|alluvion.*active.*plain/i.test(l)) return 'APA';
+
+  // APT: Alluvions de plaines terrassées
+  if (/alluvion.*plaine.*terr|alluvion.*terrace/i.test(l)) return 'APT';
+
+  // ACA: Alluvions de cônes actuels
+  if (/alluvion.*cônes?.*actuel|alluvion.*active.*cone|alluvion.*fan.*active/i.test(l)) return 'ACA';
+
+  // ACT: Alluvions de cônes terrassés
+  if (/alluvion.*cônes?.*terr|alluvion.*cone.*terrace/i.test(l)) return 'ACT';
+
+  // LD: Lacustre delta
+  if (/lacustre.*delta|delta|deltaic/i.test(l)) return 'LD';
+
+  // LF: Lacustre de fond
+  if (/lacustre.*fond|lacustre.*profond|lacustrine.*deep/i.test(l)) return 'LF';
+
+  // CRL: Craie lacustre
+  if (/craie\s*lacustre|chalk.*lacustrine/i.test(l)) return 'CRL';
+
+  // P: Dépôts palustres
+  if (/palustres?|peat\s*bog|marais|swamp|palustrine/i.test(l)) return 'P';
+
+  // MS: Moraines superficielles
+  if (/moraine.*superficielle|moraine.*surface/i.test(l)) return 'MS';
+
+  // MFR: Moraines frontales
+  if (/moraine.*frontal|moraine.*front|terminal.*moraine/i.test(l)) return 'MFR';
+
+  // MLAT: Moraines latérales
+  if (/moraine.*lat[ée]ral|moraine.*side/i.test(l)) return 'MLAT';
+
+  // MF: Moraine de fond
+  if (/moraine.*fond|moraine.*basal|basal.*moraine|till/i.test(l)) return 'MF';
+
+  // MA: Moraines aquatiques
+  if (/moraine.*aquatique|moraine.*water|glacial.*outwash/i.test(l)) return 'MA';
+
+  // FG: Fluvioglaciaire
+  if (/fluvioglacaire|fluvio.?glacaire|fluvial.*glacial|outwash/i.test(l)) return 'FG';
+
+  // GL: Glaciolacustre
+  if (/glaciolacustre|glacial.*lake|glaciolacustrine/i.test(l)) return 'GL';
+
+  // LO: Loess
+  if (/lo[eè]ss|loess/i.test(l)) return 'LO';
+
+  // GR: Grès
+  if (/gr[eè]s|sandstone|grit/i.test(l) && !/marneux/i.test(l)) return 'GR';
+
+  // GRM: Grès marneux
+  if (/gr[eè]s.*marneux|marneux.*gr[eè]s|marly.*sandstone/i.test(l)) return 'GRM';
+
+  // MGR: Marnes gréseuses
+  if (/marne.*gr[eè]seuse|gr[eè]seuse.*marne/i.test(l)) return 'MGR';
+
+  // M: Marnes
+  if (/marne|marl/i.test(l)) return 'M';
+
+  // MC: Marnes-calcaires
+  if (/marne.*calcaire|calcaire.*marne|marly.*limestone/i.test(l)) return 'MC';
+
+  // C: Calcaires
+  if (/calcaire|limestone|chalk/i.test(l)) return 'C';
+
+  // GN: Gneiss
+  if (/gneiss/i.test(l)) return 'GN';
+
+  // GRA: Granite
+  if (/granit|granite/i.test(l)) return 'GRA';
+
+  // Default fallback
+  return 'CE';
+}
+
+function getGeotypeForLayer(layer) {
+  if (layer.geotype && GEOTYPE_CONFIG[layer.geotype]) return layer.geotype;
+  return estimateGeotype(layer.lithologie || '');
+}
+
+function getGeotypeColor(geotype) {
+  return (GEOTYPE_CONFIG[geotype] || GEOTYPE_CONFIG['CE']).color;
 }
 
 function getUSCSClass(uscs) {
@@ -624,45 +1106,7 @@ function getUSCSClass(uscs) {
 function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ================================================================
-   LITHO CONFIG (for SVG log patterns)
-   ================================================================ */
-const lithoConfig = {
-  'Terre végétale':    { color: '#6B5B3A', pattern: 'topsoil',   uscs: 'OH' },
-  'Terre vegetale':    { color: '#6B5B3A', pattern: 'topsoil',   uscs: 'OH' },
-  'Remblai':           { color: '#8B6B4A', pattern: 'fill',      uscs: 'R' },
-  'Limon':             { color: '#C4A35A', pattern: 'silt',      uscs: 'ML' },
-  'Limon sableux':     { color: '#C8B070', pattern: 'silt',      uscs: 'ML' },
-  'Limon argileux':    { color: '#A0785A', pattern: 'clay',      uscs: 'CL/ML' },
-  'Argile':            { color: '#7B68AE', pattern: 'clay',      uscs: 'CL/CH' },
-  'Argile limoneuse':  { color: '#8878AE', pattern: 'clay',      uscs: 'CL' },
-  'Sable':             { color: '#E8D080', pattern: 'sand',      uscs: 'SW/SP' },
-  'Sable limoneux':    { color: '#D4C070', pattern: 'sand',      uscs: 'SM' },
-  'Sable graveleux':   { color: '#C8B860', pattern: 'sand',      uscs: 'SW' },
-  'Gravier':           { color: '#B0B0A0', pattern: 'gravel',    uscs: 'GW/GP' },
-  'Gravier sableux':   { color: '#A8A890', pattern: 'gravel',    uscs: 'GW/GP' },
-  'Gravier limoneux':  { color: '#9A9A80', pattern: 'gravel',    uscs: 'GM' },
-  'Moraine':           { color: '#8B8680', pattern: 'moraine',   uscs: 'GM/GC' },
-  'Moraine de fond':   { color: '#7A7670', pattern: 'moraine',   uscs: 'GM/GC' },
-  'Molasse gréseuse':  { color: '#8A9A60', pattern: 'sandstone', uscs: '—' },
-  'Molasse greseuse':  { color: '#8A9A60', pattern: 'sandstone', uscs: '—' },
-  'Molasse marneuse':  { color: '#7A8B6F', pattern: 'marlstone', uscs: '—' },
-  'Calcaire':          { color: '#C0C0B0', pattern: 'limestone', uscs: '—' },
-  'Éboulis':           { color: '#9A8A70', pattern: 'gravel',    uscs: 'GP/GM' },
-  'Eboulis':           { color: '#9A8A70', pattern: 'gravel',    uscs: 'GP/GM' },
-  'Tourbe':            { color: '#4A3A2A', pattern: 'topsoil',   uscs: 'Pt' },
-};
-
-function matchLithoConfig(litho) {
-  if (!litho) return { color: '#ccc', pattern: 'none', uscs: '—' };
-  if (lithoConfig[litho]) return lithoConfig[litho];
-  for (const [key, cfg] of Object.entries(lithoConfig)) {
-    if (litho.toLowerCase().includes(key.toLowerCase())) return cfg;
-  }
-  return { color: '#ccc', pattern: 'none', uscs: '—' };
-}
-
-/* ================================================================
-   ESTIMATE USCS from lithology name (Part 1.2)
+   ESTIMATE USCS from lithology name (for inline editing auto-update)
    ================================================================ */
 function estimateUSCS(litho) {
   const l = litho.toLowerCase().trim();
@@ -691,102 +1135,23 @@ function estimateUSCS(litho) {
   return '?';
 }
 
-/* ================================================================
-   DRAW PATTERN (SVG lithological patterns)
-   ================================================================ */
-function drawPattern(x, y, w, h, pattern, color) {
-  let s = '';
-  const step = 12;
-  switch (pattern) {
-    case 'topsoil':
-      for (let py = y + 8; py < y + h - 4; py += step) {
-        for (let px = x + 8; px < x + w - 4; px += 18) {
-          const ox = (Math.floor((py - y) / step) % 2) * 9;
-          s += `<line x1="${px + ox}" y1="${py}" x2="${px + ox - 3}" y2="${py - 5}" stroke="${color}" stroke-width="1.2"/>`;
-          s += `<line x1="${px + ox}" y1="${py}" x2="${px + ox + 3}" y2="${py - 4}" stroke="${color}" stroke-width="1.2"/>`;
-        }
-      }
-      break;
-    case 'fill':
-      for (let py = y + 8; py < y + h - 4; py += 14) {
-        for (let px = x + 6; px < x + w - 4; px += 16) {
-          const ox = (Math.floor((py - y) / 14) % 2) * 8;
-          s += `<polygon points="${px+ox},${py} ${px+ox+5},${py} ${px+ox+2.5},${py-6}" fill="none" stroke="${color}" stroke-width="1"/>`;
-        }
-      }
-      break;
-    case 'silt':
-      for (let py = y + 6; py < y + h - 2; py += 8) {
-        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.6" stroke-dasharray="8,5"/>`;
-      }
-      break;
-    case 'clay':
-      for (let py = y + 6; py < y + h - 2; py += 6) {
-        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.8"/>`;
-      }
-      break;
-    case 'sand':
-      for (let py = y + 6; py < y + h - 3; py += 8) {
-        for (let px = x + 5; px < x + w - 3; px += 7) {
-          const ox = (Math.floor((py - y) / 8) % 2) * 3.5;
-          s += `<circle cx="${px + ox}" cy="${py}" r="1.2" fill="${color}"/>`;
-        }
-      }
-      break;
-    case 'gravel':
-      for (let py = y + 8; py < y + h - 6; py += 14) {
-        for (let px = x + 6; px < x + w - 8; px += 18) {
-          const ox = (Math.floor((py - y) / 14) % 2) * 9;
-          const rx = 4 + Math.abs(((px * 7 + py * 3) % 5) - 2);
-          const ry = 3 + Math.abs(((px * 3 + py * 7) % 4) - 1.5);
-          s += `<ellipse cx="${px + ox + rx}" cy="${py}" rx="${rx}" ry="${ry}" fill="none" stroke="${color}" stroke-width="1"/>`;
-        }
-      }
-      break;
-    case 'moraine':
-      for (let py = y + 6; py < y + h - 2; py += 10) {
-        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.4" stroke-dasharray="4,8"/>`;
-      }
-      for (let py = y + 10; py < y + h - 6; py += 18) {
-        for (let px = x + 8; px < x + w - 10; px += 22) {
-          const ox = (Math.floor((py - y) / 18) % 2) * 11;
-          s += `<ellipse cx="${px + ox}" cy="${py}" rx="5" ry="3.5" fill="none" stroke="${color}" stroke-width="1.2"/>`;
-        }
-      }
-      break;
-    case 'sandstone':
-      for (let py = y + 6; py < y + h - 3; py += 10) {
-        for (let px = x + 5; px < x + w - 3; px += 7) {
-          const ox = (Math.floor((py - y) / 10) % 2) * 3.5;
-          s += `<circle cx="${px + ox}" cy="${py}" r="1" fill="${color}"/>`;
-        }
-        s += `<line x1="${x + 4}" y1="${py + 4}" x2="${x + w - 4}" y2="${py + 4}" stroke="${color}" stroke-width="0.4"/>`;
-      }
-      break;
-    case 'marlstone':
-      for (let py = y + 5; py < y + h - 2; py += 7) {
-        s += `<line x1="${x + 4}" y1="${py}" x2="${x + w - 4}" y2="${py}" stroke="${color}" stroke-width="0.7"/>`;
-      }
-      for (let py = y + 8; py < y + h - 6; py += 14) {
-        s += `<line x1="${x + 10}" y1="${py}" x2="${x + w - 10}" y2="${py}" stroke="${color}" stroke-width="0.4" stroke-dasharray="3,4"/>`;
-      }
-      break;
-    case 'limestone':
-      for (let py = y + 10; py < y + h - 4; py += 16) {
-        s += `<rect x="${x + 4}" y="${py}" width="${w - 8}" height="8" fill="none" stroke="${color}" stroke-width="0.8" rx="1"/>`;
-      }
-      break;
+function buildGeotypePatternDefs(usedGeotypes) {
+  let defs = '<defs>';
+  for (const gt of usedGeotypes) {
+    const cfg = GEOTYPE_CONFIG[gt];
+    if (cfg) defs += cfg.pattern('pat_' + gt);
   }
-  return s;
+  defs += '</defs>';
+  return defs;
 }
 
-/* Inline SVG figure for table cell */
-function buildInlineFigureSVG(litho, height) {
-  const cfg = matchLithoConfig(litho);
+function buildInlineFigureSVG(geotype, height) {
+  const cfg = GEOTYPE_CONFIG[geotype] || GEOTYPE_CONFIG['CE'];
   const h = height || 48;
+  const patId = 'fig_' + geotype + '_' + h;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 ${h}" preserveAspectRatio="none" style="display:block;width:100%;height:100%;position:absolute;top:0;left:0;">`;
-  svg += `<rect width="48" height="${h}" fill="${cfg.color}" opacity="0.3"/>`;
-  svg += drawPattern(0, 0, 48, h, cfg.pattern, cfg.color);
+  svg += `<defs>${cfg.pattern(patId)}</defs>`;
+  svg += `<rect width="48" height="${h}" fill="url(#${patId})"/>`;
   svg += `</svg>`;
   return svg;
 }
@@ -963,7 +1328,7 @@ function renderTableau(data) {
   for (let i = 0; i < layers.length; i++) {
     const l = layers[i];
     const ep = (l.to != null) ? (l.to - l.from) : null;
-    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
+    const geotype = getGeotypeForLayer(l);
     const uscs = l.uscs || '—';
     const uscsClass = getUSCSClass(uscs);
     const isVerify = l.status === 'verify';
@@ -981,7 +1346,7 @@ function renderTableau(data) {
       const canEdit = !NON_EDITABLE.has(col);
 
       if (col === 'figure') {
-        html += `<td class="fig-cell" style="height:${rowH}px;">${buildInlineFigureSVG(litho, rowH)}</td>`;
+        html += `<td class="fig-cell" style="height:${rowH}px;">${buildInlineFigureSVG(geotype, rowH)}</td>`;
       } else if (col === 'profondeur') {
         html += `<td class="td-depth">${l.from.toFixed(1)} – ${l.to!=null?l.to.toFixed(1):'—'} m<div class="depth-ep">${ep!=null?'ep. '+ep.toFixed(1)+' m':''}</div></td>`;
       } else if (col === 'description') {
@@ -1014,7 +1379,8 @@ function renderTableau(data) {
   for (const l of layers) {
     if (l.to == null) continue;
     const lit = l.lithologie || (l.description ? l.description.split(',')[0].trim() : '');
-    const c = getLithoColor(l.description || l.raw || '');
+    const geotype = getGeotypeForLayer(l);
+    const c = getGeotypeColor(geotype);
     html += `<div class="summary-item"><div class="summary-dot" style="background:${c};"></div><span>${escapeHtml(lit)}</span></div>`;
   }
   if (wl !== null) html += `<div class="summary-item" style="margin-left:auto;color:#1a4a7a;font-weight:600;">Nappe : ${wl} m</div>`;
@@ -1186,8 +1552,8 @@ function renderLog(data) {
   const hasAlt = typeof m.altitude === 'number';
   const layers = data.layers.filter(l => l.to != null).map(l => {
     const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
-    const cfg = matchLithoConfig(litho);
-    return { from: l.from, to: l.to, litho, cfg, description: l.description || '', uscs: l.uscs || '—', couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
+    const geotype = getGeotypeForLayer(l);
+    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs: l.uscs || '—', couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
   });
 
   const maxDepth = Math.max(...layers.map(l => l.to));
@@ -1200,8 +1566,8 @@ function renderLog(data) {
   const pxPerMeter = 40;
   const logH = maxDepth * pxPerMeter;
 
-  const usedLithos = [...new Set(layers.map(l => l.litho))];
-  const legendRows = Math.ceil(usedLithos.length / 4);
+  const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
+  const legendRows = Math.ceil(usedGeotypes.length / 4);
   const legendH = legendRows * 28 + 20;
   const totalH = marginTop + logH + marginBottom + legendH;
 
@@ -1212,6 +1578,7 @@ function renderLog(data) {
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;">`;
   svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
+  svg += buildGeotypePatternDefs(usedGeotypes);
   svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id||'—')}</text>`;
   svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
 
@@ -1254,9 +1621,9 @@ function renderLog(data) {
   layers.forEach((layer, i) => {
     const y = marginTop + layer.from * pxPerMeter;
     const h = (layer.to - layer.from) * pxPerMeter;
-    const cfg = layer.cfg;
-    svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${cfg.color}" opacity="0.35"/>`;
-    svg += drawPattern(patX, y, patternColW, h, cfg.pattern, cfg.color);
+    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
+    svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${gtCfg.color}" opacity="0.35"/>`;
+    svg += `<rect x="${patX}" y="${y}" width="${patternColW}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
     if (i > 0) svg += `<line x1="${logX}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
 
     const centerY = y + h / 2;
@@ -1295,18 +1662,17 @@ function renderLog(data) {
 
   const legendY = marginTop + logH + marginBottom - 5;
   svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
-  svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des lithologies</text>`;
+  svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des geotypes</text>`;
   const legendStartY = legendY + 28;
   const colW = Math.floor((totalW - 40) / 4);
-  usedLithos.forEach((litho, idx) => {
-    const cfg = matchLithoConfig(litho);
+  usedGeotypes.forEach((geotype, idx) => {
+    const gtCfg = GEOTYPE_CONFIG[geotype];
     const col = idx % 4;
     const row = Math.floor(idx / 4);
     const lx = 20 + col * colW;
     const ly = legendStartY + row * 28;
-    svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="${cfg.color}" opacity="0.35" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
-    svg += drawPattern(lx, ly, 20, 16, cfg.pattern, cfg.color);
-    svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${escapeHtml(litho)}</text>`;
+    svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="url(#pat_${geotype})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
+    svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${geotype} – ${gtCfg.label}</text>`;
   });
   svg += '</svg>';
 
@@ -1363,9 +1729,8 @@ function getExportCellValue(layer, col, meta) {
 }
 
 function getLithoColorForExport(layer) {
-  const litho = layer.lithologie || (layer.description ? layer.description.split(',')[0].trim() : '');
-  const cfg = matchLithoConfig(litho);
-  return cfg.color;
+  const geotype = getGeotypeForLayer(layer);
+  return getGeotypeColor(geotype);
 }
 
 /* ================================================================
