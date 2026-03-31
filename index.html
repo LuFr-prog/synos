@@ -1105,6 +1105,18 @@ function getUSCSClass(uscs) {
 
 function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+/* Rock detection — USCS does not apply to rocks */
+function isRock(lithologie) {
+  const l = (lithologie || '').toLowerCase();
+  return /molasse|gr[eè]s|marne|calcaire|gneiss|granite|gypse|siltite|marno|dolomie|cornieule|quartzite|schiste|roche/i.test(l);
+}
+
+function displayUSCS(layer) {
+  const uscs = layer.uscs || '—';
+  if (isRock(layer.lithologie) && uscs !== '—') return '—';
+  return uscs;
+}
+
 /* ================================================================
    ESTIMATE USCS from lithology name (for inline editing auto-update)
    ================================================================ */
@@ -1329,7 +1341,7 @@ function renderTableau(data) {
     const l = layers[i];
     const ep = (l.to != null) ? (l.to - l.from) : null;
     const geotype = getGeotypeForLayer(l);
-    const uscs = l.uscs || '—';
+    const uscs = displayUSCS(l);
     const uscsClass = getUSCSClass(uscs);
     const isVerify = l.status === 'verify';
     const showNappe = (i === nappeLayerIdx) ? wl : null;
@@ -1553,23 +1565,32 @@ function renderLog(data) {
   const layers = data.layers.filter(l => l.to != null).map(l => {
     const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
     const geotype = getGeotypeForLayer(l);
-    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs: l.uscs || '—', couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
+    const uscs = displayUSCS(l);
+    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs, couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
   });
 
   const maxDepth = Math.max(...layers.map(l => l.to));
+  const startDepth = layers[0].from;
+  const totalDepth = maxDepth - startDepth;
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
+
+  // Bug 2: Adaptive scale — minimum 60px per layer, 40px/m default
+  const MIN_LAYER_HEIGHT = 60;
+  const minTotalHeight = layers.length * MIN_LAYER_HEIGHT;
+  const depthBasedHeight = totalDepth * 40;
+  const logH = Math.max(minTotalHeight, depthBasedHeight);
+  const scale = logH / totalDepth; // pixels per meter
 
   const marginTop = 65, marginBottom = 50, marginLeft = 70;
   const scaleColW = 35, logColW = 110, patternColW = 110, descColW = 280;
   const altColW = hasAlt ? 65 : 0;
   const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
-  const pxPerMeter = 40;
-  const logH = maxDepth * pxPerMeter;
 
   const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
   const legendRows = Math.ceil(usedGeotypes.length / 4);
   const legendH = legendRows * 28 + 20;
-  const totalH = marginTop + logH + marginBottom + legendH;
+  const scaleInfoH = 24;
+  const totalH = marginTop + logH + marginBottom + scaleInfoH + legendH;
 
   const logX = marginLeft + scaleColW;
   const patX = logX + logColW;
@@ -1589,25 +1610,24 @@ function renderLog(data) {
   svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
   if (hasAlt) svg += `<text x="${altX+altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
 
-  const meterStep = maxDepth <= 10 ? 1 : maxDepth <= 30 ? 2 : 5;
+  // Depth scale ticks
+  const meterStep = totalDepth <= 10 ? 1 : totalDepth <= 30 ? 2 : totalDepth <= 80 ? 5 : 10;
   for (let d = 0; d <= maxDepth; d += meterStep) {
-    const y = marginTop + d * pxPerMeter;
+    const y = marginTop + d * scale;
     svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
     svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
   }
 
-  // Altitude at layer BOUNDARIES — aligned to separation lines
+  // Altitude at layer BOUNDARIES
   if (hasAlt) {
     const drawnDepths = new Set();
-    // Top boundary (depth 0)
     const y0 = marginTop;
     svg += `<line x1="${altX}" y1="${y0}" x2="${altX+5}" y2="${y0}" stroke="#999" stroke-width="0.5"/>`;
     svg += `<text x="${altX+altColW-2}" y="${y0+4}" text-anchor="end" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
     drawnDepths.add(0);
-    // Each layer boundary
     layers.forEach(layer => {
       if (!drawnDepths.has(layer.to)) {
-        const y = marginTop + layer.to * pxPerMeter;
+        const y = marginTop + layer.to * scale;
         svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
         svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
         drawnDepths.add(layer.to);
@@ -1615,20 +1635,46 @@ function renderLog(data) {
     });
   }
 
+  // === LAYER 1: Colored backgrounds + patterns ===
   svg += `<rect x="${logX}" y="${marginTop}" width="${logColW+patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
   svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop+logH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
 
   layers.forEach((layer, i) => {
-    const y = marginTop + layer.from * pxPerMeter;
-    const h = (layer.to - layer.from) * pxPerMeter;
+    const y = marginTop + layer.from * scale;
+    const h = (layer.to - layer.from) * scale;
     const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
     svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${gtCfg.color}" opacity="0.35"/>`;
     svg += `<rect x="${patX}" y="${y}" width="${patternColW}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
     if (i > 0) svg += `<line x1="${logX}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+  });
 
-    const centerY = y + h / 2;
+  // === LAYER 2: Nappe line + annotation (with white background) ===
+  if (nappeDepth !== null && nappeDepth <= maxDepth) {
+    const wy = marginTop + nappeDepth * scale;
+    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
+    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
+    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
+    const textW = nappeText.length * 5.5 + 6;
+    svg += `<rect x="${descX-2}" y="${wy-14}" width="${textW}" height="14" fill="white" opacity="0.85" rx="2"/>`;
+    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
+  }
+
+  // === LAYER 3: Separation lines (already drawn above with patterns) ===
+
+  // === LAYER 4: Descriptions + USCS badges ===
+  layers.forEach((layer, i) => {
+    const y = marginTop + layer.from * scale;
+    const h = (layer.to - layer.from) * scale;
+
+    // Check if nappe is in this layer and would overlap
+    const nappeInLayer = nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to;
+    const descYOffset = nappeInLayer ? 10 : 0;
+
+    const centerY = y + h / 2 + descYOffset;
     const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
     const depthInfo = `${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to-layer.from).toFixed(1)} m`;
+    const uscs = layer.uscs;
 
     if (h >= 50) {
       const lineCount = details ? 3 : 2;
@@ -1637,30 +1683,31 @@ function renderLog(data) {
       svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
       svg += `<text x="${descX}" y="${startY+14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
       if (details) svg += `<text x="${descX}" y="${startY+26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
-      const badgeX = descX + descColW - 38;
-      svg += `<rect x="${badgeX}" y="${centerY-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-      svg += `<text x="${badgeX+17.5}" y="${centerY+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+      if (uscs !== '—') {
+        const badgeX = descX + descColW - 38;
+        svg += `<rect x="${badgeX}" y="${centerY-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+        svg += `<text x="${badgeX+17.5}" y="${centerY+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
+      }
     } else if (h >= 30) {
       svg += `<text x="${descX}" y="${centerY-2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
       svg += `<text x="${descX}" y="${centerY+11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
-      const badgeX = descX + descColW - 35;
-      svg += `<rect x="${badgeX}" y="${centerY-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-      svg += `<text x="${badgeX+16}" y="${centerY+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+      if (uscs !== '—') {
+        const badgeX = descX + descColW - 35;
+        svg += `<rect x="${badgeX}" y="${centerY-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+        svg += `<text x="${badgeX+16}" y="${centerY+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
+      }
     } else {
       svg += `<text x="${descX}" y="${centerY+4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
     }
   });
 
-  if (nappeDepth !== null && nappeDepth <= maxDepth) {
-    const wy = marginTop + nappeDepth * pxPerMeter;
-    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
-    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
-    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
-    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
-  }
+  // Scale indication
+  const scaleY = marginTop + logH + 16;
+  const scaleRatio = Math.round(1000 / scale);
+  svg += `<text x="${marginLeft}" y="${scaleY}" font-size="8" fill="#8a9aaa">Echelle : 1:${scaleRatio}</text>`;
 
-  const legendY = marginTop + logH + marginBottom - 5;
+  // Legend
+  const legendY = marginTop + logH + marginBottom + scaleInfoH - 5;
   svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
   svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des geotypes</text>`;
   const legendStartY = legendY + 28;
