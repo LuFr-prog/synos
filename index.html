@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SYNOS — Carnet de terrain intelligent</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332; }
@@ -431,6 +433,104 @@ footer {
   border-top: 1px solid #e8eef4; margin-top: 8px;
 }
 
+/* ====== BUREAU PROFILE ====== */
+.bureau-page { max-width: 800px; margin: 20px auto; padding: 20px; display: none; }
+.bureau-page.visible { display: block; }
+.bureau-page h2 { color: #1a3a5c; font-size: 20px; margin-bottom: 16px; }
+.bureau-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.bureau-field { display: flex; flex-direction: column; gap: 4px; }
+.bureau-field.full { grid-column: 1 / -1; }
+.bureau-field label { font-size: 11px; font-weight: 600; color: #4a5a6a; text-transform: uppercase; letter-spacing: 0.5px; }
+.bureau-field input, .bureau-field textarea { padding: 8px 10px; border: 1.5px solid #c0d0e0; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.bureau-field input:focus, .bureau-field textarea:focus { outline: none; border-color: #2d6a9f; }
+.bureau-specs { display: flex; flex-wrap: wrap; gap: 8px; }
+.bureau-specs label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #3a5a7a; cursor: pointer; }
+.bureau-logo-preview { width: 80px; height: 80px; border: 1.5px dashed #c0d0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+.bureau-logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.bureau-logo-preview.empty { font-size: 24px; color: #c0d0e0; }
+.bureau-header-preview { border: 1px solid #e0e8f0; border-radius: 8px; padding: 12px; margin-top: 16px; background: white; }
+.bureau-actions { display: flex; gap: 8px; margin-top: 16px; grid-column: 1 / -1; }
+
+/* ====== A4 FICHE ====== */
+.fiche-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.fiche-page {
+  width: 794px;
+  min-height: 1122px;
+  background: white;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  padding: 38px;
+  position: relative;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 10px;
+  color: #1a2332;
+  overflow: hidden;
+}
+
+/* Zone A - Header Bureau */
+.fiche-zone-a { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1.5px solid #1a3a5c; padding: 10px 12px; margin-bottom: 0; }
+.fiche-bureau-left { display: flex; align-items: center; gap: 12px; }
+.fiche-bureau-logo { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.fiche-bureau-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.fiche-bureau-name { font-size: 16px; font-weight: 800; color: #1a3a5c; }
+.fiche-bureau-code { font-size: 10px; color: #6a8aaa; margin-top: 2px; }
+.fiche-bureau-right { text-align: right; font-size: 9px; line-height: 1.6; }
+.fiche-bureau-specs { color: #c0392b; font-weight: 700; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+.fiche-bureau-contact { color: #4a5a6a; margin-top: 4px; }
+
+/* Zone B - Identification */
+.fiche-zone-b { border: 1.5px solid #1a3a5c; border-top: none; padding: 8px 12px; }
+.fiche-title { font-size: 14px; font-weight: 800; color: #1a3a5c; text-transform: uppercase; margin-bottom: 4px; }
+.fiche-subtitle { font-size: 11px; color: #4a5a6a; margin-bottom: 6px; }
+.fiche-id-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 10px; }
+.fiche-id-row { display: flex; align-items: baseline; gap: 6px; }
+.fiche-id-label { font-weight: 700; color: #1a3a5c; min-width: 100px; white-space: nowrap; }
+.fiche-id-colon { color: #1a3a5c; font-weight: 700; }
+
+/* Zone C - Technical metadata */
+.fiche-zone-c { border: 1.5px solid #1a3a5c; border-top: none; padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 10px; }
+.fiche-meta-row { display: flex; align-items: baseline; gap: 6px; }
+.fiche-meta-label { font-weight: 700; color: #1a3a5c; min-width: 90px; white-space: nowrap; }
+
+/* Zone D - Column headers */
+.fiche-zone-d { display: flex; border: 1.5px solid #1a3a5c; border-top: none; font-size: 8px; font-weight: 700; text-transform: uppercase; color: #1a3a5c; }
+.fiche-col-header { padding: 4px 3px; text-align: center; border-right: 0.5px solid #c0d0e0; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
+.fiche-col-header:last-child { border-right: none; }
+
+/* Zone E - Log */
+.fiche-zone-e { border: 1.5px solid #1a3a5c; border-top: none; min-height: 500px; position: relative; overflow: hidden; }
+
+/* Zone F - Footer */
+.fiche-zone-f { border: 1.5px solid #1a3a5c; border-top: none; padding: 4px 12px; display: flex; justify-content: space-between; font-size: 9px; color: #4a5a6a; }
+
+/* Editable fields */
+.fiche-editable {
+  display: inline-block; min-width: 60px; padding: 1px 4px; border-bottom: 1px dotted #c0d0e0;
+  cursor: text; color: #1a2332; font-weight: 400;
+  transition: background 0.15s;
+}
+.fiche-editable:hover { background: #f0f6ff; }
+.fiche-editable:focus { outline: none; background: #e8f0fe; border-bottom-color: #2d6a9f; border-bottom-style: solid; }
+.fiche-editable:empty::before { content: attr(data-placeholder); color: #c0d0e0; font-style: normal; }
+.fiche-editable.source-ai { border-bottom-color: #2d6a9f; }
+.fiche-editable.source-bureau { border-bottom-color: #a0b0c0; }
+.fiche-editable.source-manual { border-bottom-color: #d4a017; }
+.fiche-editable[data-placeholder]:empty { min-width: 80px; }
+
+/* Sondage type dropdown */
+.fiche-type-select { border: none; background: none; font-size: 11px; color: #4a5a6a; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+.fiche-type-select:focus { outline: 1px solid #2d6a9f; border-radius: 3px; }
+
+/* Export dropdown */
+.export-dropdown { position: relative; display: inline-block; }
+.export-dropdown-btn { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #c0d0e0; background: white; color: #1a3a5c; display: flex; align-items: center; gap: 6px; }
+.export-dropdown-btn:hover { background: #e8f0fe; }
+.export-dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: white; border: 1.5px solid #c0d0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; min-width: 180px; margin-top: 4px; }
+.export-dropdown-menu.open { display: block; }
+.export-dropdown-item { padding: 8px 14px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #3a5a7a; }
+.export-dropdown-item:hover { background: #f0f4f8; }
+.export-dropdown-item:first-child { border-radius: 6px 6px 0 0; }
+.export-dropdown-item:last-child { border-radius: 0 0 6px 6px; }
+
 @media (max-width: 960px) {
   .state-active .workspace { grid-template-columns: 1fr; }
 }
@@ -445,6 +545,7 @@ footer {
       <h1>SYNOS</h1>
       <p data-i18n="subtitle">Carnet de terrain intelligent</p>
     </div>
+    <button class="lang-btn" onclick="showBureauPage()" title="Bureau settings" style="margin-right: 12px;">⚙️</button>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('fr')">FR</button>
       <button class="lang-btn" onclick="setLang('de')">DE</button>
@@ -498,6 +599,7 @@ nappe [profondeur]
     <div class="tab-bar" id="outputTabs">
       <button class="tab-btn active" onclick="switchOutputTab('tableau')">Tableau</button>
       <button class="tab-btn" onclick="switchOutputTab('log')">Log</button>
+      <button class="tab-btn" onclick="switchOutputTab('fiche')">Fiche</button>
     </div>
 
     <!-- TAB: TABLEAU -->
@@ -543,8 +645,83 @@ nappe [profondeur]
         <button class="btn-secondary" onclick="exportLogSVG()">SVG</button>
       </div>
     </div>
+
+    <!-- TAB: FICHE -->
+    <div class="tab-content" id="outputFiche">
+      <div class="fiche-container" id="ficheContainer"></div>
+      <div class="export-row" id="ficheExportBar" style="display:none; margin-top: 16px;">
+        <div class="export-dropdown">
+          <button class="export-dropdown-btn" onclick="toggleExportDropdown()">
+            Exporter <span style="font-size: 10px;">▼</span>
+          </button>
+          <div class="export-dropdown-menu" id="exportDropdownMenu">
+            <div class="export-dropdown-item" onclick="exportFichePDF(); toggleExportDropdown();">PDF A4</div>
+            <div class="export-dropdown-item" onclick="exportFichePNG(); toggleExportDropdown();">PNG</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+</div>
+
+<!-- ====== BUREAU PROFILE PAGE ====== -->
+<div class="bureau-page" id="bureauPage">
+  <div class="carnet-wrap">
+    <button onclick="hideBureauPage()" style="float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: #8a9aaa;">×</button>
+    <h2>Paramètres du Bureau</h2>
+
+    <form class="bureau-form" onsubmit="return false;">
+      <div class="bureau-field">
+        <label>Logo du bureau</label>
+        <div class="bureau-logo-preview empty" id="bureauLogoPreview" onclick="document.getElementById('bureauLogoInput').click()">📷</div>
+        <input type="file" id="bureauLogoInput" accept="image/*" onchange="handleLogoUpload(event)" style="display:none;">
+      </div>
+
+      <div class="bureau-field">
+        <label>Nom du bureau</label>
+        <input type="text" id="bureauName" placeholder="Ex: ABA-GEOL SA">
+      </div>
+
+      <div class="bureau-field">
+        <label>Code cadastral</label>
+        <input type="text" id="bureauCode" placeholder="Ex: BE-123456">
+      </div>
+
+      <div class="bureau-field full">
+        <label>Spécialités</label>
+        <div class="bureau-specs">
+          <label><input type="checkbox" id="spec-hydro"> Hydrogéologie</label>
+          <label><input type="checkbox" id="spec-enviro"> Environnement</label>
+          <label><input type="checkbox" id="spec-geo"> Géotechnique</label>
+          <label><input type="checkbox" id="spec-hydra"> Hydraulique</label>
+        </div>
+      </div>
+
+      <div class="bureau-field">
+        <label>Adresse</label>
+        <input type="text" id="bureauAddress" placeholder="Rue, numéro">
+      </div>
+
+      <div class="bureau-field">
+        <label>Téléphone</label>
+        <input type="text" id="bureauPhone" placeholder="+41...">
+      </div>
+
+      <div class="bureau-field full">
+        <label>E-mail</label>
+        <input type="email" id="bureauEmail" placeholder="contact@bureau.ch">
+      </div>
+
+      <div class="bureau-actions">
+        <button class="btn-structurer" style="flex: 1;" onclick="saveBureauProfile()">Enregistrer</button>
+      </div>
+    </form>
+
+    <div class="bureau-header-preview" id="bureauPreview">
+      <p style="color: #9ab0c8; font-style: italic;">L'aperçu des paramètres s'affichera ici.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ====== CONVERTER (collapsible) ====== -->
@@ -1259,8 +1436,9 @@ async function structurer() {
     transitionToActive();
     renderTableau(result);
     renderLog(result);
+    renderFiche(result);
     updateBanner(result);
-    switchOutputTab('tableau');
+    switchOutputTab('fiche');
 
     statusEl.className = 'status-msg success';
     statusEl.textContent = `Structuration terminee — ${result.layers ? result.layers.length : 0} couche(s).`;
@@ -1559,6 +1737,7 @@ async function applyCorrection() {
     lastStructuredData = result;
     renderTableau(result);
     renderLog(result);
+    renderFiche(result);
     updateBanner(result);
 
     input.value = '';
@@ -2297,19 +2476,6 @@ ech. intact preleve a 5.0m et 10.0m`;
 /* ================================================================
    TAB SWITCHING
    ================================================================ */
-function switchOutputTab(tab) {
-  document.querySelectorAll('#outputTabs .tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('outputTableau').classList.remove('active');
-  document.getElementById('outputLog').classList.remove('active');
-  if (tab === 'log') {
-    document.querySelector('#outputTabs .tab-btn:nth-child(2)').classList.add('active');
-    document.getElementById('outputLog').classList.add('active');
-  } else {
-    document.querySelector('#outputTabs .tab-btn:nth-child(1)').classList.add('active');
-    document.getElementById('outputTableau').classList.add('active');
-  }
-}
-
 /* ================================================================
    CONVERTER MN03/MN95
    ================================================================ */
@@ -2401,6 +2567,339 @@ function setLang(lang) {
     const key = el.getAttribute('data-i18n');
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) el.textContent = TRANSLATIONS[lang][key];
   });
+}
+
+/* ================================================================
+   BUREAU PROFILE & FICHE SYSTEM
+   ================================================================ */
+
+function loadBureauProfile() {
+  const stored = localStorage.getItem('bureauProfile');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function saveBureauProfile() {
+  const profile = {
+    name: document.getElementById('bureauName').value || '',
+    code: document.getElementById('bureauCode').value || '',
+    address: document.getElementById('bureauAddress').value || '',
+    phone: document.getElementById('bureauPhone').value || '',
+    email: document.getElementById('bureauEmail').value || '',
+    logo: document.getElementById('bureauLogoPreview').innerHTML.includes('img') ?
+      document.getElementById('bureauLogoPreview').querySelector('img').src : '',
+    specs: {
+      hydro: document.getElementById('spec-hydro').checked,
+      enviro: document.getElementById('spec-enviro').checked,
+      geo: document.getElementById('spec-geo').checked,
+      hydra: document.getElementById('spec-hydra').checked
+    }
+  };
+  localStorage.setItem('bureauProfile', JSON.stringify(profile));
+  renderBureauPreview(profile);
+  alert('Paramètres enregistrés avec succès');
+}
+
+function showBureauPage() {
+  document.getElementById('bureauPage').classList.add('visible');
+  const profile = loadBureauProfile();
+  document.getElementById('bureauName').value = profile.name || '';
+  document.getElementById('bureauCode').value = profile.code || '';
+  document.getElementById('bureauAddress').value = profile.address || '';
+  document.getElementById('bureauPhone').value = profile.phone || '';
+  document.getElementById('bureauEmail').value = profile.email || '';
+  if (profile.specs) {
+    document.getElementById('spec-hydro').checked = profile.specs.hydro || false;
+    document.getElementById('spec-enviro').checked = profile.specs.enviro || false;
+    document.getElementById('spec-geo').checked = profile.specs.geo || false;
+    document.getElementById('spec-hydra').checked = profile.specs.hydra || false;
+  }
+  if (profile.logo) {
+    document.getElementById('bureauLogoPreview').innerHTML = `<img src="${profile.logo}" alt="Logo">`;
+    document.getElementById('bureauLogoPreview').classList.remove('empty');
+  } else {
+    document.getElementById('bureauLogoPreview').innerHTML = '📷';
+    document.getElementById('bureauLogoPreview').classList.add('empty');
+  }
+  renderBureauPreview(profile);
+}
+
+function hideBureauPage() {
+  document.getElementById('bureauPage').classList.remove('visible');
+}
+
+function handleLogoUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const logoPreview = document.getElementById('bureauLogoPreview');
+      logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+      logoPreview.classList.remove('empty');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderBureauPreview(profile) {
+  let specsText = [];
+  if (profile.specs) {
+    if (profile.specs.hydro) specsText.push('Hydrogéologie');
+    if (profile.specs.enviro) specsText.push('Environnement');
+    if (profile.specs.geo) specsText.push('Géotechnique');
+    if (profile.specs.hydra) specsText.push('Hydraulique');
+  }
+
+  let html = '<div style="display: grid; grid-template-columns: 80px 1fr; gap: 12px;">';
+  if (profile.logo) {
+    html += `<div style="width: 80px; height: 60px;"><img src="${profile.logo}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
+  }
+  html += '<div>';
+  html += `<div style="font-weight: 800; font-size: 16px; color: #1a3a5c;">${escapeHtml(profile.name || '—')}</div>`;
+  if (profile.code) html += `<div style="font-size: 10px; color: #6a8aaa;">Code: ${escapeHtml(profile.code)}</div>`;
+  if (specsText.length > 0) html += `<div style="color: #c0392b; font-weight: 700; font-size: 9px; letter-spacing: 1px;">${specsText.join(', ').toUpperCase()}</div>`;
+  if (profile.phone) html += `<div style="font-size: 9px; color: #4a5a6a;">☎ ${escapeHtml(profile.phone)}</div>`;
+  if (profile.email) html += `<div style="font-size: 9px; color: #4a5a6a;">✉ ${escapeHtml(profile.email)}</div>`;
+  html += '</div></div>';
+  document.getElementById('bureauPreview').innerHTML = html;
+}
+
+function formatSwissCoord(value) {
+  if (!value) return '';
+  const s = Math.round(parseFloat(value)).toString();
+  let r = '';
+  for (let i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) r += "'";
+    r += s[i];
+  }
+  return r;
+}
+
+function renderFiche(data) {
+  const bureau = loadBureauProfile();
+  const m = data.meta || {};
+  let html = '<div class="fiche-page">';
+
+  /* Zone A - Header Bureau */
+  html += '<div class="fiche-zone-a">';
+  html += '<div class="fiche-bureau-left">';
+  if (bureau.logo) {
+    html += `<div class="fiche-bureau-logo"><img src="${bureau.logo}" alt="Logo"></div>`;
+  }
+  html += `<div>
+    <div class="fiche-bureau-name">${escapeHtml(bureau.name || 'Bureau')}</div>
+    <div class="fiche-bureau-code">${escapeHtml(bureau.code || '')}</div>
+  </div>`;
+  html += '</div>';
+  html += '<div class="fiche-bureau-right">';
+  if (bureau.specs && (bureau.specs.hydro || bureau.specs.enviro || bureau.specs.geo || bureau.specs.hydra)) {
+    let specs = [];
+    if (bureau.specs.hydro) specs.push('HYDROGÉO');
+    if (bureau.specs.enviro) specs.push('ENV.');
+    if (bureau.specs.geo) specs.push('GÉOTECH');
+    if (bureau.specs.hydra) specs.push('HYDRAUL');
+    html += `<div class="fiche-bureau-specs">${specs.join(' • ')}</div>`;
+  }
+  html += '<div class="fiche-bureau-contact">';
+  if (bureau.phone) html += escapeHtml(bureau.phone) + '<br>';
+  if (bureau.email) html += escapeHtml(bureau.email);
+  html += '</div></div>';
+  html += '</div>';
+
+  /* Zone B - Identification */
+  html += '<div class="fiche-zone-b">';
+  html += `<div class="fiche-title">Sondage <select class="fiche-type-select" id="ficheType" onchange="updateFichePreview()">
+    <option value="pressiomètre">Pressiomètre</option>
+    <option value="carottage">Carottage</option>
+    <option value="pénétromètre">Pénétromètre</option>
+    <option value="forage">Forage</option>
+  </select></div>`;
+  html += `<div class="fiche-subtitle">
+    <strong>Client:</strong> <span class="fiche-editable" id="ficheClient" contenteditable data-placeholder="[client]">${escapeHtml(m.client || '')}</span><br>
+    <strong>Sondage:</strong> <span class="fiche-editable" id="ficheSondageID" contenteditable data-placeholder="[ID]">${escapeHtml(m.id || '')}</span>
+  </div>`;
+  html += '<div class="fiche-id-grid">';
+  html += `<div class="fiche-id-row"><span class="fiche-id-label">Commune</span><span class="fiche-id-colon">:</span> <span class="fiche-editable" id="ficheCommune" contenteditable data-placeholder="[commune]">${escapeHtml(m.lieu || '')}</span></div>`;
+  html += `<div class="fiche-id-row"><span class="fiche-id-label">Coordonnées</span><span class="fiche-id-colon">:</span> <span class="fiche-editable" id="ficheCoord" contenteditable data-placeholder="[coord]">${escapeHtml(m.coordE && m.coordN ? formatSwissCoord(m.coordE) + ' / ' + formatSwissCoord(m.coordN) : '')}</span></div>`;
+  html += '</div>';
+  html += '</div>';
+
+  /* Zone C - Technical metadata */
+  html += '<div class="fiche-zone-c">';
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Géologue</span> <span class="fiche-editable" id="ficheGeologue" contenteditable data-placeholder="[nom]">${escapeHtml(m.geologist || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Dessiné par</span> <span class="fiche-editable" id="ficheDessinePar" contenteditable data-placeholder="[nom]">${escapeHtml(m.drawnBy || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Contrôlé par</span> <span class="fiche-editable" id="ficheControlePar" contenteditable data-placeholder="[nom]">${escapeHtml(m.checkedBy || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Date</span> <span class="fiche-editable" id="ficheDate" contenteditable data-placeholder="[JJ/MM/AAAA]">${escapeHtml(m.date || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Entrée forage</span> <span class="fiche-editable" id="ficheEntree" contenteditable data-placeholder="[m]">${escapeHtml(m.entreeForage || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Diamètre</span> <span class="fiche-editable" id="ficheDiametre" contenteditable data-placeholder="[mm]">${escapeHtml(m.diametre || '')}</span></div>`;
+  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Niv. eau stab.</span> <span class="fiche-editable" id="ficheNiveauEau" contenteditable data-placeholder="[m]">${escapeHtml(m.niveauEau !== undefined ? m.niveauEau : (m.nappe_m !== undefined ? m.nappe_m : ''))}</span></div>`;
+  html += '</div>';
+
+  /* Zone D - Column headers */
+  html += '<div class="fiche-zone-d">';
+  html += '<div class="fiche-col-header" style="flex: 0.8;">Prof.<br>(m)</div>';
+  html += '<div class="fiche-col-header" style="flex: 0.8;">Alt.<br>(m.s.m)</div>';
+  html += '<div class="fiche-col-header" style="flex: 1;">Profil<br>géol.</div>';
+  html += '<div class="fiche-col-header" style="flex: 2.5;">Description<br>lithologique</div>';
+  html += '<div class="fiche-col-header" style="flex: 1;">Géotype</div>';
+  html += '<div class="fiche-col-header" style="flex: 1;">Venues<br>d\'eau</div>';
+  html += '</div>';
+
+  /* Zone E - Log */
+  html += '<div class="fiche-zone-e" id="ficheLogArea"></div>';
+
+  /* Zone F - Footer */
+  html += '<div class="fiche-zone-f">';
+  html += '<div>HORS-SOL</div>';
+  html += `<div>Compilé le ${new Date().toLocaleDateString('fr-CH')}</div>`;
+  html += '</div>';
+
+  html += '</div>';
+
+  document.getElementById('ficheContainer').innerHTML = html;
+  document.getElementById('ficheExportBar').style.display = 'flex';
+
+  renderFicheLog(data, 500, 0);
+}
+
+function renderFicheLog(data, logAreaHeight, pageIdx) {
+  if (!data || !data.layers || data.layers.length === 0) {
+    document.getElementById('ficheLogArea').innerHTML = '<div style="padding: 20px; text-align: center; color: #9ab0c8;">Pas de données de forage</div>';
+    return;
+  }
+
+  let html = '<svg width="100%" height="' + logAreaHeight + '" style="border: 0.5px solid #e0e8f0;">';
+  html += '<defs>';
+  html += Object.entries(GEOTYPES).map(([key, gt]) => {
+    if (gt.pattern && gt.patternDef) {
+      return gt.patternDef();
+    }
+    return '';
+  }).join('');
+  html += '</defs>';
+
+  let y = 20;
+  const colWidth = 100 / 6;
+  const m = data.meta || {};
+  const totalDepth = data.layers.length > 0 ? Math.max(...data.layers.map(l => l.to || 0)) : 30;
+
+  for (const layer of data.layers) {
+    const depth = (layer.to - layer.from) || 1;
+    const h = Math.max(15, (depth / totalDepth) * (logAreaHeight - 40));
+
+    html += `<rect x="0" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
+    html += `<text x="2" y="${y + h/2}" font-size="7" fill="#4a5a6a">${layer.from}</text>`;
+
+    html += `<rect x="${colWidth * 0.8}%" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
+    html += `<text x="${colWidth * 0.8 + 2}%" y="${y + h/2}" font-size="7" fill="#4a5a6a">${m.altitude ? (m.altitude - layer.from).toFixed(1) : '—'}</text>`;
+
+    const gt = GEOTYPES[layer.uscs] || {};
+    const fillColor = gt.color || '#e0e8f0';
+    const pattern = gt.pattern ? `url(#${gt.pattern})` : fillColor;
+
+    html += `<rect x="${colWidth * 1.6}%" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="${pattern}" stroke="#c0d0e0" stroke-width="0.5"/>`;
+
+    html += `<text x="${colWidth * 2.5}%" y="${y + 6}" font-size="6" fill="#1a2332">${escapeHtml((layer.description || '').substring(0, 25))}</text>`;
+
+    html += `<rect x="${colWidth * 3.5}%" y="${y}" width="${colWidth * 1.5}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
+    html += `<text x="${colWidth * 3.7}%" y="${y + h/2}" font-size="7" text-anchor="middle" fill="#4a5a6a">${escapeHtml((layer.uscs || '').substring(0, 10))}</text>`;
+
+    if (m.nappe_m != null && m.nappe_m >= layer.from && m.nappe_m <= layer.to) {
+      html += `<circle cx="${colWidth * 4.5}%" cy="${y + h/2}" r="3" fill="#2d6a9f" opacity="0.7"/>`;
+    }
+
+    y += h;
+  }
+
+  html += '</svg>';
+  document.getElementById('ficheLogArea').innerHTML = html;
+}
+
+function toggleExportDropdown() {
+  const menu = document.getElementById('exportDropdownMenu');
+  menu.classList.toggle('open');
+  document.addEventListener('click', function closeDropdown(e) {
+    if (!e.target.closest('.export-dropdown')) {
+      menu.classList.remove('open');
+      document.removeEventListener('click', closeDropdown);
+    }
+  });
+}
+
+function exportFichePDF() {
+  const element = document.querySelector('.fiche-page');
+  if (!element) {
+    alert('Aucune fiche à exporter');
+    return;
+  }
+
+  html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+    const sondageID = document.getElementById('ficheSondageID')?.textContent || 'fiche';
+    pdf.save(`${sondageID}_fiche.pdf`);
+  }).catch(err => {
+    console.error('PDF export error:', err);
+    alert('Erreur lors de l\'export PDF');
+  });
+}
+
+function exportFichePNG() {
+  const element = document.querySelector('.fiche-page');
+  if (!element) {
+    alert('Aucune fiche à exporter');
+    return;
+  }
+
+  html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    const sondageID = document.getElementById('ficheSondageID')?.textContent || 'fiche';
+    link.download = `${sondageID}_fiche.png`;
+    link.click();
+  }).catch(err => {
+    console.error('PNG export error:', err);
+    alert('Erreur lors de l\'export PNG');
+  });
+}
+
+function updateFichePreview() {
+  const ficheType = document.getElementById('ficheType')?.value || 'Forage';
+  document.querySelector('.fiche-title').textContent = `Sondage ${ficheType}`;
+}
+
+function switchOutputTab(tab) {
+  document.querySelectorAll('#outputTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('outputTableau').classList.remove('active');
+  document.getElementById('outputLog').classList.remove('active');
+  document.getElementById('outputFiche').classList.remove('active');
+
+  if (tab === 'log') {
+    document.querySelector('#outputTabs .tab-btn:nth-child(2)').classList.add('active');
+    document.getElementById('outputLog').classList.add('active');
+  } else if (tab === 'fiche') {
+    document.querySelector('#outputTabs .tab-btn:nth-child(3)').classList.add('active');
+    document.getElementById('outputFiche').classList.add('active');
+  } else {
+    document.querySelector('#outputTabs .tab-btn:nth-child(1)').classList.add('active');
+    document.getElementById('outputTableau').classList.add('active');
+  }
 }
 
 /* Init */
