@@ -63,6 +63,24 @@ Pour les ROCHES (molasse, grès, marne, calcaire, gneiss, granite, gypse, siltit
 Ne JAMAIS attribuer un code USCS à une roche. Même si la roche est altérée ou tendre.
 Exception : si le géologue décrit explicitement un sol meuble dérivé d'une roche (ex: "arène granitique", "molasse altérée complètement décomposée en limon"), alors un code USCS peut être attribué avec status "verify".
 
+EXTRACTION DES MÉTADONNÉES :
+En plus des couches, extrais les métadonnées si elles apparaissent dans les notes :
+- id : identifiant du forage (F-01, S-23, T1P1, etc.)
+- commune : nom de la commune ou ville
+- altitude : altitude en m
+- coord_e, coord_n : coordonnées suisses si mentionnées
+- drilling_method : méthode de forage (tarière, carotté, rotary, pénétromètre, etc.) ou null
+- drilling_diameter : diamètre en mm ou null
+- date : date du forage au format jj.mm.aaaa ou null
+- client : nom du client ou mandant ou null
+- geologist : nom du géologue si mentionné ou null
+- drilling_company : entreprise de forage si mentionnée ou null
+- water_level : niveau piézo stabilisé en m si mentionné (distinct de nappe_m) ou null
+- water_level_date : date de la mesure piézo ou null
+- nappe_m : profondeur de la nappe en m si mentionnée
+
+Ne remplis que les champs présents dans les notes. N'invente rien.
+
 FORMAT DE SORTIE (JSON strict, rien d'autre) :
 {
   "meta": {
@@ -72,7 +90,15 @@ FORMAT DE SORTIE (JSON strict, rien d'autre) :
     "altitude": number ou null,
     "coord_e": "string ou null",
     "coord_n": "string ou null",
-    "nappe_m": number ou null
+    "nappe_m": number ou null,
+    "commune": "string ou null",
+    "client": "string ou null",
+    "geologist": "string ou null",
+    "drilling_method": "string ou null",
+    "drilling_diameter": number ou null,
+    "drilling_company": "string ou null",
+    "water_level": number ou null,
+    "water_level_date": "string ou null"
   },
   "columns": ["profondeur", "figure", "description", ...colonnes conditionnelles détectées],
   "layers": [
