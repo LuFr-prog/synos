@@ -50,6 +50,12 @@ Codes terrains rocheux (les plus courants) :
 
 Règle d'attribution : le géotype dépend du contexte génétique (origine du dépôt), pas seulement de la granulométrie. Un gravier peut être APA (fluviatile), FG (fluvioglaciaire) ou ACA (torrentiel). En cas de doute, utiliser le contexte régional mentionné dans les notes (ex: "Rhône" → APA, "fluvioglac" → FG, "moraine" → MF) et mettre geotype_status: "verify".
 
+RÈGLE USCS ET ROCHES :
+Le système USCS ne s'applique QU'AUX SOLS MEUBLES (terre végétale, limon, sable, gravier, argile, moraine, alluvions, dépôts lacustres, tourbe, loess, remblai meuble).
+Pour les ROCHES (molasse, grès, marne, calcaire, gneiss, granite, gypse, siltite, marnogrès, calcaire argileux, dolomie, cornieule, quartzite, schiste), le champ "uscs" doit être "—" (tiret long).
+Ne JAMAIS attribuer un code USCS à une roche. Même si la roche est altérée ou tendre.
+Exception : si le géologue décrit explicitement un sol meuble dérivé d'une roche (ex: "arène granitique", "molasse altérée complètement décomposée en limon"), alors un code USCS peut être attribué avec status "verify".
+
 FORMAT DE SORTIE (JSON strict, rien d'autre) :
 {
   "meta": {
