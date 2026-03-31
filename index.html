@@ -2769,56 +2769,124 @@ function renderFiche(data) {
 }
 
 function renderFicheLog(data, logAreaHeight, pageIdx) {
+  const el = document.getElementById('ficheLogArea');
   if (!data || !data.layers || data.layers.length === 0) {
-    document.getElementById('ficheLogArea').innerHTML = '<div style="padding: 20px; text-align: center; color: #9ab0c8;">Pas de données de forage</div>';
+    el.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ab0c8;">Pas de données de forage</div>';
     return;
   }
 
-  let html = '<svg width="100%" height="' + logAreaHeight + '" style="border: 0.5px solid #e0e8f0;">';
-  html += '<defs>';
-  html += Object.entries(GEOTYPES).map(([key, gt]) => {
-    if (gt.pattern && gt.patternDef) {
-      return gt.patternDef();
-    }
-    return '';
-  }).join('');
-  html += '</defs>';
-
-  let y = 20;
-  const colWidth = 100 / 6;
   const m = data.meta || {};
-  const totalDepth = data.layers.length > 0 ? Math.max(...data.layers.map(l => l.to || 0)) : 30;
+  const hasAlt = typeof m.altitude === 'number';
+  const layers = data.layers.filter(l => l.to != null).map(l => {
+    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
+    const geotype = getGeotypeForLayer(l);
+    const uscs = displayUSCS(l);
+    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs, couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
+  });
 
-  for (const layer of data.layers) {
-    const depth = (layer.to - layer.from) || 1;
-    const h = Math.max(15, (depth / totalDepth) * (logAreaHeight - 40));
+  const maxDepth = Math.max(...layers.map(l => l.to));
+  const startDepth = layers[0].from;
+  const totalDepth = maxDepth - startDepth;
+  const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
+  const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
 
-    html += `<rect x="0" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
-    html += `<text x="2" y="${y + h/2}" font-size="7" fill="#4a5a6a">${layer.from}</text>`;
+  // Column widths (px out of ~718px usable)
+  const W = 718; // total svg width
+  const profW = 40, altW = hasAlt ? 40 : 0, profilW = 80, descW = 280, geotypeW = 55, eauW = 45;
+  const usedW = profW + altW + profilW + descW + geotypeW + eauW;
+  const svgW = Math.max(usedW, W);
 
-    html += `<rect x="${colWidth * 0.8}%" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
-    html += `<text x="${colWidth * 0.8 + 2}%" y="${y + h/2}" font-size="7" fill="#4a5a6a">${m.altitude ? (m.altitude - layer.from).toFixed(1) : '—'}</text>`;
+  // Scale
+  const scaleInfo = selectScale(totalDepth);
+  const pxPerM = scaleInfo.pxPerM;
+  const logH = Math.max(layers.length * 50, totalDepth * pxPerM);
+  const svgH = Math.max(logAreaHeight, logH + 10);
 
-    const gt = GEOTYPES[layer.uscs] || {};
-    const fillColor = gt.color || '#e0e8f0';
-    const pattern = gt.pattern ? `url(#${gt.pattern})` : fillColor;
+  // Column x positions
+  const x0 = 0;
+  const xAlt = profW;
+  const xProf = xAlt + altW;
+  const xDesc = xProf + profilW;
+  const xGeo = xDesc + descW;
+  const xEau = xGeo + geotypeW;
 
-    html += `<rect x="${colWidth * 1.6}%" y="${y}" width="${colWidth * 0.8}%" height="${h}" fill="${pattern}" stroke="#c0d0e0" stroke-width="0.5"/>`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" style="font-family:'Segoe UI',sans-serif;">`;
+  svg += `<rect width="${svgW}" height="${svgH}" fill="white"/>`;
+  svg += buildGeotypePatternDefs(usedGeotypes);
 
-    html += `<text x="${colWidth * 2.5}%" y="${y + 6}" font-size="6" fill="#1a2332">${escapeHtml((layer.description || '').substring(0, 25))}</text>`;
+  // Column separator lines
+  [xAlt, xProf, xDesc, xGeo, xEau, xEau + eauW].forEach(x => {
+    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${svgH}" stroke="#c0d0e0" stroke-width="0.5"/>`;
+  });
 
-    html += `<rect x="${colWidth * 3.5}%" y="${y}" width="${colWidth * 1.5}%" height="${h}" fill="white" stroke="#c0d0e0" stroke-width="0.5"/>`;
-    html += `<text x="${colWidth * 3.7}%" y="${y + h/2}" font-size="7" text-anchor="middle" fill="#4a5a6a">${escapeHtml((layer.uscs || '').substring(0, 10))}</text>`;
+  // Render each layer
+  let yOff = 0;
+  const scale = logH / totalDepth;
 
-    if (m.nappe_m != null && m.nappe_m >= layer.from && m.nappe_m <= layer.to) {
-      html += `<circle cx="${colWidth * 4.5}%" cy="${y + h/2}" r="3" fill="#2d6a9f" opacity="0.7"/>`;
+  layers.forEach((layer, i) => {
+    const thickness = layer.to - layer.from;
+    const h = Math.max(thickness * scale, 50);
+    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
+
+    // Depth column
+    svg += `<text x="${x0 + profW/2}" y="${yOff + h/2 + 3}" text-anchor="middle" font-size="8" fill="#4a5a6a">${layer.from.toFixed(1)}</text>`;
+
+    // Altitude column
+    if (hasAlt) {
+      svg += `<text x="${xAlt + altW/2}" y="${yOff + h/2 + 3}" text-anchor="middle" font-size="8" fill="#4a7a6a">${(m.altitude - layer.from).toFixed(1)}</text>`;
     }
 
-    y += h;
+    // Profil géologique (pattern + color)
+    svg += `<rect x="${xProf}" y="${yOff}" width="${profilW}" height="${h}" fill="${gtCfg.color}" opacity="0.3"/>`;
+    svg += `<rect x="${xProf}" y="${yOff}" width="${profilW}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
+
+    // Description lithologique
+    const descY = yOff + 10;
+    svg += `<text x="${xDesc + 6}" y="${descY}" font-size="9" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+    svg += `<text x="${xDesc + 6}" y="${descY + 11}" font-size="7" fill="#8a9aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${thickness.toFixed(1)} m</text>`;
+    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
+    if (details && h >= 40) {
+      svg += `<text x="${xDesc + 6}" y="${descY + 21}" font-size="7" fill="#5a6a7a">${escapeHtml(details.substring(0, 50))}</text>`;
+    }
+
+    // Géotype column (vertical text)
+    svg += `<text x="${xGeo + geotypeW/2}" y="${yOff + h/2 - 2}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${layer.geotype}</text>`;
+    if (h >= 35) {
+      const label = (gtCfg.label || '').substring(0, 15);
+      svg += `<text x="${xGeo + geotypeW/2}" y="${yOff + h/2 + 9}" text-anchor="middle" font-size="5.5" fill="#6a8aaa">${escapeHtml(label)}</text>`;
+    }
+
+    // Venues d'eau column
+    if (nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to) {
+      const nappeY = yOff + ((nappeDepth - layer.from) / thickness) * h;
+      svg += `<line x1="${xEau}" y1="${nappeY}" x2="${xEau + eauW}" y2="${nappeY}" stroke="#2d6a9f" stroke-width="1.5" stroke-dasharray="4,2"/>`;
+      svg += `<polygon points="${xEau+2},${nappeY-4} ${xEau+6},${nappeY-4} ${xEau+4},${nappeY}" fill="#2d6a9f"/>`;
+      svg += `<text x="${xEau + eauW/2}" y="${nappeY + 9}" text-anchor="middle" font-size="6" fill="#2d6a9f">${nappeDepth.toFixed(1)} m</text>`;
+    }
+
+    // USCS badge (small, in desc area)
+    if (layer.uscs !== '—') {
+      const badgeX = xDesc + descW - 30;
+      svg += `<rect x="${badgeX}" y="${yOff + h/2 - 6}" width="26" height="12" rx="2" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.4"/>`;
+      svg += `<text x="${badgeX + 13}" y="${yOff + h/2 + 2}" text-anchor="middle" font-size="6" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
+    }
+
+    // Horizontal separator
+    if (i > 0) {
+      svg += `<line x1="0" y1="${yOff}" x2="${svgW}" y2="${yOff}" stroke="#c0d0e0" stroke-width="0.5"/>`;
+    }
+
+    yOff += h;
+  });
+
+  // Bottom depth mark
+  svg += `<text x="${x0 + profW/2}" y="${yOff + 3}" text-anchor="middle" font-size="8" fill="#4a5a6a">${maxDepth.toFixed(1)}</text>`;
+  if (hasAlt) {
+    svg += `<text x="${xAlt + altW/2}" y="${yOff + 3}" text-anchor="middle" font-size="8" fill="#4a7a6a">${(m.altitude - maxDepth).toFixed(1)}</text>`;
   }
 
-  html += '</svg>';
-  document.getElementById('ficheLogArea').innerHTML = html;
+  svg += '</svg>';
+  el.innerHTML = svg;
 }
 
 function toggleExportDropdown() {
