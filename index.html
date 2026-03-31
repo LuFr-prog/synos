@@ -362,6 +362,12 @@ td.cell-assisted { border-left: 3px solid #2d6a9f !important; }
 
 /* ====== LOG DE FORAGE VIEW ====== */
 .log-svg-wrap { overflow-x: auto; }
+.scale-bar { display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: #f4f7fa; border-radius: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.scale-label { font-size: 12px; font-weight: 600; color: #4a5a6a; }
+.scale-opt { font-size: 12px; color: #3a5a7a; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+.scale-opt input { margin: 0; cursor: pointer; }
+.page-separator { display: flex; align-items: center; justify-content: center; height: 30px; margin: 10px 0; }
+.page-separator span { font-size: 10px; color: #9aa0a8; background: #f4f7fa; padding: 2px 12px; border-radius: 4px; }
 .log-meta {
   background: #f0f4f8; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
   font-size: 12px; color: #3a5a7a; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
@@ -522,6 +528,13 @@ nappe [profondeur]
     <!-- TAB: LOG -->
     <div class="tab-content" id="outputLog">
       <div id="logMeta" class="log-meta" style="display:none;"></div>
+      <div id="logScaleBar" class="scale-bar" style="display:none;">
+        <span class="scale-label">Échelle :</span>
+        <label class="scale-opt"><input type="radio" name="logScale" value="auto" checked onchange="reRenderLog()"> Auto</label>
+        <label class="scale-opt"><input type="radio" name="logScale" value="1:50" onchange="reRenderLog()"> 1:50</label>
+        <label class="scale-opt"><input type="radio" name="logScale" value="1:100" onchange="reRenderLog()"> 1:100</label>
+        <label class="scale-opt"><input type="radio" name="logScale" value="1:200" onchange="reRenderLog()"> 1:200</label>
+      </div>
       <div id="logOutput"></div>
       <canvas id="logCanvas" style="display:none;"></canvas>
       <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.</div>
@@ -1173,6 +1186,7 @@ function buildInlineFigureSVG(geotype, height) {
    ================================================================ */
 let lastStructuredData = null;
 let lastLogSVG = '';
+let lastLogPages = [];
 let editedCells = {};  // key: "layerIdx-field", value: "manual" | "ai"
 
 function countEdits() { return Object.keys(editedCells).length; }
@@ -1550,10 +1564,299 @@ async function applyCorrection() {
 /* ================================================================
    RENDER LOG — aligned descriptions, altitude at boundaries, nappe
    ================================================================ */
+/* ---- Scale helpers ---- */
+function selectScale(totalDepth) {
+  if (totalDepth <= 20) return { ratio: '1:50', pxPerM: 75.6 };
+  if (totalDepth <= 80) return { ratio: '1:100', pxPerM: 37.8 };
+  return { ratio: '1:200', pxPerM: 18.9 };
+}
+function getChosenScale() {
+  const sel = document.querySelector('input[name="logScale"]:checked');
+  return sel ? sel.value : 'auto';
+}
+function layerHeight(thickness, pxPerM) {
+  return Math.max(thickness * pxPerM, 50);
+}
+function reRenderLog() {
+  if (lastStructuredData) renderLog(lastStructuredData);
+}
+
+/* ---- Graduation config per scale ---- */
+function getGraduation(ratio) {
+  if (ratio === '1:50')  return { major: 1, minor: 0.5 };
+  if (ratio === '1:100') return { major: 5, minor: 1 };
+  return { major: 10, minor: 5 }; // 1:200
+}
+
+/* ---- Pagination ---- */
+function paginateLog(layers, pxPerM, nappeDepth, startDepth) {
+  const PAGE_HEIGHT = 890;
+  const pages = [];
+  let currentPage = { segments: [], usedHeight: 0 };
+
+  for (const layer of layers) {
+    const thickness = layer.to - layer.from;
+    const h = layerHeight(thickness, pxPerM);
+    const stretched = h > thickness * pxPerM;
+
+    if (currentPage.usedHeight + h > PAGE_HEIGHT && currentPage.segments.length > 0) {
+      const remaining = PAGE_HEIGHT - currentPage.usedHeight;
+      if (remaining >= 30) {
+        // Split: part on this page
+        const fraction = remaining / h;
+        const splitDepth = layer.from + thickness * fraction;
+        currentPage.segments.push({
+          ...layer, displayHeight: remaining, stretched,
+          segFrom: layer.from, segTo: splitDepth,
+          continued: true, showDesc: remaining >= h / 2
+        });
+      }
+      pages.push(currentPage);
+      currentPage = { segments: [], usedHeight: 0 };
+
+      // Continued part on next page
+      const usedOnPrev = remaining >= 30 ? remaining : 0;
+      const remainH = h - usedOnPrev;
+      const contFrom = remaining >= 30 ? layer.from + thickness * (usedOnPrev / h) : layer.from;
+      if (remainH > 0) {
+        currentPage.segments.push({
+          ...layer, displayHeight: remainH, stretched,
+          segFrom: contFrom, segTo: layer.to,
+          continuedFrom: true, showDesc: remainH >= h / 2 || usedOnPrev < 30
+        });
+        currentPage.usedHeight = remainH;
+      }
+    } else {
+      currentPage.segments.push({
+        ...layer, displayHeight: h, stretched,
+        segFrom: layer.from, segTo: layer.to,
+        showDesc: true
+      });
+      currentPage.usedHeight += h;
+    }
+  }
+  if (currentPage.segments.length > 0) pages.push(currentPage);
+  return pages;
+}
+
+/* ---- Render a single page SVG ---- */
+function renderLogPage(pageData, pageIdx, totalPages, meta, scaleInfo, usedGeotypes, nappeDepth, isExportPNG) {
+  const m = meta;
+  const hasAlt = typeof m.altitude === 'number';
+  const { ratio, pxPerM } = scaleInfo;
+  const grad = getGraduation(ratio);
+  const isFirstPage = pageIdx === 0;
+
+  const marginTop = isFirstPage ? 65 : 40;
+  const marginBottom = 30;
+  const marginLeft = 70;
+  const scaleColW = 35, logColW = 110, patternColW = 110, descColW = 280;
+  const altColW = hasAlt ? 65 : 0;
+  const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
+  const logX = marginLeft + scaleColW;
+  const patX = logX + logColW;
+  const descX = patX + patternColW + 15;
+  const altX = descX + descColW + 5;
+
+  const pageLogH = pageData.segments.reduce((s, seg) => s + seg.displayHeight, 0);
+
+  // Legend only on last page
+  const isLastPage = pageIdx === totalPages - 1;
+  const legendRows = isLastPage ? Math.ceil(usedGeotypes.length / 4) : 0;
+  const legendH = isLastPage ? legendRows * 28 + 30 : 0;
+  const scaleInfoH = isLastPage ? 24 : 0;
+  const totalH = marginTop + pageLogH + marginBottom + scaleInfoH + legendH;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;" data-page="${pageIdx+1}">`;
+  svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
+  svg += buildGeotypePatternDefs(usedGeotypes);
+
+  // Header
+  if (isFirstPage) {
+    svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id||'—')}</text>`;
+    svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
+  } else {
+    svg += `<text x="${totalW/2}" y="18" text-anchor="middle" font-size="11" fill="#9aa0a8">${escapeHtml(m.id||'—')} — Page ${pageIdx+1}/${totalPages} — Échelle ${ratio}</text>`;
+  }
+
+  const headY = marginTop - 10;
+  svg += `<text x="${marginLeft+scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
+  svg += `<text x="${logX+logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
+  svg += `<text x="${patX+patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
+  svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
+  if (hasAlt) svg += `<text x="${altX+altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
+
+  // Outer frame
+  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW+patternColW}" height="${pageLogH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
+  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop+pageLogH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
+
+  // Draw segments (backgrounds + patterns)
+  let yOff = marginTop;
+  const segments = pageData.segments;
+  segments.forEach((seg, i) => {
+    const h = seg.displayHeight;
+    const gtCfg = GEOTYPE_CONFIG[seg.geotype] || GEOTYPE_CONFIG['CE'];
+    svg += `<rect x="${logX}" y="${yOff}" width="${logColW}" height="${h}" fill="${gtCfg.color}" opacity="0.35"/>`;
+    svg += `<rect x="${patX}" y="${yOff}" width="${patternColW}" height="${h}" fill="url(#pat_${seg.geotype})"/>`;
+    if (i > 0) svg += `<line x1="${logX}" y1="${yOff}" x2="${patX+patternColW}" y2="${yOff}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+    yOff += h;
+  });
+
+  // Depth scale ticks — use real depth from segments
+  yOff = marginTop;
+  const pageStartDepth = segments[0].segFrom;
+  const pageEndDepth = segments[segments.length - 1].segTo;
+
+  // Build a depth-to-y mapping for this page
+  function depthToY(d) {
+    let cy = marginTop;
+    for (const seg of segments) {
+      const segThickness = seg.segTo - seg.segFrom;
+      if (d >= seg.segFrom && d <= seg.segTo) {
+        const frac = segThickness > 0 ? (d - seg.segFrom) / segThickness : 0;
+        return cy + frac * seg.displayHeight;
+      }
+      cy += seg.displayHeight;
+    }
+    return cy;
+  }
+
+  // Minor ticks
+  for (let d = Math.ceil(pageStartDepth / grad.minor) * grad.minor; d <= pageEndDepth; d += grad.minor) {
+    d = Math.round(d * 100) / 100; // float fix
+    if (d % grad.major === 0) continue;
+    const y = depthToY(d);
+    svg += `<line x1="${marginLeft+scaleColW-3}" y1="${y}" x2="${logX}" y2="${y}" stroke="#e0e8f0" stroke-width="0.3"/>`;
+  }
+  // Major ticks
+  for (let d = Math.ceil(pageStartDepth / grad.major) * grad.major; d <= pageEndDepth; d += grad.major) {
+    d = Math.round(d * 100) / 100;
+    const y = depthToY(d);
+    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
+    svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)}</text>`;
+  }
+  // Always show start depth
+  const y0 = marginTop;
+  svg += `<text x="${marginLeft+scaleColW-4}" y="${y0+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${pageStartDepth % 1 === 0 ? pageStartDepth.toFixed(0) : pageStartDepth.toFixed(1)}</text>`;
+
+  // Altitude at segment boundaries
+  if (hasAlt) {
+    const drawnDepths = new Set();
+    segments.forEach((seg, i) => {
+      if (!drawnDepths.has(seg.segFrom)) {
+        const y = depthToY(seg.segFrom);
+        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
+        const altVal = (m.altitude - seg.segFrom).toFixed(1);
+        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" ${i===0 && isFirstPage?'font-weight="600" ':''} fill="#4a7a6a">${altVal}</text>`;
+        drawnDepths.add(seg.segFrom);
+      }
+      if (!drawnDepths.has(seg.segTo)) {
+        const y = depthToY(seg.segTo);
+        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
+        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a7a6a">${(m.altitude - seg.segTo).toFixed(1)}</text>`;
+        drawnDepths.add(seg.segTo);
+      }
+    });
+  }
+
+  // Nappe line (if on this page)
+  if (nappeDepth !== null && nappeDepth >= pageStartDepth && nappeDepth <= pageEndDepth) {
+    const wy = depthToY(nappeDepth);
+    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
+    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
+    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
+    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
+    const textW = nappeText.length * 5.5 + 6;
+    svg += `<rect x="${descX-2}" y="${wy-14}" width="${textW}" height="14" fill="white" opacity="0.85" rx="2"/>`;
+    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
+  }
+
+  // Descriptions
+  yOff = marginTop;
+  segments.forEach((seg) => {
+    const h = seg.displayHeight;
+    const centerY = yOff + h / 2;
+
+    // Nappe offset
+    const nappeInSeg = nappeDepth !== null && nappeDepth >= seg.segFrom && nappeDepth <= seg.segTo;
+    const descYOffset = nappeInSeg ? 10 : 0;
+
+    // Stretched indicator
+    const stretchMark = seg.stretched ? ' ↕' : '';
+
+    // Continuation labels
+    if (seg.continuedFrom) {
+      svg += `<text x="${patX+patternColW-3}" y="${yOff+10}" text-anchor="end" font-size="7" fill="#8a9aaa">↑ suite</text>`;
+    }
+    if (seg.continued) {
+      svg += `<text x="${patX+patternColW-3}" y="${yOff+h-3}" text-anchor="end" font-size="7" fill="#8a9aaa">↓ suite</text>`;
+    }
+
+    if (seg.showDesc) {
+      const cy = centerY + descYOffset;
+      const details = [seg.couleur, seg.consistance, seg.inclusions].filter(Boolean).join(', ');
+      const depthInfo = `${seg.from.toFixed(1)} – ${seg.to.toFixed(1)} m | ep. ${(seg.to-seg.from).toFixed(1)} m${stretchMark}`;
+      const uscs = seg.uscs;
+
+      if (h >= 50) {
+        const lineCount = details ? 3 : 2;
+        const blockH = lineCount * 14;
+        const startY = cy - blockH / 2 + 12;
+        svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
+        svg += `<text x="${descX}" y="${startY+14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
+        if (details) svg += `<text x="${descX}" y="${startY+26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
+        if (uscs !== '—') {
+          const badgeX = descX + descColW - 38;
+          svg += `<rect x="${badgeX}" y="${cy-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+          svg += `<text x="${badgeX+17.5}" y="${cy+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
+        }
+      } else if (h >= 30) {
+        svg += `<text x="${descX}" y="${cy-2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
+        svg += `<text x="${descX}" y="${cy+11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
+        if (uscs !== '—') {
+          const badgeX = descX + descColW - 35;
+          svg += `<rect x="${badgeX}" y="${cy-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
+          svg += `<text x="${badgeX+16}" y="${cy+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
+        }
+      } else {
+        svg += `<text x="${descX}" y="${cy+4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
+      }
+    }
+    yOff += h;
+  });
+
+  // Scale indication + legend (last page only)
+  if (isLastPage) {
+    const scaleY = marginTop + pageLogH + 16;
+    svg += `<text x="${marginLeft}" y="${scaleY}" font-size="8" fill="#8a9aaa">Échelle ${ratio}</text>`;
+
+    const legendY = marginTop + pageLogH + marginBottom + scaleInfoH - 5;
+    svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
+    svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Légende des géotypes</text>`;
+    const legendStartY = legendY + 28;
+    const colW = Math.floor((totalW - 40) / 4);
+    usedGeotypes.forEach((geotype, idx) => {
+      const gtCfg = GEOTYPE_CONFIG[geotype];
+      if (!gtCfg) return;
+      const col = idx % 4;
+      const row = Math.floor(idx / 4);
+      const lx = 20 + col * colW;
+      const ly = legendStartY + row * 28;
+      svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="url(#pat_${geotype})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
+      svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${geotype} – ${gtCfg.label}</text>`;
+    });
+  }
+
+  svg += '</svg>';
+  return svg;
+}
+
+/* ---- Main renderLog with pagination ---- */
 function renderLog(data) {
   if (!data.layers || !data.layers.some(l => l.to != null)) {
     document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complete identifiee.</div>';
     document.getElementById('logMeta').style.display = 'none';
+    document.getElementById('logScaleBar').style.display = 'none';
     document.getElementById('logWarnBar').style.display = 'none';
     document.getElementById('logExportBar').style.display = 'none';
     lastLogSVG = '';
@@ -1574,162 +1877,77 @@ function renderLog(data) {
   const totalDepth = maxDepth - startDepth;
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
 
-  // Bug 2: Adaptive scale — minimum 60px per layer, 40px/m default
-  const MIN_LAYER_HEIGHT = 60;
-  const minTotalHeight = layers.length * MIN_LAYER_HEIGHT;
-  const depthBasedHeight = totalDepth * 40;
-  const logH = Math.max(minTotalHeight, depthBasedHeight);
-  const scale = logH / totalDepth; // pixels per meter
-
-  const marginTop = 65, marginBottom = 50, marginLeft = 70;
-  const scaleColW = 35, logColW = 110, patternColW = 110, descColW = 280;
-  const altColW = hasAlt ? 65 : 0;
-  const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
+  // Scale selection
+  const choice = getChosenScale();
+  const scaleInfo = choice === 'auto' ? selectScale(totalDepth) :
+    choice === '1:50' ? { ratio: '1:50', pxPerM: 75.6 } :
+    choice === '1:100' ? { ratio: '1:100', pxPerM: 37.8 } :
+    { ratio: '1:200', pxPerM: 18.9 };
 
   const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
-  const legendRows = Math.ceil(usedGeotypes.length / 4);
-  const legendH = legendRows * 28 + 20;
-  const scaleInfoH = 24;
-  const totalH = marginTop + logH + marginBottom + scaleInfoH + legendH;
 
-  const logX = marginLeft + scaleColW;
-  const patX = logX + logColW;
-  const descX = patX + patternColW + 15;
-  const altX = descX + descColW + 5;
+  // Paginate
+  const pages = paginateLog(layers, scaleInfo.pxPerM, nappeDepth, startDepth);
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;">`;
-  svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
-  svg += buildGeotypePatternDefs(usedGeotypes);
-  svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id||'—')}</text>`;
-  svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
+  // Render each page
+  const pageSVGs = pages.map((page, idx) =>
+    renderLogPage(page, idx, pages.length, m, scaleInfo, usedGeotypes, nappeDepth, false)
+  );
 
-  const headY = marginTop - 10;
-  svg += `<text x="${marginLeft+scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
-  svg += `<text x="${logX+logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
-  svg += `<text x="${patX+patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
-  svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
-  if (hasAlt) svg += `<text x="${altX+altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
-
-  // Depth scale ticks
-  const meterStep = totalDepth <= 10 ? 1 : totalDepth <= 30 ? 2 : totalDepth <= 80 ? 5 : 10;
-  for (let d = 0; d <= maxDepth; d += meterStep) {
-    const y = marginTop + d * scale;
-    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
-    svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d.toFixed(1)}</text>`;
-  }
-
-  // Altitude at layer BOUNDARIES
-  if (hasAlt) {
-    const drawnDepths = new Set();
-    const y0 = marginTop;
-    svg += `<line x1="${altX}" y1="${y0}" x2="${altX+5}" y2="${y0}" stroke="#999" stroke-width="0.5"/>`;
-    svg += `<text x="${altX+altColW-2}" y="${y0+4}" text-anchor="end" font-size="10" font-weight="600" fill="#4a7a6a">${m.altitude.toFixed(1)}</text>`;
-    drawnDepths.add(0);
-    layers.forEach(layer => {
-      if (!drawnDepths.has(layer.to)) {
-        const y = marginTop + layer.to * scale;
-        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
-        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a7a6a">${(m.altitude - layer.to).toFixed(1)}</text>`;
-        drawnDepths.add(layer.to);
-      }
-    });
-  }
-
-  // === LAYER 1: Colored backgrounds + patterns ===
-  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW+patternColW}" height="${logH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
-  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop+logH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
-
-  layers.forEach((layer, i) => {
-    const y = marginTop + layer.from * scale;
-    const h = (layer.to - layer.from) * scale;
-    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
-    svg += `<rect x="${logX}" y="${y}" width="${logColW}" height="${h}" fill="${gtCfg.color}" opacity="0.35"/>`;
-    svg += `<rect x="${patX}" y="${y}" width="${patternColW}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
-    if (i > 0) svg += `<line x1="${logX}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-  });
-
-  // === LAYER 2: Nappe line + annotation (with white background) ===
-  if (nappeDepth !== null && nappeDepth <= maxDepth) {
-    const wy = marginTop + nappeDepth * scale;
-    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
-    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
-    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
-    const textW = nappeText.length * 5.5 + 6;
-    svg += `<rect x="${descX-2}" y="${wy-14}" width="${textW}" height="14" fill="white" opacity="0.85" rx="2"/>`;
-    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
-  }
-
-  // === LAYER 3: Separation lines (already drawn above with patterns) ===
-
-  // === LAYER 4: Descriptions + USCS badges ===
-  layers.forEach((layer, i) => {
-    const y = marginTop + layer.from * scale;
-    const h = (layer.to - layer.from) * scale;
-
-    // Check if nappe is in this layer and would overlap
-    const nappeInLayer = nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to;
-    const descYOffset = nappeInLayer ? 10 : 0;
-
-    const centerY = y + h / 2 + descYOffset;
-    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
-    const depthInfo = `${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${(layer.to-layer.from).toFixed(1)} m`;
-    const uscs = layer.uscs;
-
-    if (h >= 50) {
-      const lineCount = details ? 3 : 2;
-      const blockH = lineCount * 14;
-      const startY = centerY - blockH / 2 + 12;
-      svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
-      svg += `<text x="${descX}" y="${startY+14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
-      if (details) svg += `<text x="${descX}" y="${startY+26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
-      if (uscs !== '—') {
-        const badgeX = descX + descColW - 38;
-        svg += `<rect x="${badgeX}" y="${centerY-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-        svg += `<text x="${badgeX+17.5}" y="${centerY+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
-      }
-    } else if (h >= 30) {
-      svg += `<text x="${descX}" y="${centerY-2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
-      svg += `<text x="${descX}" y="${centerY+11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
-      if (uscs !== '—') {
-        const badgeX = descX + descColW - 35;
-        svg += `<rect x="${badgeX}" y="${centerY-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-        svg += `<text x="${badgeX+16}" y="${centerY+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
-      }
-    } else {
-      svg += `<text x="${descX}" y="${centerY+4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
+  // Build HTML output
+  let html = '';
+  pageSVGs.forEach((svg, idx) => {
+    html += `<div class="log-svg-wrap">${svg}</div>`;
+    if (idx < pageSVGs.length - 1) {
+      html += `<div class="page-separator"><span>— Page ${idx+2}/${pages.length} —</span></div>`;
     }
   });
 
-  // Scale indication
-  const scaleY = marginTop + logH + 16;
-  const scaleRatio = Math.round(1000 / scale);
-  svg += `<text x="${marginLeft}" y="${scaleY}" font-size="8" fill="#8a9aaa">Echelle : 1:${scaleRatio}</text>`;
-
-  // Legend
-  const legendY = marginTop + logH + marginBottom + scaleInfoH - 5;
-  svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
-  svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Legende des geotypes</text>`;
-  const legendStartY = legendY + 28;
-  const colW = Math.floor((totalW - 40) / 4);
-  usedGeotypes.forEach((geotype, idx) => {
-    const gtCfg = GEOTYPE_CONFIG[geotype];
-    const col = idx % 4;
-    const row = Math.floor(idx / 4);
-    const lx = 20 + col * colW;
-    const ly = legendStartY + row * 28;
-    svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="url(#pat_${geotype})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
-    svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${geotype} – ${gtCfg.label}</text>`;
-  });
-  svg += '</svg>';
+  // For PNG export: build one continuous SVG (all pages stacked, no separators)
+  lastLogSVG = buildContinuousSVG(pages, m, scaleInfo, usedGeotypes, nappeDepth);
+  lastLogPages = pageSVGs; // Store individual page SVGs for DOCX export
 
   const metaEl = document.getElementById('logMeta');
   metaEl.style.display = 'grid';
-  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Prof. totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontree'}</div>`;
-  document.getElementById('logOutput').innerHTML = `<div class="log-svg-wrap">${svg}</div>`;
-  lastLogSVG = svg;
+  metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Prof. totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontrée'}</div>`;
+  document.getElementById('logOutput').innerHTML = html;
+  document.getElementById('logScaleBar').style.display = 'flex';
   document.getElementById('logWarnBar').style.display = 'block';
   document.getElementById('logExportBar').style.display = 'flex';
+}
+
+/* Build a single continuous SVG for PNG export (no page separators) */
+function buildContinuousSVG(pages, meta, scaleInfo, usedGeotypes, nappeDepth) {
+  // Flatten all segments
+  const allSegments = [];
+  for (const page of pages) {
+    for (const seg of page.segments) {
+      // Avoid duplicates from split layers
+      if (allSegments.length > 0) {
+        const last = allSegments[allSegments.length - 1];
+        if (last.from === seg.from && last.to === seg.to && last.continuedFrom) continue;
+      }
+      allSegments.push(seg);
+    }
+  }
+
+  // Merge split segments back to original layers
+  const mergedLayers = [];
+  for (const seg of allSegments) {
+    const last = mergedLayers[mergedLayers.length - 1];
+    if (last && last.from === seg.from && last.to === seg.to) continue; // skip duplicate
+    mergedLayers.push(seg);
+  }
+
+  // Rebuild as a single page
+  const singlePage = { segments: mergedLayers.map(l => ({
+    ...l, displayHeight: layerHeight(l.to - l.from, scaleInfo.pxPerM),
+    segFrom: l.from, segTo: l.to, showDesc: true,
+    stretched: layerHeight(l.to - l.from, scaleInfo.pxPerM) > (l.to - l.from) * scaleInfo.pxPerM
+  })), usedHeight: 0 };
+  singlePage.usedHeight = singlePage.segments.reduce((s, seg) => s + seg.displayHeight, 0);
+
+  return renderLogPage(singlePage, 0, 1, meta, scaleInfo, usedGeotypes, nappeDepth, true);
 }
 
 /* ================================================================
@@ -1988,10 +2206,12 @@ function doPngExport(wrapper, btn) {
 
 function exportLogPNG(scale) {
   if (!lastLogSVG) return;
-  const svgEl = document.querySelector('#logOutput svg');
-  if (!svgEl) return;
-  const w = svgEl.getAttribute('width') * scale;
-  const h = svgEl.getAttribute('height') * scale;
+  // Parse width/height from the continuous SVG string
+  const wMatch = lastLogSVG.match(/width="(\d+\.?\d*)"/);
+  const hMatch = lastLogSVG.match(/height="(\d+\.?\d*)"/);
+  if (!wMatch || !hMatch) return;
+  const w = parseFloat(wMatch[1]) * scale;
+  const h = parseFloat(hMatch[1]) * scale;
   const canvas = document.getElementById('logCanvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
@@ -2034,6 +2254,8 @@ function resetAll() {
   document.getElementById('correctionStatus').className = 'correction-status';
   lastStructuredData = null;
   lastLogSVG = '';
+  lastLogPages = [];
+  document.getElementById('logScaleBar').style.display = 'none';
   editedCells = {};
   transitionToEmpty();
   switchOutputTab('tableau');
