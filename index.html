@@ -1130,6 +1130,21 @@ function displayUSCS(layer) {
   return uscs;
 }
 
+/* Sanitize USCS based on geotype — safety net after Claude JSON parse */
+const ROCK_GEOTYPES = ['GR', 'GRM', 'MGR', 'M', 'MC', 'C', 'GN', 'GRA'];
+function sanitizeUSCS(layer) {
+  if (ROCK_GEOTYPES.includes(layer.geotype) || isRock(layer.lithologie)) {
+    layer.uscs = '—';
+  }
+  return layer;
+}
+function sanitizeAllLayers(data) {
+  if (data && data.layers) {
+    data.layers = data.layers.map(sanitizeUSCS);
+  }
+  return data;
+}
+
 /* ================================================================
    ESTIMATE USCS from lithology name (for inline editing auto-update)
    ================================================================ */
@@ -1237,7 +1252,7 @@ async function structurer() {
       const errText = await response.text();
       throw new Error(`Erreur serveur (${response.status}) : ${errText}`);
     }
-    const result = await response.json();
+    const result = sanitizeAllLayers(await response.json());
     lastStructuredData = result;
     editedCells = {};
 
@@ -1525,7 +1540,7 @@ async function applyCorrection() {
       const errText = await response.text();
       throw new Error(`Erreur (${response.status}) : ${errText}`);
     }
-    const result = await response.json();
+    const result = sanitizeAllLayers(await response.json());
 
     if (result.layers && lastStructuredData.layers) {
       const fields = ['description','lithologie','couleur','consistance','humidite','granulometrie','inclusions','uscs'];
