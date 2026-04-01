@@ -1178,20 +1178,20 @@ function estimateGeotype(lithologie) {
   // LO: Loess
   if (/lo[eè]ss|loess/i.test(l)) return 'LO';
 
-  // GR: Grès
-  if (/gr[eè]s|sandstone|grit/i.test(l) && !/marneux/i.test(l)) return 'GR';
-
-  // GRM: Grès marneux
+  // GRM: Grès marneux / Molasse gréseuse-marneuse
   if (/gr[eè]s.*marneux|marneux.*gr[eè]s|marly.*sandstone/i.test(l)) return 'GRM';
 
   // MGR: Marnes gréseuses
   if (/marne.*gr[eè]seuse|gr[eè]seuse.*marne/i.test(l)) return 'MGR';
 
-  // M: Marnes
-  if (/marne|marl/i.test(l)) return 'M';
+  // GR: Grès / Molasse gréseuse
+  if (/gr[eè]s|gréseuse|sandstone|grit/i.test(l) && !/marneux/i.test(l)) return 'GR';
 
   // MC: Marnes-calcaires
   if (/marne.*calcaire|calcaire.*marne|marly.*limestone/i.test(l)) return 'MC';
+
+  // M: Marnes / Molasse marneuse
+  if (/marne|marl/i.test(l)) return 'M';
 
   // C: Calcaires
   if (/calcaire|limestone|chalk/i.test(l)) return 'C';
@@ -1201,6 +1201,19 @@ function estimateGeotype(lithologie) {
 
   // GRA: Granite
   if (/granit|granite/i.test(l)) return 'GRA';
+
+  // ---- GENERIC SEDIMENT CATCH-ALL ----
+  // Generic moraine (no specific type) → MF (moraine de fond, most common)
+  if (/moraine|till(?:\b|$)/i.test(l)) return 'MF';
+
+  // Molasse (generic, without grès/marne qualifier)
+  if (/molasse/i.test(l)) return 'GR';
+
+  // Gravel / Sand / Silt / Clay → fluvioglacial or alluvion
+  if (/gravier|kies|gravel/i.test(l)) return 'FG';
+  if (/sable|sand/i.test(l)) return 'FG';
+  if (/limon|silt|schluff/i.test(l)) return 'FG';
+  if (/argile|clay|ton(?:\b|$)/i.test(l)) return 'GL';
 
   // Default fallback
   return 'CE';
@@ -1722,22 +1735,23 @@ function getGraduation(ratio) {
 
 /* ================================================================
    PROFESSIONAL 7-COLUMN SVG LOG RENDERER
-   Columns: Profondeur | Altitude | Profil géol. | Description | Géotype/USCS | Stratigraphie | Venues d'eau
+   Based on visual analysis of 6 Swiss borehole log references:
+   ABA-GEOL, MFR, Hydro-Géo, Aquageo, AB Ingénieurs, Müller & Perrottet
    ================================================================ */
 
 /* USCS badge color by group */
 function getUSCSBadgeColor(uscs) {
   if (!uscs || uscs === '—' || uscs === 'Roche' || uscs === 'R') return null;
-  if (/^G/.test(uscs)) return { bg: '#d4edda', fg: '#155724' }; // gravel = green
-  if (/^S/.test(uscs)) return { bg: '#cce5ff', fg: '#004085' }; // sand = blue
-  if (/^C/.test(uscs)) return { bg: '#f8d7da', fg: '#721c24' }; // clay = red
-  if (/^M/.test(uscs)) return { bg: '#ffeeba', fg: '#856404' }; // silt = orange
-  if (/^O|^Pt/.test(uscs)) return { bg: '#e2d5c1', fg: '#5a4020' }; // organic = brown
-  return { bg: '#e8f0fe', fg: '#1a3a5c' };
+  if (/^G/.test(uscs)) return { bg: '#d4edda', fg: '#155724', border: '#28a745' };
+  if (/^S/.test(uscs)) return { bg: '#cce5ff', fg: '#004085', border: '#007bff' };
+  if (/^C/.test(uscs)) return { bg: '#f8d7da', fg: '#721c24', border: '#dc3545' };
+  if (/^M/.test(uscs)) return { bg: '#fff3cd', fg: '#856404', border: '#ffc107' };
+  if (/^O|^Pt/.test(uscs)) return { bg: '#e2d5c1', fg: '#5a4020', border: '#8B7355' };
+  return { bg: '#e8f0fe', fg: '#1a3a5c', border: '#6c8ebf' };
 }
 
-/* Word-wrap text into lines of maxW px (approx) */
-function wrapText(text, maxChars) {
+/* Word-wrap text for SVG — returns array of lines */
+function svgWrapText(text, maxChars) {
   if (!text) return [];
   const words = text.split(/\s+/);
   const lines = [];
@@ -1754,7 +1768,7 @@ function wrapText(text, maxChars) {
   return lines;
 }
 
-/* Build the 7-column SVG log */
+/* ---- Build the professional 7-column SVG log ---- */
 function buildProLog(data, showLegend) {
   if (!data.layers || !data.layers.some(l => l.to != null)) return '';
 
@@ -1777,18 +1791,20 @@ function buildProLog(data, showLegend) {
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
   const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
 
-  // Scale
+  /* ---- Scale ---- */
   const choice = getChosenScale();
   const scaleInfo = choice === 'auto' ? selectScale(totalDepth) : scaleFromRatio(choice);
   const { ratio, pxPerM } = scaleInfo;
   const grad = getGraduation(ratio);
 
-  // Column widths (total = 470px as spec)
-  const COL = {
-    prof: 30, alt: 30, profil: 60, desc: 220, geouscs: 40, strat: 50, eau: 40
-  };
+  /* ---- Column widths ----
+     Modeled after T1P1 (ABA-GEOL) and Log_B2 (MFR) proportions.
+     Total width = 530px for better breathing room. */
+  const COL = { prof: 38, alt: 36, profil: 64, desc: 230, geouscs: 50, strat: 56, eau: 40 };
+  if (!hasAlt) { COL.desc += COL.alt; COL.alt = 0; }
   const totalW = COL.prof + COL.alt + COL.profil + COL.desc + COL.geouscs + COL.strat + COL.eau;
-  // Column x positions
+
+  /* Column x positions */
   const X = {};
   X.prof = 0;
   X.alt = X.prof + COL.prof;
@@ -1798,54 +1814,68 @@ function buildProLog(data, showLegend) {
   X.strat = X.geouscs + COL.geouscs;
   X.eau = X.strat + COL.strat;
 
-  // Header height
-  const headerH = 35;
-  // Layer heights
+  /* ---- Header ---- */
+  const headerH = 42;
+
+  /* ---- Layer heights ---- */
   const layerHeights = layers.map(l => layerHeight(l.to - l.from, pxPerM));
   const logH = layerHeights.reduce((s, h) => s + h, 0);
 
-  // Footer / scale label
-  const footerH = 20;
-  // Legend
-  const usedUSCS = [...new Set(layers.map(l => l.uscs).filter(u => u && u !== '—'))];
-  const legendEntries = usedGeotypes.length;
-  const legendRows = showLegend ? Math.ceil(legendEntries / 3) : 0;
-  const legendUSCSRows = showLegend ? Math.ceil(usedUSCS.length / 5) : 0;
-  const legendH = showLegend ? (legendRows * 22 + legendUSCSRows * 20 + (nappeDepth !== null ? 20 : 0) + 32) : 0;
-  const svgH = headerH + logH + footerH + legendH + 2;
+  /* ---- Footer + Legend ---- */
+  const footerH = 22;
+  const usedUSCS = [...new Set(layers.map(l => l.uscs).filter(u => u && u !== '—' && u !== 'Roche'))];
+  const legendRows = showLegend ? Math.ceil(usedGeotypes.length / 3) : 0;
+  const legendUSCSRows = showLegend && usedUSCS.length > 0 ? Math.ceil(usedUSCS.length / 4) : 0;
+  const legendH = showLegend ? (legendRows * 24 + (legendUSCSRows > 0 ? legendUSCSRows * 20 + 16 : 0) + (nappeDepth !== null ? 22 : 0) + 30) : 0;
+  const svgH = headerH + logH + footerH + legendH;
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}" viewBox="0 0 ${totalW} ${svgH}" style="font-family:Helvetica,Arial,sans-serif;background:white;">`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}" viewBox="0 0 ${totalW} ${svgH}" style="font-family:Helvetica,Arial,sans-serif;">`;
   svg += `<rect width="${totalW}" height="${svgH}" fill="white"/>`;
   svg += buildGeotypePatternDefs(usedGeotypes);
 
-  /* ---- COLUMN HEADERS (Zone D) ---- */
-  svg += `<rect x="0" y="0" width="${totalW}" height="${headerH}" fill="#eaeaea"/>`;
-  // Vertical text for column headers
-  const colHeaders = [
-    { x: X.prof, w: COL.prof, label: 'PROFONDEUR [m]', vertical: true },
-    { x: X.alt,  w: COL.alt,  label: 'ALTITUDE [m.s.m]', vertical: true },
-    { x: X.profil, w: COL.profil, label: 'PROFIL GÉOLOGIQUE', vertical: true },
-    { x: X.desc, w: COL.desc, label: 'DESCRIPTION LITHOLOGIQUE', vertical: false },
-    { x: X.geouscs, w: COL.geouscs, label: 'GÉOTYPE / USCS', vertical: true },
-    { x: X.strat, w: COL.strat, label: 'STRATIGRAPHIE', vertical: true },
-    { x: X.eau, w: COL.eau, label: "VENUES D'EAU", vertical: true }
-  ];
-  colHeaders.forEach(ch => {
-    const cx = ch.x + ch.w / 2;
-    if (ch.vertical) {
-      svg += `<text x="${cx}" y="${headerH/2}" text-anchor="middle" dominant-baseline="central" font-size="6" font-weight="700" fill="#1a2332" transform="rotate(-90,${cx},${headerH/2})">${ch.label}</text>`;
-    } else {
-      svg += `<text x="${cx}" y="${headerH/2 + 2}" text-anchor="middle" font-size="6" font-weight="700" fill="#1a2332">${ch.label}</text>`;
-    }
-    // Column separator
-    svg += `<line x1="${ch.x}" y1="0" x2="${ch.x}" y2="${headerH + logH}" stroke="#999" stroke-width="0.5"/>`;
-  });
-  // Right border
-  svg += `<line x1="${totalW}" y1="0" x2="${totalW}" y2="${headerH + logH}" stroke="#999" stroke-width="0.5"/>`;
-  // Header bottom line
-  svg += `<line x1="0" y1="${headerH}" x2="${totalW}" y2="${headerH}" stroke="#1a2332" stroke-width="1"/>`;
+  /* ==================================================================
+     COLUMN HEADERS — vertical text like ABA-GEOL T1P1 and MFR Log_B2
+     ================================================================== */
+  svg += `<rect x="0" y="0" width="${totalW}" height="${headerH}" fill="#f5f5f5" stroke="#000" stroke-width="0.8"/>`;
 
-  /* ---- Depth-to-Y mapping ---- */
+  const hdrs = [
+    { x: X.prof, w: COL.prof, lines: ['PROFONDEUR', '[m]'] },
+    ...(hasAlt ? [{ x: X.alt, w: COL.alt, lines: ['ALTITUDE', '[m.s.m]'] }] : []),
+    { x: X.profil, w: COL.profil, lines: ['PROFIL', 'GÉOLOGIQUE'] },
+    { x: X.desc, w: COL.desc, lines: ['DESCRIPTION LITHOLOGIQUE'], horiz: true },
+    { x: X.geouscs, w: COL.geouscs, lines: ['GÉOTYPE', '/ USCS'] },
+    { x: X.strat, w: COL.strat, lines: ['STRATI-', 'GRAPHIE'] },
+    { x: X.eau, w: COL.eau, lines: ["VENUES", "D'EAU"] }
+  ];
+
+  hdrs.forEach(h => {
+    const cx = h.x + h.w / 2;
+    if (h.horiz) {
+      svg += `<text x="${cx}" y="${headerH / 2 + 1}" text-anchor="middle" dominant-baseline="central" font-size="7.5" font-weight="700" fill="#000">${h.lines[0]}</text>`;
+    } else {
+      // Vertical text — like T1P1 and Log_B2: rotated block of lines
+      const lh = 9;
+      const blockH = h.lines.length * lh;
+      const startY = headerH / 2 - blockH / 2 + lh / 2;
+      h.lines.forEach((line, li) => {
+        svg += `<text x="${cx}" y="${startY + li * lh}" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="700" fill="#000" transform="rotate(-90,${cx},${startY + li * lh})">${line}</text>`;
+      });
+    }
+    // Column vertical line
+    svg += `<line x1="${h.x}" y1="0" x2="${h.x}" y2="${headerH + logH}" stroke="#000" stroke-width="0.6"/>`;
+  });
+  // Right border of last column
+  svg += `<line x1="${totalW}" y1="0" x2="${totalW}" y2="${headerH + logH}" stroke="#000" stroke-width="0.8"/>`;
+  // Left border
+  svg += `<line x1="0" y1="0" x2="0" y2="${headerH + logH}" stroke="#000" stroke-width="0.8"/>`;
+  // Header bottom — thick black line (like the references)
+  svg += `<line x1="0" y1="${headerH}" x2="${totalW}" y2="${headerH}" stroke="#000" stroke-width="1.2"/>`;
+  // Header top
+  svg += `<line x1="0" y1="0" x2="${totalW}" y2="0" stroke="#000" stroke-width="0.8"/>`;
+
+  /* ==================================================================
+     DEPTH-TO-Y MAPPING
+     ================================================================== */
   function depthToY(d) {
     let cy = headerH;
     for (let i = 0; i < layers.length; i++) {
@@ -1853,141 +1883,192 @@ function buildProLog(data, showLegend) {
       const thick = l.to - l.from;
       const h = layerHeights[i];
       if (d >= l.from && d <= l.to) {
-        const frac = thick > 0 ? (d - l.from) / thick : 0;
-        return cy + frac * h;
+        return cy + (thick > 0 ? (d - l.from) / thick : 0) * h;
       }
       cy += h;
     }
     return cy;
   }
 
-  /* ---- GRADUATION LINES (across all columns) ---- */
+  /* ==================================================================
+     PROFIL COLUMN — pattern fills (drawn first, behind everything)
+     Reference: T1P1 — patterns fill the entire cell, no margins
+     ================================================================== */
+  let yp = headerH;
+  layers.forEach((layer, i) => {
+    const h = layerHeights[i];
+    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
+    svg += `<rect x="${X.profil + 0.5}" y="${yp}" width="${COL.profil - 1}" height="${h}" fill="${gtCfg.color}" opacity="0.15"/>`;
+    svg += `<rect x="${X.profil + 0.5}" y="${yp}" width="${COL.profil - 1}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
+    yp += h;
+  });
+  // Profil column borders — thicker like the references
+  svg += `<line x1="${X.profil}" y1="${headerH}" x2="${X.profil}" y2="${headerH + logH}" stroke="#000" stroke-width="1"/>`;
+  svg += `<line x1="${X.profil + COL.profil}" y1="${headerH}" x2="${X.profil + COL.profil}" y2="${headerH + logH}" stroke="#000" stroke-width="1"/>`;
+
+  /* ==================================================================
+     GRADUATION LINES — crossing ALL columns (like ALL 6 references)
+     Minor = short tick in prof col only. Major = full width light gray.
+     ================================================================== */
   // Minor ticks
   for (let d = Math.ceil(startDepth / grad.minor) * grad.minor; d <= maxDepth; d = Math.round((d + grad.minor) * 100) / 100) {
-    if (Math.abs(d % grad.major) < 0.001) continue;
+    if (Math.abs(d % grad.major) < 0.001 || Math.abs((d % grad.major) - grad.major) < 0.001) continue;
     const y = depthToY(d);
-    // Short tick in prof column
-    svg += `<line x1="${X.prof + COL.prof - 4}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#999" stroke-width="0.3"/>`;
+    svg += `<line x1="${X.prof + COL.prof - 5}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#666" stroke-width="0.4"/>`;
   }
-  // Major ticks — full width light lines + tick + number
+  // Major ticks — full width
   for (let d = Math.ceil(startDepth / grad.major) * grad.major; d <= maxDepth; d = Math.round((d + grad.major) * 100) / 100) {
     const y = depthToY(d);
-    // Full-width graduation line (light gray)
-    svg += `<line x1="0" y1="${y}" x2="${totalW}" y2="${y}" stroke="#ccc" stroke-width="0.3"/>`;
-    // Tick mark
-    svg += `<line x1="${X.prof + COL.prof - 8}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#666" stroke-width="0.5"/>`;
-    // Depth number (right-aligned)
-    svg += `<text x="${X.prof + COL.prof - 10}" y="${y + 3}" text-anchor="end" font-size="7" fill="#4a5a6a">${d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)}</text>`;
+    // Light gray graduation line across ALL columns
+    svg += `<line x1="0" y1="${y}" x2="${totalW}" y2="${y}" stroke="#bbb" stroke-width="0.25"/>`;
+    // Tick line in depth col
+    svg += `<line x1="${X.prof + COL.prof - 10}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#333" stroke-width="0.6"/>`;
+    // Depth number (right-aligned, left of tick)
+    const depthStr = d % 1 === 0 ? d.toFixed(0) : d.toFixed(1);
+    svg += `<text x="${X.prof + COL.prof - 12}" y="${y + 3}" text-anchor="end" font-size="8" fill="#000">${depthStr}</text>`;
     // Altitude number
     if (hasAlt) {
-      svg += `<text x="${X.alt + COL.alt / 2}" y="${y + 3}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - d).toFixed(1)}</text>`;
+      const altStr = (m.altitude - d).toFixed(0);
+      svg += `<text x="${X.alt + COL.alt / 2}" y="${y + 3}" text-anchor="middle" font-size="7.5" fill="#333">${altStr}</text>`;
     }
   }
-  // Start depth
-  const y0 = headerH;
-  svg += `<text x="${X.prof + COL.prof - 10}" y="${y0 + 10}" text-anchor="end" font-size="7" fill="#4a5a6a">${startDepth % 1 === 0 ? startDepth.toFixed(0) : startDepth.toFixed(1)}</text>`;
-  if (hasAlt) {
-    svg += `<text x="${X.alt + COL.alt / 2}" y="${y0 + 10}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - startDepth).toFixed(1)}</text>`;
+
+  /* Start depth label (always show 0 or start) */
+  const yTop = headerH;
+  if (startDepth % grad.major !== 0) {
+    svg += `<line x1="${X.prof + COL.prof - 10}" y1="${yTop}" x2="${X.prof + COL.prof}" y2="${yTop}" stroke="#333" stroke-width="0.6"/>`;
+    svg += `<text x="${X.prof + COL.prof - 12}" y="${yTop + 9}" text-anchor="end" font-size="8" fill="#000">${startDepth % 1 === 0 ? startDepth.toFixed(0) : startDepth.toFixed(1)}</text>`;
+    if (hasAlt) {
+      svg += `<text x="${X.alt + COL.alt / 2}" y="${yTop + 9}" text-anchor="middle" font-size="7.5" fill="#333">${(m.altitude - startDepth).toFixed(0)}</text>`;
+    }
   }
 
-  /* ---- Depth ruler axis line ---- */
-  svg += `<line x1="${X.prof + COL.prof}" y1="${headerH}" x2="${X.prof + COL.prof}" y2="${headerH + logH}" stroke="#666" stroke-width="0.8"/>`;
+  /* Depth axis continuous vertical line (like R2876, Aquageo) */
+  svg += `<line x1="${X.prof + COL.prof}" y1="${headerH}" x2="${X.prof + COL.prof}" y2="${headerH + logH}" stroke="#000" stroke-width="0.8"/>`;
 
-  /* ---- RENDER LAYERS ---- */
+  /* ==================================================================
+     LAYER BOUNDARIES + DESCRIPTIONS + VENUES D'EAU
+     Reference: T1P1 — black lines across full width (0.8px)
+     Description text starts NEAR TOP of layer band, not centered
+     ================================================================== */
   let yOff = headerH;
 
-  // Group layers by stratigraphie for the strat column
+  /* Group layers by stratigraphie for spanning */
   const stratGroups = [];
-  let currentStrat = null;
+  let curStrat = null;
   layers.forEach((l, i) => {
-    const strat = l.stratigraphie || '';
-    if (strat !== currentStrat) {
-      stratGroups.push({ name: strat, fromIdx: i, toIdx: i });
-      currentStrat = strat;
-    } else {
-      stratGroups[stratGroups.length - 1].toIdx = i;
-    }
+    const s = l.stratigraphie || '';
+    if (s !== curStrat) { stratGroups.push({ name: s, fromIdx: i, toIdx: i }); curStrat = s; }
+    else { stratGroups[stratGroups.length - 1].toIdx = i; }
   });
 
   layers.forEach((layer, i) => {
     const h = layerHeights[i];
     const thick = layer.to - layer.from;
-    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
 
-    /* Col 3: Profil géologique — pattern fill */
-    svg += `<rect x="${X.profil}" y="${yOff}" width="${COL.profil}" height="${h}" fill="${gtCfg.color}" opacity="0.25"/>`;
-    svg += `<rect x="${X.profil}" y="${yOff}" width="${COL.profil}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
+    /* ---- Layer boundary (black, full width) ---- */
+    if (i > 0) {
+      svg += `<line x1="0" y1="${yOff}" x2="${totalW}" y2="${yOff}" stroke="#000" stroke-width="0.8"/>`;
+    }
 
-    /* Col 4: Description lithologique */
-    const descX = X.desc + 4;
-    const maxCharsPerLine = 38;
-    // First line: depth range + litho name (bold)
-    const firstLine = `${layer.from.toFixed(1)} - ${layer.to.toFixed(1)} m ${layer.litho}`;
-    // Detail lines
-    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
-    const detailLines = wrapText(details, maxCharsPerLine);
-    const lineH = 10;
-    const totalTextH = lineH + detailLines.length * lineH;
-    const textStartY = yOff + Math.max((h - totalTextH) / 2, 4) + lineH;
-
-    svg += `<text x="${descX}" y="${textStartY}" font-size="8" font-weight="700" fill="#1a2332">${escapeHtml(firstLine.substring(0, 45))}${firstLine.length > 45 ? '...' : ''}</text>`;
-    detailLines.forEach((line, li) => {
-      if (textStartY + (li + 1) * lineH < yOff + h - 2) {
-        svg += `<text x="${descX}" y="${textStartY + (li + 1) * lineH}" font-size="7" fill="#5a6a7a">${escapeHtml(line)}</text>`;
+    /* ---- Depth labels at layer transitions ----
+       Like R2876 (Hydro-Géo): depth at each layer boundary */
+    const layerDepthY = yOff + 3;
+    if (i > 0) {
+      // Show depth at transition (avoid overlap with major grad ticks)
+      const nearMajor = Math.abs(layer.from - Math.round(layer.from / grad.major) * grad.major) < grad.minor * 0.3;
+      if (!nearMajor) {
+        svg += `<text x="${X.prof + COL.prof - 12}" y="${layerDepthY + 7}" text-anchor="end" font-size="7" font-weight="600" fill="#000">${layer.from % 1 === 0 ? layer.from.toFixed(0) : layer.from.toFixed(1)}</text>`;
       }
-    });
+    }
 
-    /* Col 5: Géotype / USCS */
+    /* ---- Col 4: Description lithologique ----
+       Reference: T1P1 — depth range on first line bold, then description
+       Text starts near the TOP of the layer band (not centered) */
+    const dx = X.desc + 5;
+    const lineH = 11;
+    const topPad = 10;
+    const textY0 = yOff + topPad;
+    const maxChars = Math.floor(COL.desc / 5);
+
+    // Line 1: depth range + lithology name (bold) — like T1P1
+    const depthRange = `${layer.from.toFixed(1)} - ${layer.to.toFixed(1)} m`;
+    svg += `<text x="${dx}" y="${textY0}" font-size="9" font-weight="700" fill="#000">${escapeHtml(depthRange)} ${escapeHtml(layer.litho)}</text>`;
+
+    // Lines 2+: full description with word wrap
+    const descParts = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean);
+    const fullDesc = layer.description || descParts.join(', ');
+    // Only show additional detail if it differs from litho
+    const descToShow = fullDesc.toLowerCase().startsWith(layer.litho.toLowerCase()) ? fullDesc.substring(layer.litho.length).replace(/^[,\s]+/, '') : fullDesc;
+    if (descToShow) {
+      const wrappedLines = svgWrapText(descToShow, maxChars);
+      wrappedLines.forEach((line, li) => {
+        const ty = textY0 + (li + 1) * lineH;
+        if (ty < yOff + h - 3) {
+          svg += `<text x="${dx}" y="${ty}" font-size="8" fill="#333">${escapeHtml(line)}</text>`;
+        }
+      });
+    }
+
+    /* ---- Col 5: Géotype / USCS ----
+       Reference: T1P1 — vertical géotype code spanning the layer */
     const gcx = X.geouscs + COL.geouscs / 2;
-    // USCS badge
-    const uscsBadge = getUSCSBadgeColor(layer.uscs);
-    if (uscsBadge) {
-      const bw = 28, bh = 12;
-      svg += `<rect x="${gcx - bw/2}" y="${yOff + 3}" width="${bw}" height="${bh}" rx="3" fill="${uscsBadge.bg}" stroke="${uscsBadge.fg}" stroke-width="0.4" opacity="0.9"/>`;
-      svg += `<text x="${gcx}" y="${yOff + 3 + bh/2 + 3}" text-anchor="middle" font-size="6.5" font-weight="700" fill="${uscsBadge.fg}">${escapeHtml(layer.uscs)}</text>`;
-    }
-    // Geotype code (vertical, bold)
-    const geoCodeY = yOff + (uscsBadge ? 20 : 4);
-    if (h >= 30) {
-      svg += `<text x="${gcx}" y="${geoCodeY + 10}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a5c" transform="rotate(-90,${gcx},${geoCodeY + 10})">${layer.geotype}</text>`;
-    }
-    // Geotype name (vertical, smaller)
-    const geoLabel = (gtCfg.label || '').substring(0, 18);
-    if (h >= 50) {
-      svg += `<text x="${gcx + 8}" y="${geoCodeY + 10}" text-anchor="middle" font-size="5" fill="#6a8aaa" transform="rotate(-90,${gcx + 8},${geoCodeY + 10})">${escapeHtml(geoLabel)}</text>`;
+    const gcMid = yOff + h / 2;
+
+    // USCS badge (like MFR Log_B2)
+    const badge = getUSCSBadgeColor(layer.uscs);
+    if (badge) {
+      const bw = Math.min(COL.geouscs - 6, layer.uscs.length * 7 + 8);
+      const bh = 13;
+      const bx = gcx - bw / 2;
+      const by = yOff + 4;
+      svg += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="2" fill="${badge.bg}" stroke="${badge.border}" stroke-width="0.5"/>`;
+      svg += `<text x="${gcx}" y="${by + bh / 2 + 3.5}" text-anchor="middle" font-size="7" font-weight="700" fill="${badge.fg}">${escapeHtml(layer.uscs)}</text>`;
     }
 
-    /* Col 7: Venues d'eau */
+    // Geotype code + label — vertical text (like T1P1: "CE Colluvions", "MF Moraine")
+    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
+    if (h >= 25) {
+      const usedH = badge ? h - 22 : h;
+      const startGtY = badge ? yOff + 22 : yOff;
+      const gtLabel = gtCfg.label || '';
+      // Truncate label to fit
+      const maxLabelLen = Math.max(4, Math.floor(usedH / 6));
+      const shortLabel = gtLabel.length > maxLabelLen ? gtLabel.substring(0, maxLabelLen - 1) + '…' : gtLabel;
+      const gtText = layer.geotype + ' ' + shortLabel;
+      const gty = startGtY + usedH / 2;
+      svg += `<text x="${gcx}" y="${gty}" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="600" fill="#333" transform="rotate(-90,${gcx},${gty})">${escapeHtml(gtText)}</text>`;
+    }
+
+    /* ---- Col 7: Venues d'eau ----
+       Reference: T1P1 — blue triangle ▼ + dashed line + depth label */
     if (nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to) {
       const ny = depthToY(nappeDepth);
-      const ex = X.eau;
-      // Triangle bleu inversé
-      svg += `<polygon points="${ex+COL.eau/2-5},${ny-7} ${ex+COL.eau/2+5},${ny-7} ${ex+COL.eau/2},${ny}" fill="#2196F3"/>`;
-      // Ligne pointillée
-      svg += `<line x1="${ex}" y1="${ny}" x2="${ex+COL.eau}" y2="${ny}" stroke="#2196F3" stroke-width="1" stroke-dasharray="4,3"/>`;
-      // Depth text
-      svg += `<text x="${ex+COL.eau/2}" y="${ny + 10}" text-anchor="middle" font-size="6.5" font-weight="600" fill="#2196F3">${nappeDepth.toFixed(1)}</text>`;
+      const ecx = X.eau + COL.eau / 2;
+      // Blue dashed line across eau column
+      svg += `<line x1="${X.eau + 2}" y1="${ny}" x2="${X.eau + COL.eau - 2}" y2="${ny}" stroke="#1565C0" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+      // Filled triangle ▼
+      svg += `<polygon points="${ecx - 5},${ny - 8} ${ecx + 5},${ny - 8} ${ecx},${ny - 1}" fill="#1565C0"/>`;
+      // Depth label
+      svg += `<text x="${ecx}" y="${ny + 11}" text-anchor="middle" font-size="7" font-weight="700" fill="#1565C0">${nappeDepth.toFixed(1)}</text>`;
     }
-    // Saturated zone hint (light blue below nappe)
-    if (nappeDepth !== null && layer.to > nappeDepth && layer.from < nappeDepth) {
-      const ny = depthToY(nappeDepth);
-      const belowH = yOff + h - ny;
-      if (belowH > 0) {
-        svg += `<rect x="${X.eau}" y="${ny}" width="${COL.eau}" height="${belowH}" fill="#e3f2fd" opacity="0.4"/>`;
+    // Saturated zone: light blue fill below nappe
+    if (nappeDepth !== null) {
+      if (layer.from >= nappeDepth) {
+        svg += `<rect x="${X.eau + 1}" y="${yOff}" width="${COL.eau - 2}" height="${h}" fill="#BBDEFB" opacity="0.25"/>`;
+      } else if (layer.to > nappeDepth && layer.from < nappeDepth) {
+        const ny = depthToY(nappeDepth);
+        svg += `<rect x="${X.eau + 1}" y="${ny}" width="${COL.eau - 2}" height="${yOff + h - ny}" fill="#BBDEFB" opacity="0.25"/>`;
       }
-    } else if (nappeDepth !== null && layer.from >= nappeDepth) {
-      svg += `<rect x="${X.eau}" y="${yOff}" width="${COL.eau}" height="${h}" fill="#e3f2fd" opacity="0.3"/>`;
-    }
-
-    /* Layer boundary (black line across all columns) */
-    if (i > 0) {
-      svg += `<line x1="0" y1="${yOff}" x2="${totalW}" y2="${yOff}" stroke="#1a2332" stroke-width="0.8"/>`;
     }
 
     yOff += h;
   });
 
-  /* ---- Col 6: STRATIGRAPHIE (spans across multiple layers) ---- */
+  /* ==================================================================
+     Col 6: STRATIGRAPHIE — vertical text spanning formations
+     Reference: R2876 (Hydro-Géo), Aquageo — vertical text + bracket
+     ================================================================== */
   stratGroups.forEach(sg => {
     if (!sg.name) return;
     let sy = headerH;
@@ -1996,72 +2077,85 @@ function buildProLog(data, showLegend) {
     for (let i = sg.fromIdx; i <= sg.toIdx; i++) sh += layerHeights[i];
     const cx = X.strat + COL.strat / 2;
     const cy = sy + sh / 2;
-    // Vertical bracket line
-    svg += `<line x1="${X.strat + 3}" y1="${sy + 2}" x2="${X.strat + 3}" y2="${sy + sh - 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-    svg += `<line x1="${X.strat + 3}" y1="${sy + 2}" x2="${X.strat + 7}" y2="${sy + 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-    svg += `<line x1="${X.strat + 3}" y1="${sy + sh - 2}" x2="${X.strat + 7}" y2="${sy + sh - 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-    // Vertical text
-    const maxLen = Math.floor(sh / 5);
-    const truncName = sg.name.length > maxLen ? sg.name.substring(0, maxLen - 1) + '…' : sg.name;
-    svg += `<text x="${cx + 4}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="6" fill="#1a3a5c" transform="rotate(-90,${cx + 4},${cy})">${escapeHtml(truncName)}</text>`;
-    // Horizontal separator at formation change (if not at first layer)
+
+    // Vertical bracket (like Hydro-Géo R2876)
+    const bx = X.strat + 4;
+    svg += `<line x1="${bx}" y1="${sy + 3}" x2="${bx}" y2="${sy + sh - 3}" stroke="#000" stroke-width="0.7"/>`;
+    svg += `<line x1="${bx}" y1="${sy + 3}" x2="${bx + 4}" y2="${sy + 3}" stroke="#000" stroke-width="0.7"/>`;
+    svg += `<line x1="${bx}" y1="${sy + sh - 3}" x2="${bx + 4}" y2="${sy + sh - 3}" stroke="#000" stroke-width="0.7"/>`;
+
+    // Vertical text — truncate to available height
+    const maxLen = Math.max(6, Math.floor(sh / 5.5));
+    const name = sg.name.length > maxLen ? sg.name.substring(0, maxLen - 1) + '…' : sg.name;
+    svg += `<text x="${cx + 3}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="600" fill="#000" transform="rotate(-90,${cx + 3},${cy})">${escapeHtml(name)}</text>`;
+
+    // Formation boundary line
     if (sg.fromIdx > 0) {
-      svg += `<line x1="${X.strat}" y1="${sy}" x2="${X.strat + COL.strat}" y2="${sy}" stroke="#1a3a5c" stroke-width="1"/>`;
+      svg += `<line x1="${X.strat}" y1="${sy}" x2="${X.strat + COL.strat}" y2="${sy}" stroke="#000" stroke-width="1.2"/>`;
     }
   });
 
-  /* ---- BOTTOM LINE (fond de forage) ---- */
+  /* ==================================================================
+     BOTTOM LINE — fond de forage (thick black, like all references)
+     ================================================================== */
   const bottomY = headerH + logH;
-  svg += `<line x1="0" y1="${bottomY}" x2="${totalW}" y2="${bottomY}" stroke="#1a2332" stroke-width="1.5"/>`;
-  // End depth mark
-  svg += `<text x="${X.prof + COL.prof - 10}" y="${bottomY - 3}" text-anchor="end" font-size="7" fill="#4a5a6a">${maxDepth % 1 === 0 ? maxDepth.toFixed(0) : maxDepth.toFixed(1)}</text>`;
+  svg += `<line x1="0" y1="${bottomY}" x2="${totalW}" y2="${bottomY}" stroke="#000" stroke-width="2"/>`;
+
+  // End depth label
+  svg += `<text x="${X.prof + COL.prof - 12}" y="${bottomY - 4}" text-anchor="end" font-size="8" font-weight="700" fill="#000">${maxDepth % 1 === 0 ? maxDepth.toFixed(0) : maxDepth.toFixed(1)}</text>`;
   if (hasAlt) {
-    svg += `<text x="${X.alt + COL.alt / 2}" y="${bottomY - 3}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - maxDepth).toFixed(1)}</text>`;
+    svg += `<text x="${X.alt + COL.alt / 2}" y="${bottomY - 4}" text-anchor="middle" font-size="7.5" fill="#333">${(m.altitude - maxDepth).toFixed(0)}</text>`;
   }
 
-  /* ---- SCALE LABEL (footer) ---- */
-  svg += `<text x="${totalW / 2}" y="${bottomY + 14}" text-anchor="middle" font-size="7" fill="#8a9aaa">Échelle ${ratio}</text>`;
+  /* ==================================================================
+     SCALE LABEL (below log, centered)
+     ================================================================== */
+  svg += `<text x="${totalW / 2}" y="${bottomY + 14}" text-anchor="middle" font-size="8" fill="#666">Échelle ${ratio}</text>`;
 
-  /* ---- LEGEND ---- */
+  /* ==================================================================
+     LEGEND (optional, below log)
+     ================================================================== */
   if (showLegend) {
-    const legY = bottomY + footerH + 4;
-    svg += `<line x1="10" y1="${legY}" x2="${totalW - 10}" y2="${legY}" stroke="#d0d0d0" stroke-width="0.5"/>`;
-    svg += `<text x="10" y="${legY + 12}" font-size="7" font-weight="700" fill="#4a5a6a">Légende — Géotypes</text>`;
-    const gLegY = legY + 18;
-    const colW = Math.floor((totalW - 20) / 3);
+    const legStartY = bottomY + footerH + 2;
+    svg += `<line x1="8" y1="${legStartY}" x2="${totalW - 8}" y2="${legStartY}" stroke="#ccc" stroke-width="0.5"/>`;
+    svg += `<text x="8" y="${legStartY + 13}" font-size="7.5" font-weight="700" fill="#333">Légende — Géotypes</text>`;
+
+    const gY = legStartY + 20;
+    const colW = Math.floor((totalW - 16) / 3);
     usedGeotypes.forEach((gt, idx) => {
-      const gtCfg = GEOTYPE_CONFIG[gt];
-      if (!gtCfg) return;
+      const cfg = GEOTYPE_CONFIG[gt];
+      if (!cfg) return;
       const col = idx % 3;
       const row = Math.floor(idx / 3);
-      const lx = 10 + col * colW;
-      const ly = gLegY + row * 22;
-      svg += `<rect x="${lx}" y="${ly}" width="16" height="14" fill="url(#pat_${gt})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
-      svg += `<text x="${lx + 20}" y="${ly + 10}" font-size="6.5" fill="#3a5a7a"><tspan font-weight="700">${gt}</tspan> — ${escapeHtml(gtCfg.label)}</text>`;
+      const lx = 8 + col * colW;
+      const ly = gY + row * 24;
+      svg += `<rect x="${lx}" y="${ly}" width="18" height="15" fill="url(#pat_${gt})" stroke="#999" stroke-width="0.5" rx="1"/>`;
+      svg += `<text x="${lx + 22}" y="${ly + 11}" font-size="7" fill="#333"><tspan font-weight="700">${gt}</tspan> — ${escapeHtml(cfg.label)}</text>`;
     });
 
-    // USCS legend
+    // USCS codes legend
     if (usedUSCS.length > 0) {
-      const uscsLegY = gLegY + legendRows * 22 + 4;
-      svg += `<text x="10" y="${uscsLegY}" font-size="7" font-weight="700" fill="#4a5a6a">Codes USCS</text>`;
-      const uLegY = uscsLegY + 8;
+      const uscsY = gY + legendRows * 24 + 6;
+      svg += `<text x="8" y="${uscsY}" font-size="7.5" font-weight="700" fill="#333">Codes USCS</text>`;
+      const uY = uscsY + 12;
       usedUSCS.forEach((u, idx) => {
-        const bc = getUSCSBadgeColor(u) || {bg:'#e8f0fe',fg:'#1a3a5c'};
-        const col = idx % 5;
-        const row = Math.floor(idx / 5);
-        const lx = 10 + col * 90;
-        const ly = uLegY + row * 20;
-        svg += `<rect x="${lx}" y="${ly}" width="${u.length * 6 + 10}" height="13" rx="3" fill="${bc.bg}" stroke="${bc.fg}" stroke-width="0.4"/>`;
-        svg += `<text x="${lx + (u.length * 6 + 10)/2}" y="${ly + 9}" text-anchor="middle" font-size="6.5" font-weight="700" fill="${bc.fg}">${escapeHtml(u)}</text>`;
+        const bc = getUSCSBadgeColor(u) || { bg: '#eee', fg: '#333', border: '#999' };
+        const col = idx % 4;
+        const row = Math.floor(idx / 4);
+        const lx = 8 + col * Math.floor((totalW - 16) / 4);
+        const ly = uY + row * 20;
+        const bw = u.length * 7 + 10;
+        svg += `<rect x="${lx}" y="${ly}" width="${bw}" height="14" rx="2" fill="${bc.bg}" stroke="${bc.border}" stroke-width="0.5"/>`;
+        svg += `<text x="${lx + bw / 2}" y="${ly + 10}" text-anchor="middle" font-size="7" font-weight="700" fill="${bc.fg}">${escapeHtml(u)}</text>`;
       });
     }
 
     // Nappe symbol
     if (nappeDepth !== null) {
-      const nLegY = gLegY + legendRows * 22 + legendUSCSRows * 20 + 10;
-      svg += `<polygon points="10,${nLegY} 20,${nLegY} 15,${nLegY+8}" fill="#2196F3"/>`;
-      svg += `<line x1="25" y1="${nLegY + 4}" x2="55" y2="${nLegY + 4}" stroke="#2196F3" stroke-width="1" stroke-dasharray="4,3"/>`;
-      svg += `<text x="60" y="${nLegY + 7}" font-size="6.5" fill="#2196F3">Niveau piézométrique (${nappeDepth.toFixed(1)} m)</text>`;
+      const nY = gY + legendRows * 24 + (legendUSCSRows > 0 ? legendUSCSRows * 20 + 16 : 0) + 6;
+      svg += `<polygon points="8,${nY} 18,${nY} 13,${nY + 8}" fill="#1565C0"/>`;
+      svg += `<line x1="22" y1="${nY + 4}" x2="52" y2="${nY + 4}" stroke="#1565C0" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+      svg += `<text x="56" y="${nY + 7}" font-size="7" fill="#1565C0" font-weight="600">Niveau piézométrique (${nappeDepth.toFixed(1)} m)</text>`;
     }
   }
 
