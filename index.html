@@ -451,74 +451,7 @@ footer {
 .bureau-header-preview { border: 1px solid #e0e8f0; border-radius: 8px; padding: 12px; margin-top: 16px; background: white; }
 .bureau-actions { display: flex; gap: 8px; margin-top: 16px; grid-column: 1 / -1; }
 
-/* ====== A4 FICHE ====== */
-.fiche-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-.fiche-page {
-  width: 794px;
-  min-height: 1122px;
-  background: white;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-  padding: 38px;
-  position: relative;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 10px;
-  color: #1a2332;
-  overflow: hidden;
-}
-
-/* Zone A - Header Bureau */
-.fiche-zone-a { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1.5px solid #1a3a5c; padding: 10px 12px; margin-bottom: 0; }
-.fiche-bureau-left { display: flex; align-items: center; gap: 12px; }
-.fiche-bureau-logo { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
-.fiche-bureau-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.fiche-bureau-name { font-size: 16px; font-weight: 800; color: #1a3a5c; }
-.fiche-bureau-code { font-size: 10px; color: #6a8aaa; margin-top: 2px; }
-.fiche-bureau-right { text-align: right; font-size: 9px; line-height: 1.6; }
-.fiche-bureau-specs { color: #c0392b; font-weight: 700; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
-.fiche-bureau-contact { color: #4a5a6a; margin-top: 4px; }
-
-/* Zone B - Identification */
-.fiche-zone-b { border: 1.5px solid #1a3a5c; border-top: none; padding: 8px 12px; }
-.fiche-title { font-size: 14px; font-weight: 800; color: #1a3a5c; text-transform: uppercase; margin-bottom: 4px; }
-.fiche-subtitle { font-size: 11px; color: #4a5a6a; margin-bottom: 6px; }
-.fiche-id-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 10px; }
-.fiche-id-row { display: flex; align-items: baseline; gap: 6px; }
-.fiche-id-label { font-weight: 700; color: #1a3a5c; min-width: 100px; white-space: nowrap; }
-.fiche-id-colon { color: #1a3a5c; font-weight: 700; }
-
-/* Zone C - Technical metadata */
-.fiche-zone-c { border: 1.5px solid #1a3a5c; border-top: none; padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 10px; }
-.fiche-meta-row { display: flex; align-items: baseline; gap: 6px; }
-.fiche-meta-label { font-weight: 700; color: #1a3a5c; min-width: 90px; white-space: nowrap; }
-
-/* Zone D - Column headers */
-.fiche-zone-d { display: flex; border: 1.5px solid #1a3a5c; border-top: none; font-size: 8px; font-weight: 700; text-transform: uppercase; color: #1a3a5c; }
-.fiche-col-header { padding: 4px 3px; text-align: center; border-right: 0.5px solid #c0d0e0; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
-.fiche-col-header:last-child { border-right: none; }
-
-/* Zone E - Log */
-.fiche-zone-e { border: 1.5px solid #1a3a5c; border-top: none; min-height: 500px; position: relative; overflow: hidden; }
-
-/* Zone F - Footer */
-.fiche-zone-f { border: 1.5px solid #1a3a5c; border-top: none; padding: 4px 12px; display: flex; justify-content: space-between; font-size: 9px; color: #4a5a6a; }
-
-/* Editable fields */
-.fiche-editable {
-  display: inline-block; min-width: 60px; padding: 1px 4px; border-bottom: 1px dotted #c0d0e0;
-  cursor: text; color: #1a2332; font-weight: 400;
-  transition: background 0.15s;
-}
-.fiche-editable:hover { background: #f0f6ff; }
-.fiche-editable:focus { outline: none; background: #e8f0fe; border-bottom-color: #2d6a9f; border-bottom-style: solid; }
-.fiche-editable:empty::before { content: attr(data-placeholder); color: #c0d0e0; font-style: normal; }
-.fiche-editable.source-ai { border-bottom-color: #2d6a9f; }
-.fiche-editable.source-bureau { border-bottom-color: #a0b0c0; }
-.fiche-editable.source-manual { border-bottom-color: #d4a017; }
-.fiche-editable[data-placeholder]:empty { min-width: 80px; }
-
-/* Sondage type dropdown */
-.fiche-type-select { border: none; background: none; font-size: 11px; color: #4a5a6a; cursor: pointer; padding: 2px 4px; font-family: inherit; }
-.fiche-type-select:focus { outline: 1px solid #2d6a9f; border-radius: 3px; }
+/* ====== LOG EXPORT DROPDOWN ====== */
 
 /* Export dropdown */
 .export-dropdown { position: relative; display: inline-block; }
@@ -599,7 +532,6 @@ nappe [profondeur]
     <div class="tab-bar" id="outputTabs">
       <button class="tab-btn active" onclick="switchOutputTab('tableau')">Tableau</button>
       <button class="tab-btn" onclick="switchOutputTab('log')">Log</button>
-      <button class="tab-btn" onclick="switchOutputTab('fiche')">Fiche</button>
     </div>
 
     <!-- TAB: TABLEAU -->
@@ -636,27 +568,24 @@ nappe [profondeur]
         <label class="scale-opt"><input type="radio" name="logScale" value="1:50" onchange="reRenderLog()"> 1:50</label>
         <label class="scale-opt"><input type="radio" name="logScale" value="1:100" onchange="reRenderLog()"> 1:100</label>
         <label class="scale-opt"><input type="radio" name="logScale" value="1:200" onchange="reRenderLog()"> 1:200</label>
+        <label class="scale-opt"><input type="radio" name="logScale" value="1:500" onchange="reRenderLog()"> 1:500</label>
+        <label class="scale-opt"><input type="radio" name="logScale" value="1:1000" onchange="reRenderLog()"> 1:1000</label>
+        <label class="scale-opt" style="margin-left:auto;">
+          <input type="checkbox" id="logLegendToggle" checked onchange="reRenderLog()"> Légende
+        </label>
       </div>
-      <div id="logOutput"></div>
+      <div id="logOutput" class="log-svg-wrap"></div>
       <canvas id="logCanvas" style="display:none;"></canvas>
       <div class="warn-bar" id="logWarnBar" style="display:none;">Ce log a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; automatiquement. V&eacute;rification requise avant int&eacute;gration au rapport.</div>
       <div class="export-row" id="logExportBar" style="display:none;">
-        <button class="btn-secondary" onclick="exportLogPNG(2)">PNG</button>
-        <button class="btn-secondary" onclick="exportLogSVG()">SVG</button>
-      </div>
-    </div>
-
-    <!-- TAB: FICHE -->
-    <div class="tab-content" id="outputFiche">
-      <div class="fiche-container" id="ficheContainer"></div>
-      <div class="export-row" id="ficheExportBar" style="display:none; margin-top: 16px;">
         <div class="export-dropdown">
-          <button class="export-dropdown-btn" onclick="toggleExportDropdown()">
-            Exporter <span style="font-size: 10px;">▼</span>
+          <button class="export-dropdown-btn" onclick="toggleLogExportDropdown()">
+            ⬇ Exporter <span style="font-size:10px;">▼</span>
           </button>
-          <div class="export-dropdown-menu" id="exportDropdownMenu">
-            <div class="export-dropdown-item" onclick="exportFichePDF(); toggleExportDropdown();">PDF A4</div>
-            <div class="export-dropdown-item" onclick="exportFichePNG(); toggleExportDropdown();">PNG</div>
+          <div class="export-dropdown-menu" id="logExportDropdownMenu">
+            <div class="export-dropdown-item" onclick="exportLogSVG(); toggleLogExportDropdown();">SVG (vectoriel, pour Illustrator/Inkscape)</div>
+            <div class="export-dropdown-item" onclick="exportLogPNG300(); toggleLogExportDropdown();">PNG 300 DPI (image, pour Word/InDesign)</div>
+            <div class="export-dropdown-item" onclick="exportLogPDF(); toggleLogExportDropdown();">PDF (document, pour impression)</div>
           </div>
         </div>
       </div>
@@ -777,7 +706,7 @@ nappe [profondeur]
   <p data-i18n="svp">Projet soutenu par le Student Venture Program de la HES-SO et de l'Universit&eacute; de Fribourg</p>
 </div>
 <footer>
-  <p>SYNOS &mdash; v7.0 &mdash; Mars 2026</p>
+  <p>SYNOS &mdash; v8.0 &mdash; Avril 2026</p>
 </footer>
 
 <script>
@@ -1436,7 +1365,7 @@ async function structurer() {
     transitionToActive();
     renderTableau(result);
     renderLog(result);
-    renderFiche(result);
+    // Fiche view removed — log is standalone export block
     updateBanner(result);
     switchOutputTab('fiche');
 
@@ -1737,7 +1666,7 @@ async function applyCorrection() {
     lastStructuredData = result;
     renderTableau(result);
     renderLog(result);
-    renderFiche(result);
+    // Fiche view removed — log is standalone export block
     updateBanner(result);
 
     input.value = '';
@@ -1760,16 +1689,22 @@ async function applyCorrection() {
    ================================================================ */
 /* ---- Scale helpers ---- */
 function selectScale(totalDepth) {
-  if (totalDepth <= 20) return { ratio: '1:50', pxPerM: 75.6 };
-  if (totalDepth <= 80) return { ratio: '1:100', pxPerM: 37.8 };
-  return { ratio: '1:200', pxPerM: 18.9 };
+  if (totalDepth <= 10) return { ratio: '1:50', pxPerM: 75.6 };
+  if (totalDepth <= 30) return { ratio: '1:100', pxPerM: 37.8 };
+  if (totalDepth <= 80) return { ratio: '1:200', pxPerM: 18.9 };
+  if (totalDepth <= 200) return { ratio: '1:500', pxPerM: 7.56 };
+  return { ratio: '1:1000', pxPerM: 3.78 };
+}
+function scaleFromRatio(ratio) {
+  const map = {'1:50':{ratio:'1:50',pxPerM:75.6},'1:100':{ratio:'1:100',pxPerM:37.8},'1:200':{ratio:'1:200',pxPerM:18.9},'1:500':{ratio:'1:500',pxPerM:7.56},'1:1000':{ratio:'1:1000',pxPerM:3.78}};
+  return map[ratio] || selectScale(100);
 }
 function getChosenScale() {
   const sel = document.querySelector('input[name="logScale"]:checked');
   return sel ? sel.value : 'auto';
 }
 function layerHeight(thickness, pxPerM) {
-  return Math.max(thickness * pxPerM, 50);
+  return Math.max(thickness * pxPerM, 30);
 }
 function reRenderLog() {
   if (lastStructuredData) renderLog(lastStructuredData);
@@ -1777,278 +1712,367 @@ function reRenderLog() {
 
 /* ---- Graduation config per scale ---- */
 function getGraduation(ratio) {
-  if (ratio === '1:50')  return { major: 1, minor: 0.5 };
-  if (ratio === '1:100') return { major: 5, minor: 1 };
-  return { major: 10, minor: 5 }; // 1:200
+  if (ratio === '1:50')   return { major: 1,  minor: 0.5 };
+  if (ratio === '1:100')  return { major: 2,  minor: 1 };
+  if (ratio === '1:200')  return { major: 5,  minor: 1 };
+  if (ratio === '1:500')  return { major: 10, minor: 5 };
+  if (ratio === '1:1000') return { major: 20, minor: 10 };
+  return { major: 20, minor: 10 };
 }
 
-/* ---- Pagination ---- */
-function paginateLog(layers, pxPerM, nappeDepth, startDepth) {
-  const PAGE_HEIGHT = 890;
-  const pages = [];
-  let currentPage = { segments: [], usedHeight: 0 };
+/* ================================================================
+   PROFESSIONAL 7-COLUMN SVG LOG RENDERER
+   Columns: Profondeur | Altitude | Profil géol. | Description | Géotype/USCS | Stratigraphie | Venues d'eau
+   ================================================================ */
 
-  for (const layer of layers) {
-    const thickness = layer.to - layer.from;
-    const h = layerHeight(thickness, pxPerM);
-    const stretched = h > thickness * pxPerM;
+/* USCS badge color by group */
+function getUSCSBadgeColor(uscs) {
+  if (!uscs || uscs === '—' || uscs === 'Roche' || uscs === 'R') return null;
+  if (/^G/.test(uscs)) return { bg: '#d4edda', fg: '#155724' }; // gravel = green
+  if (/^S/.test(uscs)) return { bg: '#cce5ff', fg: '#004085' }; // sand = blue
+  if (/^C/.test(uscs)) return { bg: '#f8d7da', fg: '#721c24' }; // clay = red
+  if (/^M/.test(uscs)) return { bg: '#ffeeba', fg: '#856404' }; // silt = orange
+  if (/^O|^Pt/.test(uscs)) return { bg: '#e2d5c1', fg: '#5a4020' }; // organic = brown
+  return { bg: '#e8f0fe', fg: '#1a3a5c' };
+}
 
-    if (currentPage.usedHeight + h > PAGE_HEIGHT && currentPage.segments.length > 0) {
-      const remaining = PAGE_HEIGHT - currentPage.usedHeight;
-      if (remaining >= 30) {
-        // Split: part on this page
-        const fraction = remaining / h;
-        const splitDepth = layer.from + thickness * fraction;
-        currentPage.segments.push({
-          ...layer, displayHeight: remaining, stretched,
-          segFrom: layer.from, segTo: splitDepth,
-          continued: true, showDesc: remaining >= h / 2
-        });
-      }
-      pages.push(currentPage);
-      currentPage = { segments: [], usedHeight: 0 };
-
-      // Continued part on next page
-      const usedOnPrev = remaining >= 30 ? remaining : 0;
-      const remainH = h - usedOnPrev;
-      const contFrom = remaining >= 30 ? layer.from + thickness * (usedOnPrev / h) : layer.from;
-      if (remainH > 0) {
-        currentPage.segments.push({
-          ...layer, displayHeight: remainH, stretched,
-          segFrom: contFrom, segTo: layer.to,
-          continuedFrom: true, showDesc: remainH >= h / 2 || usedOnPrev < 30
-        });
-        currentPage.usedHeight = remainH;
-      }
+/* Word-wrap text into lines of maxW px (approx) */
+function wrapText(text, maxChars) {
+  if (!text) return [];
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    if (line.length + w.length + 1 > maxChars && line.length > 0) {
+      lines.push(line);
+      line = w;
     } else {
-      currentPage.segments.push({
-        ...layer, displayHeight: h, stretched,
-        segFrom: layer.from, segTo: layer.to,
-        showDesc: true
-      });
-      currentPage.usedHeight += h;
+      line = line ? line + ' ' + w : w;
     }
   }
-  if (currentPage.segments.length > 0) pages.push(currentPage);
-  return pages;
+  if (line) lines.push(line);
+  return lines;
 }
 
-/* ---- Render a single page SVG ---- */
-function renderLogPage(pageData, pageIdx, totalPages, meta, scaleInfo, usedGeotypes, nappeDepth, isExportPNG) {
-  const m = meta;
+/* Build the 7-column SVG log */
+function buildProLog(data, showLegend) {
+  if (!data.layers || !data.layers.some(l => l.to != null)) return '';
+
+  const m = data.meta || {};
   const hasAlt = typeof m.altitude === 'number';
-  const { ratio, pxPerM } = scaleInfo;
-  const grad = getGraduation(ratio);
-  const isFirstPage = pageIdx === 0;
-
-  const marginTop = isFirstPage ? 65 : 40;
-  const marginBottom = 30;
-  const marginLeft = 70;
-  const scaleColW = 35, logColW = 110, patternColW = 110, descColW = 280;
-  const altColW = hasAlt ? 65 : 0;
-  const totalW = marginLeft + scaleColW + logColW + patternColW + 15 + descColW + altColW + 20;
-  const logX = marginLeft + scaleColW;
-  const patX = logX + logColW;
-  const descX = patX + patternColW + 15;
-  const altX = descX + descColW + 5;
-
-  const pageLogH = pageData.segments.reduce((s, seg) => s + seg.displayHeight, 0);
-
-  // Legend only on last page
-  const isLastPage = pageIdx === totalPages - 1;
-  const legendRows = isLastPage ? Math.ceil(usedGeotypes.length / 4) : 0;
-  const legendH = isLastPage ? legendRows * 28 + 30 : 0;
-  const scaleInfoH = isLastPage ? 24 : 0;
-  const totalH = marginTop + pageLogH + marginBottom + scaleInfoH + legendH;
-
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" style="font-family:'Segoe UI',sans-serif;" data-page="${pageIdx+1}">`;
-  svg += `<rect width="${totalW}" height="${totalH}" fill="white"/>`;
-  svg += buildGeotypePatternDefs(usedGeotypes);
-
-  // Header
-  if (isFirstPage) {
-    svg += `<text x="${totalW/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1a3a5c">Log de forage — ${escapeHtml(m.id||'—')}</text>`;
-    svg += `<text x="${totalW/2}" y="36" text-anchor="middle" font-size="10" fill="#6a8aaa">${escapeHtml(m.date||'')} | ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):''} | Alt. ${escapeHtml(String(m.altitude||'—'))} m</text>`;
-  } else {
-    svg += `<text x="${totalW/2}" y="18" text-anchor="middle" font-size="11" fill="#9aa0a8">${escapeHtml(m.id||'—')} — Page ${pageIdx+1}/${totalPages} — Échelle ${ratio}</text>`;
-  }
-
-  const headY = marginTop - 10;
-  svg += `<text x="${marginLeft+scaleColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Prof. (m)</text>`;
-  svg += `<text x="${logX+logColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Lithologie</text>`;
-  svg += `<text x="${patX+patternColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Figure</text>`;
-  svg += `<text x="${descX}" y="${headY}" font-size="9" font-weight="600" fill="#4a5a6a">Description</text>`;
-  if (hasAlt) svg += `<text x="${altX+altColW/2}" y="${headY}" text-anchor="middle" font-size="9" font-weight="600" fill="#4a5a6a">Alt. (m)</text>`;
-
-  // Outer frame
-  svg += `<rect x="${logX}" y="${marginTop}" width="${logColW+patternColW}" height="${pageLogH}" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>`;
-  svg += `<line x1="${patX}" y1="${marginTop}" x2="${patX}" y2="${marginTop+pageLogH}" stroke="#1a3a5c" stroke-width="0.5"/>`;
-
-  // Draw segments (backgrounds + patterns)
-  let yOff = marginTop;
-  const segments = pageData.segments;
-  segments.forEach((seg, i) => {
-    const h = seg.displayHeight;
-    const gtCfg = GEOTYPE_CONFIG[seg.geotype] || GEOTYPE_CONFIG['CE'];
-    svg += `<rect x="${logX}" y="${yOff}" width="${logColW}" height="${h}" fill="${gtCfg.color}" opacity="0.35"/>`;
-    svg += `<rect x="${patX}" y="${yOff}" width="${patternColW}" height="${h}" fill="url(#pat_${seg.geotype})"/>`;
-    if (i > 0) svg += `<line x1="${logX}" y1="${yOff}" x2="${patX+patternColW}" y2="${yOff}" stroke="#1a3a5c" stroke-width="0.8"/>`;
-    yOff += h;
+  const layers = data.layers.filter(l => l.to != null).map(l => {
+    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
+    const geotype = getGeotypeForLayer(l);
+    const uscs = displayUSCS(l);
+    return {
+      from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs,
+      couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '',
+      stratigraphie: l.stratigraphie || l.formation || ''
+    };
   });
 
-  // Depth scale ticks — use real depth from segments
-  yOff = marginTop;
-  const pageStartDepth = segments[0].segFrom;
-  const pageEndDepth = segments[segments.length - 1].segTo;
+  const maxDepth = Math.max(...layers.map(l => l.to));
+  const startDepth = layers[0].from;
+  const totalDepth = maxDepth - startDepth;
+  const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
+  const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
 
-  // Build a depth-to-y mapping for this page
+  // Scale
+  const choice = getChosenScale();
+  const scaleInfo = choice === 'auto' ? selectScale(totalDepth) : scaleFromRatio(choice);
+  const { ratio, pxPerM } = scaleInfo;
+  const grad = getGraduation(ratio);
+
+  // Column widths (total = 470px as spec)
+  const COL = {
+    prof: 30, alt: 30, profil: 60, desc: 220, geouscs: 40, strat: 50, eau: 40
+  };
+  const totalW = COL.prof + COL.alt + COL.profil + COL.desc + COL.geouscs + COL.strat + COL.eau;
+  // Column x positions
+  const X = {};
+  X.prof = 0;
+  X.alt = X.prof + COL.prof;
+  X.profil = X.alt + COL.alt;
+  X.desc = X.profil + COL.profil;
+  X.geouscs = X.desc + COL.desc;
+  X.strat = X.geouscs + COL.geouscs;
+  X.eau = X.strat + COL.strat;
+
+  // Header height
+  const headerH = 35;
+  // Layer heights
+  const layerHeights = layers.map(l => layerHeight(l.to - l.from, pxPerM));
+  const logH = layerHeights.reduce((s, h) => s + h, 0);
+
+  // Footer / scale label
+  const footerH = 20;
+  // Legend
+  const usedUSCS = [...new Set(layers.map(l => l.uscs).filter(u => u && u !== '—'))];
+  const legendEntries = usedGeotypes.length;
+  const legendRows = showLegend ? Math.ceil(legendEntries / 3) : 0;
+  const legendUSCSRows = showLegend ? Math.ceil(usedUSCS.length / 5) : 0;
+  const legendH = showLegend ? (legendRows * 22 + legendUSCSRows * 20 + (nappeDepth !== null ? 20 : 0) + 32) : 0;
+  const svgH = headerH + logH + footerH + legendH + 2;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}" viewBox="0 0 ${totalW} ${svgH}" style="font-family:Helvetica,Arial,sans-serif;background:white;">`;
+  svg += `<rect width="${totalW}" height="${svgH}" fill="white"/>`;
+  svg += buildGeotypePatternDefs(usedGeotypes);
+
+  /* ---- COLUMN HEADERS (Zone D) ---- */
+  svg += `<rect x="0" y="0" width="${totalW}" height="${headerH}" fill="#eaeaea"/>`;
+  // Vertical text for column headers
+  const colHeaders = [
+    { x: X.prof, w: COL.prof, label: 'PROFONDEUR [m]', vertical: true },
+    { x: X.alt,  w: COL.alt,  label: 'ALTITUDE [m.s.m]', vertical: true },
+    { x: X.profil, w: COL.profil, label: 'PROFIL GÉOLOGIQUE', vertical: true },
+    { x: X.desc, w: COL.desc, label: 'DESCRIPTION LITHOLOGIQUE', vertical: false },
+    { x: X.geouscs, w: COL.geouscs, label: 'GÉOTYPE / USCS', vertical: true },
+    { x: X.strat, w: COL.strat, label: 'STRATIGRAPHIE', vertical: true },
+    { x: X.eau, w: COL.eau, label: "VENUES D'EAU", vertical: true }
+  ];
+  colHeaders.forEach(ch => {
+    const cx = ch.x + ch.w / 2;
+    if (ch.vertical) {
+      svg += `<text x="${cx}" y="${headerH/2}" text-anchor="middle" dominant-baseline="central" font-size="6" font-weight="700" fill="#1a2332" transform="rotate(-90,${cx},${headerH/2})">${ch.label}</text>`;
+    } else {
+      svg += `<text x="${cx}" y="${headerH/2 + 2}" text-anchor="middle" font-size="6" font-weight="700" fill="#1a2332">${ch.label}</text>`;
+    }
+    // Column separator
+    svg += `<line x1="${ch.x}" y1="0" x2="${ch.x}" y2="${headerH + logH}" stroke="#999" stroke-width="0.5"/>`;
+  });
+  // Right border
+  svg += `<line x1="${totalW}" y1="0" x2="${totalW}" y2="${headerH + logH}" stroke="#999" stroke-width="0.5"/>`;
+  // Header bottom line
+  svg += `<line x1="0" y1="${headerH}" x2="${totalW}" y2="${headerH}" stroke="#1a2332" stroke-width="1"/>`;
+
+  /* ---- Depth-to-Y mapping ---- */
   function depthToY(d) {
-    let cy = marginTop;
-    for (const seg of segments) {
-      const segThickness = seg.segTo - seg.segFrom;
-      if (d >= seg.segFrom && d <= seg.segTo) {
-        const frac = segThickness > 0 ? (d - seg.segFrom) / segThickness : 0;
-        return cy + frac * seg.displayHeight;
+    let cy = headerH;
+    for (let i = 0; i < layers.length; i++) {
+      const l = layers[i];
+      const thick = l.to - l.from;
+      const h = layerHeights[i];
+      if (d >= l.from && d <= l.to) {
+        const frac = thick > 0 ? (d - l.from) / thick : 0;
+        return cy + frac * h;
       }
-      cy += seg.displayHeight;
+      cy += h;
     }
     return cy;
   }
 
+  /* ---- GRADUATION LINES (across all columns) ---- */
   // Minor ticks
-  for (let d = Math.ceil(pageStartDepth / grad.minor) * grad.minor; d <= pageEndDepth; d += grad.minor) {
-    d = Math.round(d * 100) / 100; // float fix
-    if (d % grad.major === 0) continue;
+  for (let d = Math.ceil(startDepth / grad.minor) * grad.minor; d <= maxDepth; d = Math.round((d + grad.minor) * 100) / 100) {
+    if (Math.abs(d % grad.major) < 0.001) continue;
     const y = depthToY(d);
-    svg += `<line x1="${marginLeft+scaleColW-3}" y1="${y}" x2="${logX}" y2="${y}" stroke="#e0e8f0" stroke-width="0.3"/>`;
+    // Short tick in prof column
+    svg += `<line x1="${X.prof + COL.prof - 4}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#999" stroke-width="0.3"/>`;
   }
-  // Major ticks
-  for (let d = Math.ceil(pageStartDepth / grad.major) * grad.major; d <= pageEndDepth; d += grad.major) {
-    d = Math.round(d * 100) / 100;
+  // Major ticks — full width light lines + tick + number
+  for (let d = Math.ceil(startDepth / grad.major) * grad.major; d <= maxDepth; d = Math.round((d + grad.major) * 100) / 100) {
     const y = depthToY(d);
-    svg += `<line x1="${marginLeft}" y1="${y}" x2="${patX+patternColW}" y2="${y}" stroke="#d0dde8" stroke-width="0.5"/>`;
-    svg += `<text x="${marginLeft+scaleColW-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)}</text>`;
+    // Full-width graduation line (light gray)
+    svg += `<line x1="0" y1="${y}" x2="${totalW}" y2="${y}" stroke="#ccc" stroke-width="0.3"/>`;
+    // Tick mark
+    svg += `<line x1="${X.prof + COL.prof - 8}" y1="${y}" x2="${X.prof + COL.prof}" y2="${y}" stroke="#666" stroke-width="0.5"/>`;
+    // Depth number (right-aligned)
+    svg += `<text x="${X.prof + COL.prof - 10}" y="${y + 3}" text-anchor="end" font-size="7" fill="#4a5a6a">${d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)}</text>`;
+    // Altitude number
+    if (hasAlt) {
+      svg += `<text x="${X.alt + COL.alt / 2}" y="${y + 3}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - d).toFixed(1)}</text>`;
+    }
   }
-  // Always show start depth
-  const y0 = marginTop;
-  svg += `<text x="${marginLeft+scaleColW-4}" y="${y0+4}" text-anchor="end" font-size="10" fill="#4a5a6a">${pageStartDepth % 1 === 0 ? pageStartDepth.toFixed(0) : pageStartDepth.toFixed(1)}</text>`;
-
-  // Altitude at segment boundaries
+  // Start depth
+  const y0 = headerH;
+  svg += `<text x="${X.prof + COL.prof - 10}" y="${y0 + 10}" text-anchor="end" font-size="7" fill="#4a5a6a">${startDepth % 1 === 0 ? startDepth.toFixed(0) : startDepth.toFixed(1)}</text>`;
   if (hasAlt) {
-    const drawnDepths = new Set();
-    segments.forEach((seg, i) => {
-      if (!drawnDepths.has(seg.segFrom)) {
-        const y = depthToY(seg.segFrom);
-        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
-        const altVal = (m.altitude - seg.segFrom).toFixed(1);
-        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" ${i===0 && isFirstPage?'font-weight="600" ':''} fill="#4a7a6a">${altVal}</text>`;
-        drawnDepths.add(seg.segFrom);
-      }
-      if (!drawnDepths.has(seg.segTo)) {
-        const y = depthToY(seg.segTo);
-        svg += `<line x1="${altX}" y1="${y}" x2="${altX+5}" y2="${y}" stroke="#999" stroke-width="0.5"/>`;
-        svg += `<text x="${altX+altColW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#4a7a6a">${(m.altitude - seg.segTo).toFixed(1)}</text>`;
-        drawnDepths.add(seg.segTo);
+    svg += `<text x="${X.alt + COL.alt / 2}" y="${y0 + 10}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - startDepth).toFixed(1)}</text>`;
+  }
+
+  /* ---- Depth ruler axis line ---- */
+  svg += `<line x1="${X.prof + COL.prof}" y1="${headerH}" x2="${X.prof + COL.prof}" y2="${headerH + logH}" stroke="#666" stroke-width="0.8"/>`;
+
+  /* ---- RENDER LAYERS ---- */
+  let yOff = headerH;
+
+  // Group layers by stratigraphie for the strat column
+  const stratGroups = [];
+  let currentStrat = null;
+  layers.forEach((l, i) => {
+    const strat = l.stratigraphie || '';
+    if (strat !== currentStrat) {
+      stratGroups.push({ name: strat, fromIdx: i, toIdx: i });
+      currentStrat = strat;
+    } else {
+      stratGroups[stratGroups.length - 1].toIdx = i;
+    }
+  });
+
+  layers.forEach((layer, i) => {
+    const h = layerHeights[i];
+    const thick = layer.to - layer.from;
+    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
+
+    /* Col 3: Profil géologique — pattern fill */
+    svg += `<rect x="${X.profil}" y="${yOff}" width="${COL.profil}" height="${h}" fill="${gtCfg.color}" opacity="0.25"/>`;
+    svg += `<rect x="${X.profil}" y="${yOff}" width="${COL.profil}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
+
+    /* Col 4: Description lithologique */
+    const descX = X.desc + 4;
+    const maxCharsPerLine = 38;
+    // First line: depth range + litho name (bold)
+    const firstLine = `${layer.from.toFixed(1)} - ${layer.to.toFixed(1)} m ${layer.litho}`;
+    // Detail lines
+    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
+    const detailLines = wrapText(details, maxCharsPerLine);
+    const lineH = 10;
+    const totalTextH = lineH + detailLines.length * lineH;
+    const textStartY = yOff + Math.max((h - totalTextH) / 2, 4) + lineH;
+
+    svg += `<text x="${descX}" y="${textStartY}" font-size="8" font-weight="700" fill="#1a2332">${escapeHtml(firstLine.substring(0, 45))}${firstLine.length > 45 ? '...' : ''}</text>`;
+    detailLines.forEach((line, li) => {
+      if (textStartY + (li + 1) * lineH < yOff + h - 2) {
+        svg += `<text x="${descX}" y="${textStartY + (li + 1) * lineH}" font-size="7" fill="#5a6a7a">${escapeHtml(line)}</text>`;
       }
     });
-  }
 
-  // Nappe line (if on this page)
-  if (nappeDepth !== null && nappeDepth >= pageStartDepth && nappeDepth <= pageEndDepth) {
-    const wy = depthToY(nappeDepth);
-    svg += `<line x1="${logX}" y1="${wy}" x2="${patX+patternColW}" y2="${wy}" stroke="#1a6aaf" stroke-width="1.8" stroke-dasharray="6,3"/>`;
-    svg += `<polygon points="${logX},${wy-7} ${logX+8},${wy-7} ${logX+4},${wy}" fill="#1a6aaf"/>`;
-    let nappeText = `Nappe : ${nappeDepth.toFixed(1)} m`;
-    if (hasAlt) nappeText += ` (${(m.altitude-nappeDepth).toFixed(1)} m.s.m.)`;
-    const textW = nappeText.length * 5.5 + 6;
-    svg += `<rect x="${descX-2}" y="${wy-14}" width="${textW}" height="14" fill="white" opacity="0.85" rx="2"/>`;
-    svg += `<text x="${descX}" y="${wy-4}" font-size="9" font-weight="700" fill="#1a6aaf">${nappeText}</text>`;
-  }
-
-  // Descriptions
-  yOff = marginTop;
-  segments.forEach((seg) => {
-    const h = seg.displayHeight;
-    const centerY = yOff + h / 2;
-
-    // Nappe offset
-    const nappeInSeg = nappeDepth !== null && nappeDepth >= seg.segFrom && nappeDepth <= seg.segTo;
-    const descYOffset = nappeInSeg ? 10 : 0;
-
-    // Stretched indicator
-    const stretchMark = seg.stretched ? ' ↕' : '';
-
-    // Continuation labels
-    if (seg.continuedFrom) {
-      svg += `<text x="${patX+patternColW-3}" y="${yOff+10}" text-anchor="end" font-size="7" fill="#8a9aaa">↑ suite</text>`;
+    /* Col 5: Géotype / USCS */
+    const gcx = X.geouscs + COL.geouscs / 2;
+    // USCS badge
+    const uscsBadge = getUSCSBadgeColor(layer.uscs);
+    if (uscsBadge) {
+      const bw = 28, bh = 12;
+      svg += `<rect x="${gcx - bw/2}" y="${yOff + 3}" width="${bw}" height="${bh}" rx="3" fill="${uscsBadge.bg}" stroke="${uscsBadge.fg}" stroke-width="0.4" opacity="0.9"/>`;
+      svg += `<text x="${gcx}" y="${yOff + 3 + bh/2 + 3}" text-anchor="middle" font-size="6.5" font-weight="700" fill="${uscsBadge.fg}">${escapeHtml(layer.uscs)}</text>`;
     }
-    if (seg.continued) {
-      svg += `<text x="${patX+patternColW-3}" y="${yOff+h-3}" text-anchor="end" font-size="7" fill="#8a9aaa">↓ suite</text>`;
+    // Geotype code (vertical, bold)
+    const geoCodeY = yOff + (uscsBadge ? 20 : 4);
+    if (h >= 30) {
+      svg += `<text x="${gcx}" y="${geoCodeY + 10}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a5c" transform="rotate(-90,${gcx},${geoCodeY + 10})">${layer.geotype}</text>`;
+    }
+    // Geotype name (vertical, smaller)
+    const geoLabel = (gtCfg.label || '').substring(0, 18);
+    if (h >= 50) {
+      svg += `<text x="${gcx + 8}" y="${geoCodeY + 10}" text-anchor="middle" font-size="5" fill="#6a8aaa" transform="rotate(-90,${gcx + 8},${geoCodeY + 10})">${escapeHtml(geoLabel)}</text>`;
     }
 
-    if (seg.showDesc) {
-      const cy = centerY + descYOffset;
-      const details = [seg.couleur, seg.consistance, seg.inclusions].filter(Boolean).join(', ');
-      const depthInfo = `${seg.from.toFixed(1)} – ${seg.to.toFixed(1)} m | ep. ${(seg.to-seg.from).toFixed(1)} m${stretchMark}`;
-      const uscs = seg.uscs;
-
-      if (h >= 50) {
-        const lineCount = details ? 3 : 2;
-        const blockH = lineCount * 14;
-        const startY = cy - blockH / 2 + 12;
-        svg += `<text x="${descX}" y="${startY}" font-size="13" font-weight="700" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
-        svg += `<text x="${descX}" y="${startY+14}" font-size="10" fill="#8a9aaa">${depthInfo}</text>`;
-        if (details) svg += `<text x="${descX}" y="${startY+26}" font-size="10" fill="#5a6a7a">${escapeHtml(details)}</text>`;
-        if (uscs !== '—') {
-          const badgeX = descX + descColW - 38;
-          svg += `<rect x="${badgeX}" y="${cy-9}" width="35" height="18" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-          svg += `<text x="${badgeX+17.5}" y="${cy+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
-        }
-      } else if (h >= 30) {
-        svg += `<text x="${descX}" y="${cy-2}" font-size="12" font-weight="700" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
-        svg += `<text x="${descX}" y="${cy+11}" font-size="9" fill="#8a9aaa">${depthInfo}</text>`;
-        if (uscs !== '—') {
-          const badgeX = descX + descColW - 35;
-          svg += `<rect x="${badgeX}" y="${cy-8}" width="32" height="16" rx="3" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.5"/>`;
-          svg += `<text x="${badgeX+16}" y="${cy+4}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${escapeHtml(uscs)}</text>`;
-        }
-      } else {
-        svg += `<text x="${descX}" y="${cy+4}" font-size="10" font-weight="600" fill="#1a2332">${escapeHtml(seg.litho)}</text>`;
+    /* Col 7: Venues d'eau */
+    if (nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to) {
+      const ny = depthToY(nappeDepth);
+      const ex = X.eau;
+      // Triangle bleu inversé
+      svg += `<polygon points="${ex+COL.eau/2-5},${ny-7} ${ex+COL.eau/2+5},${ny-7} ${ex+COL.eau/2},${ny}" fill="#2196F3"/>`;
+      // Ligne pointillée
+      svg += `<line x1="${ex}" y1="${ny}" x2="${ex+COL.eau}" y2="${ny}" stroke="#2196F3" stroke-width="1" stroke-dasharray="4,3"/>`;
+      // Depth text
+      svg += `<text x="${ex+COL.eau/2}" y="${ny + 10}" text-anchor="middle" font-size="6.5" font-weight="600" fill="#2196F3">${nappeDepth.toFixed(1)}</text>`;
+    }
+    // Saturated zone hint (light blue below nappe)
+    if (nappeDepth !== null && layer.to > nappeDepth && layer.from < nappeDepth) {
+      const ny = depthToY(nappeDepth);
+      const belowH = yOff + h - ny;
+      if (belowH > 0) {
+        svg += `<rect x="${X.eau}" y="${ny}" width="${COL.eau}" height="${belowH}" fill="#e3f2fd" opacity="0.4"/>`;
       }
+    } else if (nappeDepth !== null && layer.from >= nappeDepth) {
+      svg += `<rect x="${X.eau}" y="${yOff}" width="${COL.eau}" height="${h}" fill="#e3f2fd" opacity="0.3"/>`;
     }
+
+    /* Layer boundary (black line across all columns) */
+    if (i > 0) {
+      svg += `<line x1="0" y1="${yOff}" x2="${totalW}" y2="${yOff}" stroke="#1a2332" stroke-width="0.8"/>`;
+    }
+
     yOff += h;
   });
 
-  // Scale indication + legend (last page only)
-  if (isLastPage) {
-    const scaleY = marginTop + pageLogH + 16;
-    svg += `<text x="${marginLeft}" y="${scaleY}" font-size="8" fill="#8a9aaa">Échelle ${ratio}</text>`;
+  /* ---- Col 6: STRATIGRAPHIE (spans across multiple layers) ---- */
+  stratGroups.forEach(sg => {
+    if (!sg.name) return;
+    let sy = headerH;
+    for (let i = 0; i < sg.fromIdx; i++) sy += layerHeights[i];
+    let sh = 0;
+    for (let i = sg.fromIdx; i <= sg.toIdx; i++) sh += layerHeights[i];
+    const cx = X.strat + COL.strat / 2;
+    const cy = sy + sh / 2;
+    // Vertical bracket line
+    svg += `<line x1="${X.strat + 3}" y1="${sy + 2}" x2="${X.strat + 3}" y2="${sy + sh - 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+    svg += `<line x1="${X.strat + 3}" y1="${sy + 2}" x2="${X.strat + 7}" y2="${sy + 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+    svg += `<line x1="${X.strat + 3}" y1="${sy + sh - 2}" x2="${X.strat + 7}" y2="${sy + sh - 2}" stroke="#1a3a5c" stroke-width="0.8"/>`;
+    // Vertical text
+    const maxLen = Math.floor(sh / 5);
+    const truncName = sg.name.length > maxLen ? sg.name.substring(0, maxLen - 1) + '…' : sg.name;
+    svg += `<text x="${cx + 4}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="6" fill="#1a3a5c" transform="rotate(-90,${cx + 4},${cy})">${escapeHtml(truncName)}</text>`;
+    // Horizontal separator at formation change (if not at first layer)
+    if (sg.fromIdx > 0) {
+      svg += `<line x1="${X.strat}" y1="${sy}" x2="${X.strat + COL.strat}" y2="${sy}" stroke="#1a3a5c" stroke-width="1"/>`;
+    }
+  });
 
-    const legendY = marginTop + pageLogH + marginBottom + scaleInfoH - 5;
-    svg += `<line x1="20" y1="${legendY}" x2="${totalW-20}" y2="${legendY}" stroke="#e0e8f0" stroke-width="1"/>`;
-    svg += `<text x="20" y="${legendY+16}" font-size="9" font-weight="700" fill="#4a5a6a">Légende des géotypes</text>`;
-    const legendStartY = legendY + 28;
-    const colW = Math.floor((totalW - 40) / 4);
-    usedGeotypes.forEach((geotype, idx) => {
-      const gtCfg = GEOTYPE_CONFIG[geotype];
+  /* ---- BOTTOM LINE (fond de forage) ---- */
+  const bottomY = headerH + logH;
+  svg += `<line x1="0" y1="${bottomY}" x2="${totalW}" y2="${bottomY}" stroke="#1a2332" stroke-width="1.5"/>`;
+  // End depth mark
+  svg += `<text x="${X.prof + COL.prof - 10}" y="${bottomY - 3}" text-anchor="end" font-size="7" fill="#4a5a6a">${maxDepth % 1 === 0 ? maxDepth.toFixed(0) : maxDepth.toFixed(1)}</text>`;
+  if (hasAlt) {
+    svg += `<text x="${X.alt + COL.alt / 2}" y="${bottomY - 3}" text-anchor="middle" font-size="7" fill="#4a7a6a">${(m.altitude - maxDepth).toFixed(1)}</text>`;
+  }
+
+  /* ---- SCALE LABEL (footer) ---- */
+  svg += `<text x="${totalW / 2}" y="${bottomY + 14}" text-anchor="middle" font-size="7" fill="#8a9aaa">Échelle ${ratio}</text>`;
+
+  /* ---- LEGEND ---- */
+  if (showLegend) {
+    const legY = bottomY + footerH + 4;
+    svg += `<line x1="10" y1="${legY}" x2="${totalW - 10}" y2="${legY}" stroke="#d0d0d0" stroke-width="0.5"/>`;
+    svg += `<text x="10" y="${legY + 12}" font-size="7" font-weight="700" fill="#4a5a6a">Légende — Géotypes</text>`;
+    const gLegY = legY + 18;
+    const colW = Math.floor((totalW - 20) / 3);
+    usedGeotypes.forEach((gt, idx) => {
+      const gtCfg = GEOTYPE_CONFIG[gt];
       if (!gtCfg) return;
-      const col = idx % 4;
-      const row = Math.floor(idx / 4);
-      const lx = 20 + col * colW;
-      const ly = legendStartY + row * 28;
-      svg += `<rect x="${lx}" y="${ly}" width="20" height="16" fill="url(#pat_${geotype})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
-      svg += `<text x="${lx+25}" y="${ly+12}" font-size="9" fill="#3a5a7a">${geotype} – ${gtCfg.label}</text>`;
+      const col = idx % 3;
+      const row = Math.floor(idx / 3);
+      const lx = 10 + col * colW;
+      const ly = gLegY + row * 22;
+      svg += `<rect x="${lx}" y="${ly}" width="16" height="14" fill="url(#pat_${gt})" stroke="#c0c8d0" stroke-width="0.5" rx="2"/>`;
+      svg += `<text x="${lx + 20}" y="${ly + 10}" font-size="6.5" fill="#3a5a7a"><tspan font-weight="700">${gt}</tspan> — ${escapeHtml(gtCfg.label)}</text>`;
     });
+
+    // USCS legend
+    if (usedUSCS.length > 0) {
+      const uscsLegY = gLegY + legendRows * 22 + 4;
+      svg += `<text x="10" y="${uscsLegY}" font-size="7" font-weight="700" fill="#4a5a6a">Codes USCS</text>`;
+      const uLegY = uscsLegY + 8;
+      usedUSCS.forEach((u, idx) => {
+        const bc = getUSCSBadgeColor(u) || {bg:'#e8f0fe',fg:'#1a3a5c'};
+        const col = idx % 5;
+        const row = Math.floor(idx / 5);
+        const lx = 10 + col * 90;
+        const ly = uLegY + row * 20;
+        svg += `<rect x="${lx}" y="${ly}" width="${u.length * 6 + 10}" height="13" rx="3" fill="${bc.bg}" stroke="${bc.fg}" stroke-width="0.4"/>`;
+        svg += `<text x="${lx + (u.length * 6 + 10)/2}" y="${ly + 9}" text-anchor="middle" font-size="6.5" font-weight="700" fill="${bc.fg}">${escapeHtml(u)}</text>`;
+      });
+    }
+
+    // Nappe symbol
+    if (nappeDepth !== null) {
+      const nLegY = gLegY + legendRows * 22 + legendUSCSRows * 20 + 10;
+      svg += `<polygon points="10,${nLegY} 20,${nLegY} 15,${nLegY+8}" fill="#2196F3"/>`;
+      svg += `<line x1="25" y1="${nLegY + 4}" x2="55" y2="${nLegY + 4}" stroke="#2196F3" stroke-width="1" stroke-dasharray="4,3"/>`;
+      svg += `<text x="60" y="${nLegY + 7}" font-size="6.5" fill="#2196F3">Niveau piézométrique (${nappeDepth.toFixed(1)} m)</text>`;
+    }
   }
 
   svg += '</svg>';
-  return svg;
+  return { svg, scaleInfo, usedGeotypes };
 }
 
-/* ---- Main renderLog with pagination ---- */
+/* ---- Main renderLog ---- */
 function renderLog(data) {
   if (!data.layers || !data.layers.some(l => l.to != null)) {
-    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complete identifiee.</div>';
+    document.getElementById('logOutput').innerHTML = '<div class="preview-empty">Aucune couche complète identifiée.</div>';
     document.getElementById('logMeta').style.display = 'none';
     document.getElementById('logScaleBar').style.display = 'none';
     document.getElementById('logWarnBar').style.display = 'none';
@@ -2058,91 +2082,28 @@ function renderLog(data) {
   }
 
   const m = data.meta || {};
-  const hasAlt = typeof m.altitude === 'number';
-  const layers = data.layers.filter(l => l.to != null).map(l => {
-    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
-    const geotype = getGeotypeForLayer(l);
-    const uscs = displayUSCS(l);
-    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs, couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
-  });
-
-  const maxDepth = Math.max(...layers.map(l => l.to));
-  const startDepth = layers[0].from;
-  const totalDepth = maxDepth - startDepth;
+  const maxDepth = Math.max(...data.layers.filter(l => l.to != null).map(l => l.to));
   const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
 
-  // Scale selection
-  const choice = getChosenScale();
-  const scaleInfo = choice === 'auto' ? selectScale(totalDepth) :
-    choice === '1:50' ? { ratio: '1:50', pxPerM: 75.6 } :
-    choice === '1:100' ? { ratio: '1:100', pxPerM: 37.8 } :
-    { ratio: '1:200', pxPerM: 18.9 };
+  const showLeg = document.getElementById('logLegendToggle') ? document.getElementById('logLegendToggle').checked : true;
+  const result = buildProLog(data, showLeg);
+  if (!result) return;
 
-  const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
+  // Store for export (always build without legend toggle override — include legend)
+  const exportResult = buildProLog(data, true);
+  lastLogSVG = exportResult.svg;
 
-  // Paginate
-  const pages = paginateLog(layers, scaleInfo.pxPerM, nappeDepth, startDepth);
-
-  // Render each page
-  const pageSVGs = pages.map((page, idx) =>
-    renderLogPage(page, idx, pages.length, m, scaleInfo, usedGeotypes, nappeDepth, false)
-  );
-
-  // Build HTML output
-  let html = '';
-  pageSVGs.forEach((svg, idx) => {
-    html += `<div class="log-svg-wrap">${svg}</div>`;
-    if (idx < pageSVGs.length - 1) {
-      html += `<div class="page-separator"><span>— Page ${idx+2}/${pages.length} —</span></div>`;
-    }
-  });
-
-  // For PNG export: build one continuous SVG (all pages stacked, no separators)
-  lastLogSVG = buildContinuousSVG(pages, m, scaleInfo, usedGeotypes, nappeDepth);
-  lastLogPages = pageSVGs; // Store individual page SVGs for DOCX export
+  document.getElementById('logOutput').innerHTML = result.svg;
 
   const metaEl = document.getElementById('logMeta');
   metaEl.style.display = 'grid';
   metaEl.innerHTML = `<div><strong>Sondage :</strong> ${escapeHtml(m.id||'—')}</div><div><strong>Date :</strong> ${escapeHtml(m.date||'—')}</div><div><strong>Coord. MN95 :</strong> ${m.coord_e?'E '+escapeHtml(m.coord_e)+' / N '+escapeHtml(m.coord_n):'—'}</div><div><strong>Altitude :</strong> ${escapeHtml(String(m.altitude||'—'))} m</div><div><strong>Prof. totale :</strong> ${maxDepth.toFixed(1)} m</div><div><strong>Nappe :</strong> ${nappeDepth!==null?nappeDepth.toFixed(1)+' m':'Non rencontrée'}</div>`;
-  document.getElementById('logOutput').innerHTML = html;
+
   document.getElementById('logScaleBar').style.display = 'flex';
   document.getElementById('logWarnBar').style.display = 'block';
   document.getElementById('logExportBar').style.display = 'flex';
 }
 
-/* Build a single continuous SVG for PNG export (no page separators) */
-function buildContinuousSVG(pages, meta, scaleInfo, usedGeotypes, nappeDepth) {
-  // Flatten all segments
-  const allSegments = [];
-  for (const page of pages) {
-    for (const seg of page.segments) {
-      // Avoid duplicates from split layers
-      if (allSegments.length > 0) {
-        const last = allSegments[allSegments.length - 1];
-        if (last.from === seg.from && last.to === seg.to && last.continuedFrom) continue;
-      }
-      allSegments.push(seg);
-    }
-  }
-
-  // Merge split segments back to original layers
-  const mergedLayers = [];
-  for (const seg of allSegments) {
-    const last = mergedLayers[mergedLayers.length - 1];
-    if (last && last.from === seg.from && last.to === seg.to) continue; // skip duplicate
-    mergedLayers.push(seg);
-  }
-
-  // Rebuild as a single page
-  const singlePage = { segments: mergedLayers.map(l => ({
-    ...l, displayHeight: layerHeight(l.to - l.from, scaleInfo.pxPerM),
-    segFrom: l.from, segTo: l.to, showDesc: true,
-    stretched: layerHeight(l.to - l.from, scaleInfo.pxPerM) > (l.to - l.from) * scaleInfo.pxPerM
-  })), usedHeight: 0 };
-  singlePage.usedHeight = singlePage.segments.reduce((s, seg) => s + seg.displayHeight, 0);
-
-  return renderLogPage(singlePage, 0, 1, meta, scaleInfo, usedGeotypes, nappeDepth, true);
-}
 
 /* ================================================================
    EXPORT HELPERS
@@ -2398,14 +2359,15 @@ function doPngExport(wrapper, btn) {
   }).catch(() => { document.body.removeChild(wrapper); btn.textContent = 'Exporter .png'; btn.disabled = false; });
 }
 
-function exportLogPNG(scale) {
+function exportLogPNG300() {
   if (!lastLogSVG) return;
-  // Parse width/height from the continuous SVG string
   const wMatch = lastLogSVG.match(/width="(\d+\.?\d*)"/);
   const hMatch = lastLogSVG.match(/height="(\d+\.?\d*)"/);
   if (!wMatch || !hMatch) return;
-  const w = parseFloat(wMatch[1]) * scale;
-  const h = parseFloat(hMatch[1]) * scale;
+  // 300 DPI = ~3.125x scale factor (300/96)
+  const dpiScale = 300 / 96;
+  const w = Math.round(parseFloat(wMatch[1]) * dpiScale);
+  const h = Math.round(parseFloat(hMatch[1]) * dpiScale);
   const canvas = document.getElementById('logCanvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
@@ -2416,11 +2378,14 @@ function exportLogPNG(scale) {
     ctx.fillStyle = 'white'; ctx.fillRect(0,0,w,h);
     ctx.drawImage(img,0,0,w,h); URL.revokeObjectURL(url);
     const a = document.createElement('a');
-    a.download = `log_${lastStructuredData?.meta?.id||'log'}.png`;
+    a.download = `log_${lastStructuredData?.meta?.id||'log'}_300dpi.png`;
     a.href = canvas.toDataURL('image/png'); a.click();
   };
   img.src = url;
 }
+
+/* Keep old name as alias */
+function exportLogPNG(scale) { exportLogPNG300(); }
 
 function exportLogSVG() {
   if (!lastLogSVG) return;
@@ -2428,6 +2393,55 @@ function exportLogSVG() {
   const a = document.createElement('a');
   a.download = `log_${lastStructuredData?.meta?.id||'log'}.svg`;
   a.href = URL.createObjectURL(blob); a.click();
+}
+
+function exportLogPDF() {
+  if (!lastLogSVG) return;
+  const wMatch = lastLogSVG.match(/width="(\d+\.?\d*)"/);
+  const hMatch = lastLogSVG.match(/height="(\d+\.?\d*)"/);
+  if (!wMatch || !hMatch) return;
+  const svgW = parseFloat(wMatch[1]);
+  const svgH = parseFloat(hMatch[1]);
+  // Render SVG to canvas at 2x for quality
+  const scale = 2;
+  const cw = Math.round(svgW * scale);
+  const ch = Math.round(svgH * scale);
+  const canvas = document.getElementById('logCanvas');
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  const svgBlob = new Blob([lastLogSVG], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  img.onload = function() {
+    ctx.fillStyle = 'white'; ctx.fillRect(0,0,cw,ch);
+    ctx.drawImage(img,0,0,cw,ch); URL.revokeObjectURL(url);
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    // PDF page = SVG aspect ratio, width = 210mm (A4 width) or auto
+    const pdfW = svgW * 0.2646; // px to mm at 96dpi
+    const pdfH = svgH * 0.2646;
+    const pdf = new jsPDF({
+      orientation: pdfH > pdfW ? 'portrait' : 'landscape',
+      unit: 'mm',
+      format: [pdfW, pdfH]
+    });
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+    pdf.save(`log_${lastStructuredData?.meta?.id||'log'}.pdf`);
+  };
+  img.src = url;
+}
+
+function toggleLogExportDropdown() {
+  const menu = document.getElementById('logExportDropdownMenu');
+  menu.classList.toggle('open');
+  setTimeout(() => {
+    document.addEventListener('click', function closeDD(e) {
+      if (!e.target.closest('.export-dropdown')) {
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeDD);
+      }
+    });
+  }, 10);
 }
 
 /* ================================================================
@@ -2681,289 +2695,16 @@ function formatSwissCoord(value) {
   return r;
 }
 
-function renderFiche(data) {
-  const bureau = loadBureauProfile();
-  const m = data.meta || {};
-  let html = '<div class="fiche-page">';
-
-  /* Zone A - Header Bureau */
-  html += '<div class="fiche-zone-a">';
-  html += '<div class="fiche-bureau-left">';
-  if (bureau.logo) {
-    html += `<div class="fiche-bureau-logo"><img src="${bureau.logo}" alt="Logo"></div>`;
-  }
-  html += `<div>
-    <div class="fiche-bureau-name">${escapeHtml(bureau.name || 'Bureau')}</div>
-    <div class="fiche-bureau-code">${escapeHtml(bureau.code || '')}</div>
-  </div>`;
-  html += '</div>';
-  html += '<div class="fiche-bureau-right">';
-  if (bureau.specs && (bureau.specs.hydro || bureau.specs.enviro || bureau.specs.geo || bureau.specs.hydra)) {
-    let specs = [];
-    if (bureau.specs.hydro) specs.push('HYDROGÉO');
-    if (bureau.specs.enviro) specs.push('ENV.');
-    if (bureau.specs.geo) specs.push('GÉOTECH');
-    if (bureau.specs.hydra) specs.push('HYDRAUL');
-    html += `<div class="fiche-bureau-specs">${specs.join(' • ')}</div>`;
-  }
-  html += '<div class="fiche-bureau-contact">';
-  if (bureau.phone) html += escapeHtml(bureau.phone) + '<br>';
-  if (bureau.email) html += escapeHtml(bureau.email);
-  html += '</div></div>';
-  html += '</div>';
-
-  /* Zone B - Identification */
-  html += '<div class="fiche-zone-b">';
-  html += `<div class="fiche-title">Sondage <select class="fiche-type-select" id="ficheType" onchange="updateFichePreview()">
-    <option value="pressiomètre">Pressiomètre</option>
-    <option value="carottage">Carottage</option>
-    <option value="pénétromètre">Pénétromètre</option>
-    <option value="forage">Forage</option>
-  </select></div>`;
-  html += `<div class="fiche-subtitle">
-    <strong>Client:</strong> <span class="fiche-editable" id="ficheClient" contenteditable data-placeholder="[client]">${escapeHtml(m.client || '')}</span><br>
-    <strong>Sondage:</strong> <span class="fiche-editable" id="ficheSondageID" contenteditable data-placeholder="[ID]">${escapeHtml(m.id || '')}</span>
-  </div>`;
-  html += '<div class="fiche-id-grid">';
-  html += `<div class="fiche-id-row"><span class="fiche-id-label">Commune</span><span class="fiche-id-colon">:</span> <span class="fiche-editable" id="ficheCommune" contenteditable data-placeholder="[commune]">${escapeHtml(m.lieu || '')}</span></div>`;
-  html += `<div class="fiche-id-row"><span class="fiche-id-label">Coordonnées</span><span class="fiche-id-colon">:</span> <span class="fiche-editable" id="ficheCoord" contenteditable data-placeholder="[coord]">${escapeHtml(m.coordE && m.coordN ? formatSwissCoord(m.coordE) + ' / ' + formatSwissCoord(m.coordN) : '')}</span></div>`;
-  html += '</div>';
-  html += '</div>';
-
-  /* Zone C - Technical metadata */
-  html += '<div class="fiche-zone-c">';
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Géologue</span> <span class="fiche-editable" id="ficheGeologue" contenteditable data-placeholder="[nom]">${escapeHtml(m.geologist || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Dessiné par</span> <span class="fiche-editable" id="ficheDessinePar" contenteditable data-placeholder="[nom]">${escapeHtml(m.drawnBy || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Contrôlé par</span> <span class="fiche-editable" id="ficheControlePar" contenteditable data-placeholder="[nom]">${escapeHtml(m.checkedBy || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Date</span> <span class="fiche-editable" id="ficheDate" contenteditable data-placeholder="[JJ/MM/AAAA]">${escapeHtml(m.date || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Entrée forage</span> <span class="fiche-editable" id="ficheEntree" contenteditable data-placeholder="[m]">${escapeHtml(m.entreeForage || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Diamètre</span> <span class="fiche-editable" id="ficheDiametre" contenteditable data-placeholder="[mm]">${escapeHtml(m.diametre || '')}</span></div>`;
-  html += `<div class="fiche-meta-row"><span class="fiche-meta-label">Niv. eau stab.</span> <span class="fiche-editable" id="ficheNiveauEau" contenteditable data-placeholder="[m]">${escapeHtml(m.niveauEau !== undefined ? m.niveauEau : (m.nappe_m !== undefined ? m.nappe_m : ''))}</span></div>`;
-  html += '</div>';
-
-  /* Zone D - Column headers */
-  html += '<div class="fiche-zone-d">';
-  html += '<div class="fiche-col-header" style="flex: 0.8;">Prof.<br>(m)</div>';
-  html += '<div class="fiche-col-header" style="flex: 0.8;">Alt.<br>(m.s.m)</div>';
-  html += '<div class="fiche-col-header" style="flex: 1;">Profil<br>géol.</div>';
-  html += '<div class="fiche-col-header" style="flex: 2.5;">Description<br>lithologique</div>';
-  html += '<div class="fiche-col-header" style="flex: 1;">Géotype</div>';
-  html += '<div class="fiche-col-header" style="flex: 1;">Venues<br>d\'eau</div>';
-  html += '</div>';
-
-  /* Zone E - Log */
-  html += '<div class="fiche-zone-e" id="ficheLogArea"></div>';
-
-  /* Zone F - Footer */
-  html += '<div class="fiche-zone-f">';
-  html += '<div>HORS-SOL</div>';
-  html += `<div>Compilé le ${new Date().toLocaleDateString('fr-CH')}</div>`;
-  html += '</div>';
-
-  html += '</div>';
-
-  document.getElementById('ficheContainer').innerHTML = html;
-  document.getElementById('ficheExportBar').style.display = 'flex';
-
-  renderFicheLog(data, 500, 0);
-}
-
-function renderFicheLog(data, logAreaHeight, pageIdx) {
-  const el = document.getElementById('ficheLogArea');
-  if (!data || !data.layers || data.layers.length === 0) {
-    el.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ab0c8;">Pas de données de forage</div>';
-    return;
-  }
-
-  const m = data.meta || {};
-  const hasAlt = typeof m.altitude === 'number';
-  const layers = data.layers.filter(l => l.to != null).map(l => {
-    const litho = l.lithologie || (l.description ? l.description.split(',')[0].trim() : 'Inconnu');
-    const geotype = getGeotypeForLayer(l);
-    const uscs = displayUSCS(l);
-    return { from: l.from, to: l.to, litho, geotype, description: l.description || '', uscs, couleur: l.couleur || '', consistance: l.consistance || '', inclusions: l.inclusions || '' };
-  });
-
-  const maxDepth = Math.max(...layers.map(l => l.to));
-  const startDepth = layers[0].from;
-  const totalDepth = maxDepth - startDepth;
-  const nappeDepth = typeof m.nappe_m === 'number' ? m.nappe_m : null;
-  const usedGeotypes = [...new Set(layers.map(l => l.geotype))];
-
-  // Column widths (px out of ~718px usable)
-  const W = 718; // total svg width
-  const profW = 40, altW = hasAlt ? 40 : 0, profilW = 80, descW = 280, geotypeW = 55, eauW = 45;
-  const usedW = profW + altW + profilW + descW + geotypeW + eauW;
-  const svgW = Math.max(usedW, W);
-
-  // Scale
-  const scaleInfo = selectScale(totalDepth);
-  const pxPerM = scaleInfo.pxPerM;
-  const logH = Math.max(layers.length * 50, totalDepth * pxPerM);
-  const svgH = Math.max(logAreaHeight, logH + 10);
-
-  // Column x positions
-  const x0 = 0;
-  const xAlt = profW;
-  const xProf = xAlt + altW;
-  const xDesc = xProf + profilW;
-  const xGeo = xDesc + descW;
-  const xEau = xGeo + geotypeW;
-
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" style="font-family:'Segoe UI',sans-serif;">`;
-  svg += `<rect width="${svgW}" height="${svgH}" fill="white"/>`;
-  svg += buildGeotypePatternDefs(usedGeotypes);
-
-  // Column separator lines
-  [xAlt, xProf, xDesc, xGeo, xEau, xEau + eauW].forEach(x => {
-    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${svgH}" stroke="#c0d0e0" stroke-width="0.5"/>`;
-  });
-
-  // Render each layer
-  let yOff = 0;
-  const scale = logH / totalDepth;
-
-  layers.forEach((layer, i) => {
-    const thickness = layer.to - layer.from;
-    const h = Math.max(thickness * scale, 50);
-    const gtCfg = GEOTYPE_CONFIG[layer.geotype] || GEOTYPE_CONFIG['CE'];
-
-    // Depth column
-    svg += `<text x="${x0 + profW/2}" y="${yOff + h/2 + 3}" text-anchor="middle" font-size="8" fill="#4a5a6a">${layer.from.toFixed(1)}</text>`;
-
-    // Altitude column
-    if (hasAlt) {
-      svg += `<text x="${xAlt + altW/2}" y="${yOff + h/2 + 3}" text-anchor="middle" font-size="8" fill="#4a7a6a">${(m.altitude - layer.from).toFixed(1)}</text>`;
-    }
-
-    // Profil géologique (pattern + color)
-    svg += `<rect x="${xProf}" y="${yOff}" width="${profilW}" height="${h}" fill="${gtCfg.color}" opacity="0.3"/>`;
-    svg += `<rect x="${xProf}" y="${yOff}" width="${profilW}" height="${h}" fill="url(#pat_${layer.geotype})"/>`;
-
-    // Description lithologique
-    const descY = yOff + 10;
-    svg += `<text x="${xDesc + 6}" y="${descY}" font-size="9" font-weight="700" fill="#1a2332">${escapeHtml(layer.litho)}</text>`;
-    svg += `<text x="${xDesc + 6}" y="${descY + 11}" font-size="7" fill="#8a9aaa">${layer.from.toFixed(1)} – ${layer.to.toFixed(1)} m | ep. ${thickness.toFixed(1)} m</text>`;
-    const details = [layer.couleur, layer.consistance, layer.inclusions].filter(Boolean).join(', ');
-    if (details && h >= 40) {
-      svg += `<text x="${xDesc + 6}" y="${descY + 21}" font-size="7" fill="#5a6a7a">${escapeHtml(details.substring(0, 50))}</text>`;
-    }
-
-    // Géotype column (vertical text)
-    svg += `<text x="${xGeo + geotypeW/2}" y="${yOff + h/2 - 2}" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3a5c">${layer.geotype}</text>`;
-    if (h >= 35) {
-      const label = (gtCfg.label || '').substring(0, 15);
-      svg += `<text x="${xGeo + geotypeW/2}" y="${yOff + h/2 + 9}" text-anchor="middle" font-size="5.5" fill="#6a8aaa">${escapeHtml(label)}</text>`;
-    }
-
-    // Venues d'eau column
-    if (nappeDepth !== null && nappeDepth >= layer.from && nappeDepth <= layer.to) {
-      const nappeY = yOff + ((nappeDepth - layer.from) / thickness) * h;
-      svg += `<line x1="${xEau}" y1="${nappeY}" x2="${xEau + eauW}" y2="${nappeY}" stroke="#2d6a9f" stroke-width="1.5" stroke-dasharray="4,2"/>`;
-      svg += `<polygon points="${xEau+2},${nappeY-4} ${xEau+6},${nappeY-4} ${xEau+4},${nappeY}" fill="#2d6a9f"/>`;
-      svg += `<text x="${xEau + eauW/2}" y="${nappeY + 9}" text-anchor="middle" font-size="6" fill="#2d6a9f">${nappeDepth.toFixed(1)} m</text>`;
-    }
-
-    // USCS badge (small, in desc area)
-    if (layer.uscs !== '—') {
-      const badgeX = xDesc + descW - 30;
-      svg += `<rect x="${badgeX}" y="${yOff + h/2 - 6}" width="26" height="12" rx="2" fill="#e8f0fe" stroke="#c0d4ea" stroke-width="0.4"/>`;
-      svg += `<text x="${badgeX + 13}" y="${yOff + h/2 + 2}" text-anchor="middle" font-size="6" font-weight="700" fill="#1a3a5c">${escapeHtml(layer.uscs)}</text>`;
-    }
-
-    // Horizontal separator
-    if (i > 0) {
-      svg += `<line x1="0" y1="${yOff}" x2="${svgW}" y2="${yOff}" stroke="#c0d0e0" stroke-width="0.5"/>`;
-    }
-
-    yOff += h;
-  });
-
-  // Bottom depth mark
-  svg += `<text x="${x0 + profW/2}" y="${yOff + 3}" text-anchor="middle" font-size="8" fill="#4a5a6a">${maxDepth.toFixed(1)}</text>`;
-  if (hasAlt) {
-    svg += `<text x="${xAlt + altW/2}" y="${yOff + 3}" text-anchor="middle" font-size="8" fill="#4a7a6a">${(m.altitude - maxDepth).toFixed(1)}</text>`;
-  }
-
-  svg += '</svg>';
-  el.innerHTML = svg;
-}
-
-function toggleExportDropdown() {
-  const menu = document.getElementById('exportDropdownMenu');
-  menu.classList.toggle('open');
-  document.addEventListener('click', function closeDropdown(e) {
-    if (!e.target.closest('.export-dropdown')) {
-      menu.classList.remove('open');
-      document.removeEventListener('click', closeDropdown);
-    }
-  });
-}
-
-function exportFichePDF() {
-  const element = document.querySelector('.fiche-page');
-  if (!element) {
-    alert('Aucune fiche à exporter');
-    return;
-  }
-
-  html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-    const sondageID = document.getElementById('ficheSondageID')?.textContent || 'fiche';
-    pdf.save(`${sondageID}_fiche.pdf`);
-  }).catch(err => {
-    console.error('PDF export error:', err);
-    alert('Erreur lors de l\'export PDF');
-  });
-}
-
-function exportFichePNG() {
-  const element = document.querySelector('.fiche-page');
-  if (!element) {
-    alert('Aucune fiche à exporter');
-    return;
-  }
-
-  html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    const sondageID = document.getElementById('ficheSondageID')?.textContent || 'fiche';
-    link.download = `${sondageID}_fiche.png`;
-    link.click();
-  }).catch(err => {
-    console.error('PNG export error:', err);
-    alert('Erreur lors de l\'export PNG');
-  });
-}
-
-function updateFichePreview() {
-  const ficheType = document.getElementById('ficheType')?.value || 'Forage';
-  document.querySelector('.fiche-title').textContent = `Sondage ${ficheType}`;
-}
+/* Fiche view removed — log is the standalone export block */
 
 function switchOutputTab(tab) {
   document.querySelectorAll('#outputTabs .tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('outputTableau').classList.remove('active');
   document.getElementById('outputLog').classList.remove('active');
-  document.getElementById('outputFiche').classList.remove('active');
 
   if (tab === 'log') {
     document.querySelector('#outputTabs .tab-btn:nth-child(2)').classList.add('active');
     document.getElementById('outputLog').classList.add('active');
-  } else if (tab === 'fiche') {
-    document.querySelector('#outputTabs .tab-btn:nth-child(3)').classList.add('active');
-    document.getElementById('outputFiche').classList.add('active');
   } else {
     document.querySelector('#outputTabs .tab-btn:nth-child(1)').classList.add('active');
     document.getElementById('outputTableau').classList.add('active');
